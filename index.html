@@ -2,9 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Gamifica Ação em Matemática</title>
 <meta name="description" content="Matemática de um jeito lúdico">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Gamifica Ação em Matemática">
+<meta property="og:title" content="Gamifica Ação em Matemática">
+<meta property="og:description" content="Matemática de um jeito lúdico">
+<meta property="og:url" content="https://profharoldo.github.io/gamifica-matematica/">
+<meta property="og:image" content="https://profharoldo.github.io/gamifica-matematica/capa.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://profharoldo.github.io/gamifica-matematica/capa.png">
+<meta name="theme-color" content="#ffd23f">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%2256%22%20height%3D%2256%22%20rx%3D%2214%22%20fill%3D%22%23ffd23f%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20font-size%3D%2238%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-weight%3D%22700%22%20fill%3D%22%231d2b53%22%3E%CF%80%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link id="fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
 <style id="reset">:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -235,7 +247,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 
 /* ---------- Fonte da própria página (para republicar) ---------- */
-const FONTS_HTML = '<link id="fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">';
+const FONTS_HTML = '<' + 'link id="fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">';
 const RESET_PADRAO = ':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}';
 const MODO_ARQUIVO = !(window.claude && typeof window.claude.use === 'function');
 const headStyle = document.getElementById('reset') || (document.head && document.head.querySelector('style:not(#appStyle)'));
@@ -247,21 +259,42 @@ const TITULO = ($('title') && $('title').textContent) || 'Portal de Atividades';
 function montarDocumento(){
   const json = JSON.stringify(PUB).replace(/</g,'\\u003c');
   if (MODO_ARQUIVO) return montarSite(json);
-  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + RESET + '</style></head><body>'
-    + '<title>' + esc(TITULO) + '</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n' + FONTS_HTML + '\n'
-    + '<style id="appStyle">' + CSS_APP + '</style>\n<div id="app"></div>\n'
-    + '<script type="application/json" id="portalData">' + json + '<' + '/script>\n'
-    + '<script id="portalApp">' + JS_APP + '<' + '/script>\n</body></html>';
+  return '<!doctype html><html><head><' + 'meta charset=utf8><' + 'meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><' + 'style>' + RESET + '<' + '/style></head><body>'
+    + '<' + 'title>' + esc(TITULO) + '<' + '/title>\n<' + 'meta name="claude:viewport-fit-sides" content="cover">\n' + FONTS_HTML + '\n'
+    + '<' + 'style id="appStyle">' + CSS_APP + '<' + '/style>\n<div id="app"></div>\n'
+    + '<' + 'script type="application/json" id="portalData">' + json + '<' + '/script>\n'
+    + '<' + 'script id="portalApp">' + JS_APP + '<' + '/script>\n</body></html>';
 }
 
 function montarSite(json){
-  return '<!doctype html>\n<html lang="pt-BR">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
-    + '<title>' + esc(PUB.site.nome) + '</title>\n'
-    + '<meta name="description" content="' + esc(PUB.site.subtitulo) + '">\n'
-    + '<link rel="icon" href="' + ICONE + '">\n'
-    + FONTS_HTML + '\n<style id="reset">' + RESET + '</style>\n<style id="appStyle">' + CSS_APP + '</style>\n</head>\n<body>\n<div id="app"></div>\n'
-    + '<script type="application/json" id="portalData">' + json + '<' + '/script>\n'
-    + '<script id="portalApp">' + JS_APP + '<' + '/script>\n</body>\n</html>\n';
+  const LT = '<';
+  const base = String(location.href).replace(/[#?].*$/, '').replace(/index\.html$/, '');
+  const nome = esc(PUB.site.nome), desc = esc(PUB.site.subtitulo);
+  const capa = base + 'capa.png';
+  const m = (attr, k, v) => LT + 'meta ' + attr + '="' + k + '" content="' + v + '">\n';
+  return LT + '!doctype html>\n' + LT + 'html lang="pt-BR">\n' + LT + 'head>\n'
+    + LT + 'meta charset="utf-8">\n'
+    + LT + 'title>' + nome + LT + '/title>\n'
+    + m('name', 'description', desc)
+    + m('property', 'og:type', 'website')
+    + m('property', 'og:site_name', nome)
+    + m('property', 'og:title', nome)
+    + m('property', 'og:description', desc)
+    + m('property', 'og:url', esc(base))
+    + m('property', 'og:image', esc(capa))
+    + m('property', 'og:image:width', '1200')
+    + m('property', 'og:image:height', '630')
+    + m('property', 'og:locale', 'pt_BR')
+    + m('name', 'twitter:card', 'summary_large_image')
+    + m('name', 'twitter:image', esc(capa))
+    + m('name', 'theme-color', '#ffd23f')
+    + LT + 'meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
+    + LT + 'link rel="icon" href="' + ICONE + '">\n'
+    + FONTS_HTML + '\n' + LT + 'style id="reset">' + RESET + LT + '/style>\n'
+    + LT + 'style id="appStyle">' + CSS_APP + LT + '/style>\n' + LT + '/head>\n' + LT + 'body>\n'
+    + LT + 'div id="app">' + LT + '/div>\n'
+    + LT + 'script type="application/json" id="portalData">' + json + LT + '/script>\n'
+    + LT + 'script id="portalApp">' + JS_APP + LT + '/script>\n' + LT + '/body>\n' + LT + '/html>\n';
 }
 const ICONE = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="14" fill="#ffd23f"/><text x="32" y="46" font-size="38" text-anchor="middle" font-family="Georgia,serif" font-weight="700" fill="#1d2b53">π</text></svg>');
 const ROTULO_SALVAR = MODO_ARQUIVO ? 'Baixar portal atualizado' : 'Publicar alterações';
@@ -836,7 +869,7 @@ function renderModal(){
       lerCampos();
       d.html = await f.text(); d.arquivo = f.name;
       if (!d.titulo.trim()){
-        const m = d.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        const m = d.html.match(/<(?:title)[^>]*>([\s\S]*?)<\/title>/i);
         d.titulo = (m && m[1].trim()) || f.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ');
       }
       renderModal();
