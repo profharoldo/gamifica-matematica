@@ -329,6 +329,7 @@ async function gz(bytes, comprimir){
   return new Uint8Array(await new Response(s).arrayBuffer());
 }
 async function lacrarCofre(){
+  if (PUB.extras && idsCorreio.size) PUB.extras = PUB.extras.filter(e => !idsCorreio.has(e.id));
   const b = enc.encode(JSON.stringify(V));
   const z = await gz(b, true);
   PUB.gz = !!z;
@@ -338,6 +339,33 @@ async function abrirCofre(raw){
   let b = await abrir(await chaveMestra(raw), PUB.cofre);
   if (PUB.gz) { const u = await gz(b, false); if (!u) throw new Error('navegador antigo'); b = u; }
   return JSON.parse(dec.decode(b));
+}
+/* Caixa de correio: atividades enviadas pelo Claude, cifradas com a chave pública do portal */
+let idsCorreio = new Set();
+async function integrarCorreio(){
+  idsCorreio = new Set();
+  const extras = PUB.extras || [];
+  if (!V || !V.correioPriv || !extras.length) return;
+  let priv;
+  try { priv = await crypto.subtle.importKey('jwk', V.correioPriv, { name:'ECDH', namedCurve:'P-256' }, false, ['deriveKey']); }
+  catch(e){ return; }
+  for (const ex of extras){
+    try {
+      const epk = await crypto.subtle.importKey('raw', b64d(ex.epk), { name:'ECDH', namedCurve:'P-256' }, false, []);
+      const k = await crypto.subtle.deriveKey({ name:'ECDH', public:epk }, priv, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+      let b = await abrir(k, ex.ct);
+      const u = await gz(b, false); if (u) b = u;
+      const a = JSON.parse(dec.decode(b));
+      idsCorreio.add(ex.id);
+      if (!V.atividades.some(x => x.id === a.id)) V.atividades.push(a);
+    } catch(e){}
+  }
+}
+async function ativarCorreio(){
+  const par = await crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-256' }, true, ['deriveKey']);
+  V.correioPriv = await crypto.subtle.exportKey('jwk', par.privateKey);
+  PUB.correio = { pub: b64e(new Uint8Array(await crypto.subtle.exportKey('raw', par.publicKey))) };
+  marcarSujo();
 }
 async function criarConta(id, senha, adm){
   const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -425,7 +453,7 @@ async function retomarSessao(){
   try {
     const o = JSON.parse(s); const c = PUB.contas.find(x => x.id === o.id);
     if (!c || !PUB.cofre) throw 0;
-    MK = b64d(o.mk); V = await abrirCofre(MK); ME = { id:o.id, adm:c.adm }; return true;
+    MK = b64d(o.mk); V = await abrirCofre(MK); ME = { id:o.id, adm:c.adm }; await integrarCorreio(); return true;
   } catch(e){ SS.del('portal_sess'); MK = null; V = null; ME = null; return false; }
 }
 function sair(){
@@ -473,7 +501,7 @@ async function publicar(){
   }
 }
 async function descartar(){
-  PUB = clone(PUB0); V = await abrirCofre(MK); sujo = false; credsNovas = []; modal = null;
+  PUB = clone(PUB0); V = await abrirCofre(MK); await integrarCorreio(); sujo = false; credsNovas = []; modal = null;
   if (!PUB.contas.find(c => c.id === ME.id)) { sair(); return; }
   toast('Alterações descartadas.'); render();
 }
@@ -558,7 +586,7 @@ function telaLogin(app){
     }
     try { V = await abrirCofre(r.raw); }
     catch(x){ b.disabled = false; b.textContent = 'Entrar'; err.textContent = 'Este navegador é antigo demais para abrir o portal. Tente pelo Chrome, Edge, Safari ou Firefox atualizados.'; err.hidden = false; return; }
-    MK = r.raw; ME = { id:r.id, adm:r.adm }; guardarSessao(); som('ok'); render();
+    MK = r.raw; ME = { id:r.id, adm:r.adm }; await integrarCorreio(); guardarSessao(); som('ok'); render();
   });
   setTimeout(() => { const u = $('#lgUser'); if (u) u.focus(); }, 50);
 }
@@ -607,6 +635,11 @@ function viewAtividades(c){
         <div class="rot"><span>Seu progresso</span><span>${nFeitas} de ${ats.length}</span></div>
         <div class="barra"><i style="width:${pct}%"></i></div></div>` : ''}
     </section>
+    ${ME.adm && !V.correioPriv ? `<aside class="painel" style="border-color:var(--azul)">
+      <h2>Ativar envio pelo Claude</h2>
+      <p style="color:var(--tinta2)">Com isso, o Claude passa a publicar atividades novas direto no portal, sem você precisar cadastrar uma por uma. Só quem tem login continua vendo o conteúdo.</p>
+      <div><button class="btn btn-primario" data-act="ativar-correio">Ativar envio pelo Claude</button></div>
+    </aside>` : ''}
     ${V.recado ? `<aside class="recado"><b>Recado</b><p>${esc(V.recado)}</p></aside>` : ''}
     ${ats.length ? `<div class="ferramentas">
       <div class="busca"><input id="busca" type="text" placeholder="Procurar atividade…" value="${esc(filtro.q)}" aria-label="Procurar atividade"></div>
@@ -661,7 +694,7 @@ function abrirPlayer(a, teste){
       ${teste ? '' : `<button class="btn btn-pequeno btn-feita" data-act="feita" data-id="${a.id}" aria-pressed="${feita}">${feita ? '✓ Feita!' : 'Marcar como feita'}</button>`}
       <button class="btn btn-pequeno" data-act="telacheia" aria-label="Tela cheia">⛶</button>
     </div>
-    <iframe title="${esc(a.titulo)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock" allow="fullscreen; autoplay"></iframe>`;
+    <iframe title="${esc(a.titulo)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock" allow="fullscreen; autoplay; camera; microphone; clipboard-write"></iframe>`;
   document.body.appendChild(p);
   p.querySelector('iframe').srcdoc = a.html;
   document.body.style.overflow = 'hidden';
@@ -938,6 +971,11 @@ document.addEventListener('click', async e => {
       catch(x){ const r = document.createRange(); r.selectNodeContents(el.closest('.creds').querySelector('ul')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Lista selecionada. Use Ctrl+C para copiar.'); }
       break;
     }
+    case 'ativar-correio':
+      await ativarCorreio();
+      if (MODO_ARQUIVO){ const ok = await publicar(); if (ok) toast('Pronto! Agora envie ao Claude o arquivo index.html que foi baixado.'); }
+      else render();
+      break;
     case 'publicar': await publicar(); break;
     case 'descartar': await descartar(); break;
   }
