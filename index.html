@@ -571,6 +571,7 @@ function telaLogin(app){
         <button class="btn btn-primario btn-grande" id="lgBtn">Entrar</button>
       </form>
       <p class="nota-rodape">Esqueceu a senha? Peça uma nova a quem te deu o acesso.</p>
+      <p class="nota-rodape" style="opacity:.6;font-size:12px">Versão 3</p>
     </main>
   </div>`;
   $('#fLogin').addEventListener('submit', async e => {
@@ -586,7 +587,9 @@ function telaLogin(app){
     }
     try { V = await abrirCofre(r.raw); }
     catch(x){ b.disabled = false; b.textContent = 'Entrar'; err.textContent = 'Este navegador é antigo demais para abrir o portal. Tente pelo Chrome, Edge, Safari ou Firefox atualizados.'; err.hidden = false; return; }
-    MK = r.raw; ME = { id:r.id, adm:r.adm }; await integrarCorreio(); guardarSessao(); som('ok'); render();
+    MK = r.raw; ME = { id:r.id, adm:r.adm }; await integrarCorreio(); guardarSessao(); som('ok');
+    if (ME.adm && !V.correioPriv && MODO_ARQUIVO){ await ativarCorreio(); modal = { tipo:'ativado' }; }
+    render();
   });
   setTimeout(() => { const u = $('#lgUser'); if (u) u.focus(); }, 50);
 }
@@ -846,6 +849,14 @@ function renderModal(){
       <button class="btn btn-perigo confirmar" data-act="sair-mesmo">Sair e descartar</button></div></div></div>`;
     return;
   }
+  if (modal.tipo === 'ativado'){
+    raiz.innerHTML = `<div class="veu"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
+      <div class="modal-topo"><h2 id="mTit">Falta só um passo!</h2></div>
+      <p>O envio de atividades pelo Claude foi ativado. Clique no botão abaixo para baixar o arquivo e depois <b>envie esse arquivo para o Claude</b> na conversa.</p>
+      <div class="modal-acoes"><span class="esp"></span><button class="btn btn-primario btn-grande" data-act="baixar-ativacao">Baixar arquivo para enviar ao Claude</button></div>
+    </div></div>`;
+    return;
+  }
   if (modal.tipo === 'senha'){
     const u = V.usuarios.find(x => x.id === modal.id);
     raiz.innerHTML = `<div class="veu"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
@@ -971,6 +982,11 @@ document.addEventListener('click', async e => {
       catch(x){ const r = document.createRange(); r.selectNodeContents(el.closest('.creds').querySelector('ul')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Lista selecionada. Use Ctrl+C para copiar.'); }
       break;
     }
+    case 'baixar-ativacao': {
+      modal = null; const ok = await publicar();
+      if (ok) toast('Arquivo index.html baixado. Agora envie esse arquivo ao Claude na conversa.');
+      break;
+    }
     case 'ativar-correio':
       await ativarCorreio();
       if (MODO_ARQUIVO){ const ok = await publicar(); if (ok) toast('Pronto! Agora envie ao Claude o arquivo index.html que foi baixado.'); }
@@ -993,6 +1009,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   await retomarSessao();
+  if (ME && ME.adm && V && !V.correioPriv && MODO_ARQUIVO){ await ativarCorreio(); modal = { tipo:'ativado' }; }
   render();
   const flash = SS.get('portal_flash');
   if (flash){ SS.del('portal_flash'); if (ME) setTimeout(() => toast(flash), 300); }
