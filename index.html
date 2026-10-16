@@ -447,18 +447,24 @@ function simbolos(){
 }
 
 /* ---------- Sessão ---------- */
-function guardarSessao(){ SS.set('portal_sess', JSON.stringify({ id:ME.id, mk:b64e(MK) })); }
+const VALIDADE_SESSAO = 12 * 3600 * 1000; // 12 horas
+function guardarSessao(){
+  const v = JSON.stringify({ id:ME.id, mk:b64e(MK), exp:Date.now() + VALIDADE_SESSAO });
+  SS.set('portal_sess', v); LS.set('portal_sess', v);
+}
+function apagarSessao(){ SS.del('portal_sess'); LS.del('portal_sess'); }
 async function retomarSessao(){
-  const s = SS.get('portal_sess'); if (!s) return false;
+  const s = SS.get('portal_sess') || LS.get('portal_sess'); if (!s) return false;
   try {
     const o = JSON.parse(s); const c = PUB.contas.find(x => x.id === o.id);
-    if (!c || !PUB.cofre) throw 0;
-    MK = b64d(o.mk); V = await abrirCofre(MK); ME = { id:o.id, adm:c.adm }; await integrarCorreio(); return true;
-  } catch(e){ SS.del('portal_sess'); MK = null; V = null; ME = null; return false; }
+    if (!c || !PUB.cofre || (o.exp && o.exp < Date.now())) throw 0;
+    MK = b64d(o.mk); V = await abrirCofre(MK); ME = { id:o.id, adm:c.adm }; await integrarCorreio();
+    guardarSessao(); return true;
+  } catch(e){ apagarSessao(); MK = null; V = null; ME = null; return false; }
 }
 function sair(){
   if (sujo && !modal) { modal = { tipo:'sair' }; render(); return; }
-  SS.del('portal_sess'); MK = null; ME = null; V = null; sujo = false; credsNovas = []; modal = null; render();
+  apagarSessao(); MK = null; ME = null; V = null; sujo = false; credsNovas = []; modal = null; render();
 }
 
 /* ---------- Publicar ---------- */
@@ -552,7 +558,7 @@ function telaCriar(app){
     PUB.contas = [await criarConta(id, s1, true)];
     ME = { id, adm:true }; guardarSessao();
     const ok = await publicar();
-    if (!ok){ PUB = clone(PUB0); MK = null; V = null; ME = null; SS.del('portal_sess'); $('#crBtn').disabled = false; }
+    if (!ok){ PUB = clone(PUB0); MK = null; V = null; ME = null; apagarSessao(); $('#crBtn').disabled = false; }
   });
 }
 
@@ -699,11 +705,13 @@ function abrirPlayer(a, teste){
     </div>
     <iframe title="${esc(a.titulo)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock" allow="fullscreen; autoplay; camera; microphone; clipboard-write"></iframe>`;
   document.body.appendChild(p);
+  try { history.pushState({ portalPlayer:1 }, ''); } catch(e){}
   p.querySelector('iframe').srcdoc = a.html;
   document.body.style.overflow = 'hidden';
   p.querySelector('[data-act="voltar"]').focus();
 }
-function fecharPlayer(){
+function fecharPlayer(daHistoria){
+  if (!daHistoria && history.state && history.state.portalPlayer){ try { history.back(); return; } catch(e){} }
   const p = $('#player'); if (p) p.remove();
   document.body.style.overflow = '';
   if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
@@ -996,6 +1004,7 @@ document.addEventListener('click', async e => {
     case 'descartar': await descartar(); break;
   }
 });
+window.addEventListener('popstate', () => { if ($('#player')) fecharPlayer(true); });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if ($('#player')) fecharPlayer();
