@@ -30,6 +30,7 @@
   --sombra:0 1px 0 rgba(29,43,83,.06),0 10px 26px -14px rgba(29,43,83,.32);
   --n-amarelo:#ffe27a; --n-coral:#ffb4a6; --n-verde:#a6e4c6; --n-azul:#b9d4ff; --n-lilas:#d8c9ff; --n-laranja:#ffc88a;
   --tinta-nota:#1d2b53; --veu:rgba(16,26,48,.5);
+  --hero-bg:#1d2b53; --hero-bg2:#2f4aa0; --hero-fg:#ffffff; --hero-fg2:rgba(255,255,255,.78);
   --f-display:'Fredoka','Nunito',system-ui,sans-serif;
   --f-corpo:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --r:14px;
@@ -41,7 +42,8 @@
   --margem:#b85d5d; --pauta:#3a4c47;
   --sombra:0 1px 0 rgba(0,0,0,.25),0 12px 28px -14px rgba(0,0,0,.65);
   --n-amarelo:#f0d36c; --n-coral:#f0a598; --n-verde:#97d6b8; --n-azul:#a9c5f2; --n-lilas:#c9baf0; --n-laranja:#f0b97c;
-  --veu:rgba(0,0,0,.6); color-scheme:dark}}
+  --veu:rgba(0,0,0,.6);
+  --hero-bg:#13221d; --hero-bg2:#24433a; --hero-fg:#eef3ea; --hero-fg2:rgba(238,243,234,.75); color-scheme:dark}}
 :root[data-theme="dark"]{
   --chao:#1c2925; --quadro:rgba(232,240,228,.055); --cartao:#25342f; --cartao2:#2c3c36;
   --tinta:#eef3ea; --tinta2:#a9b8b0; --linha:#3b4c46;
@@ -49,7 +51,8 @@
   --margem:#b85d5d; --pauta:#3a4c47;
   --sombra:0 1px 0 rgba(0,0,0,.25),0 12px 28px -14px rgba(0,0,0,.65);
   --n-amarelo:#f0d36c; --n-coral:#f0a598; --n-verde:#97d6b8; --n-azul:#a9c5f2; --n-lilas:#c9baf0; --n-laranja:#f0b97c;
-  --veu:rgba(0,0,0,.6); color-scheme:dark}
+  --veu:rgba(0,0,0,.6);
+  --hero-bg:#13221d; --hero-bg2:#24433a; --hero-fg:#eef3ea; --hero-fg2:rgba(238,243,234,.75); color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background-color:var(--chao);background-image:linear-gradient(var(--quadro) 1px,transparent 1px),linear-gradient(90deg,var(--quadro) 1px,transparent 1px);background-size:26px 26px;color:var(--tinta);font-family:var(--f-corpo);font-size:16px;line-height:1.5;min-height:100vh}
@@ -225,6 +228,37 @@ td.acoes{text-align:right;white-space:nowrap}
 .ocupado span{background:var(--tinta);color:var(--chao);padding:14px 22px;border-radius:14px}
 .confete{position:fixed;width:9px;height:14px;z-index:95;pointer-events:none;border-radius:2px;animation:voa .9s ease-out forwards}
 @keyframes voa{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
+/* Painel de boas-vindas */
+.hero{position:relative;overflow:hidden;border-radius:20px;padding:26px 28px;color:var(--hero-fg);
+  background:radial-gradient(120% 140% at 100% 0%,var(--hero-bg2) 0%,var(--hero-bg) 60%);box-shadow:var(--sombra);
+  display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;justify-content:space-between}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;
+  background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:26px 26px}
+.hero > *{position:relative;z-index:1}
+.hero h2{font-size:clamp(26px,4vw,38px);color:var(--hero-fg)}
+.hero p{color:var(--hero-fg2);margin-top:6px;max-width:52ch}
+.hero .deco{position:absolute;z-index:0;font-family:var(--f-display);font-weight:700;color:var(--hero-fg);opacity:.09;pointer-events:none;line-height:1}
+.hero-stats{display:flex;gap:10px;flex-wrap:wrap}
+.hero-stat{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 16px;min-width:108px}
+.hero-stat b{display:block;font-family:var(--f-display);font-size:28px;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--marca)}
+.hero-stat span{font-size:12.5px;font-weight:700;color:var(--hero-fg2);letter-spacing:.02em}
+.hero .barra{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2);margin-top:6px;width:100%}
+.nota{background-image:radial-gradient(rgba(255,255,255,.35) 1.5px,transparent 1.6px);background-size:14px 14px}
+.nota .emoji{filter:drop-shadow(0 4px 6px rgba(29,43,83,.22))}
+.cartao-ativ:hover{box-shadow:0 0 0 3px color-mix(in srgb,var(--n,var(--marca)) 70%,transparent),var(--sombra)}
+.controles-som{position:fixed;z-index:30;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));display:flex;gap:6px}
+.controles-som .btn{background:var(--cartao);box-shadow:var(--sombra)}
+.btn-som[aria-pressed="false"]{opacity:.55}
+@media (max-width:720px){
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px;padding-bottom:2px;width:calc(100% + 32px)}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none}
+  .ferramentas .btn-primario{width:100%}
+  .marca-site b{white-space:normal;font-size:17px;line-height:1.15}
+  .hero{padding:22px 20px}
+  .hero .deco:nth-of-type(3){display:none}
+  .hero-stat{flex:1 1 0;min-width:0;padding:10px 12px}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
@@ -404,7 +438,14 @@ function som(tipo){
   if (!somLigado) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    const notas = { ok:[523,784], erro:[220,165], feita:[523,659,784,1047], clique:[660] }[tipo] || [600];
+    if (tipo === 'clique'){
+      const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'square'; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(1480, t + 0.05);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      o.connect(g).connect(AC.destination); o.start(t); o.stop(t + 0.1);
+      return;
+    }
+    const notas = { ok:[523,784], erro:[220,165], feita:[523,659,784,1047] }[tipo] || [600];
     notas.forEach((f,i) => {
       const o = AC.createOscillator(), g = AC.createGain();
       o.type = tipo === 'erro' ? 'square' : 'triangle'; o.frequency.value = f;
@@ -414,6 +455,70 @@ function som(tipo){
     });
   } catch(e){}
 }
+/* Música de fundo: trilha 8-bit gerada no próprio navegador (sem arquivos), em loop suave */
+let musicaLigada = LS.get('portal_musica') !== '0';
+const MUSICA = (() => {
+  let master = null, timer = null, passo = 0, proxima = 0, ativa = false;
+  const colcheia = 60 / 112 / 2;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const acordes = [[48,[60,64,67,72]],[45,[57,60,64,69]],[41,[53,57,60,65]],[43,[55,59,62,67]]]; // Dó, Lá m, Fá, Sol
+  const arpejo = [0,1,2,3,2,1,2,1];
+  const melodia = [76,0,79,0,81,0,79,76, 72,0,76,0,81,0,79,0, 77,0,76,0,72,0,74,76, 74,0,79,0,83,0,81,79];
+  function nota(t, f, d, tipo, vol){
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = tipo; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(master); o.start(t); o.stop(t + d + 0.03);
+  }
+  function agendar(){
+    while (proxima < AC.currentTime + 0.3){
+      const compasso = Math.floor(passo / 8) % 4, i = passo % 8, volta = Math.floor(passo / 32);
+      const [baixo, arp] = acordes[compasso];
+      nota(proxima, mtof(arp[arpejo[i]] + 12), colcheia * 0.85, 'square', 0.022);
+      if (i % 2 === 0) nota(proxima, mtof(baixo), colcheia * 1.9, 'triangle', 0.075);
+      const m = melodia[passo % 32];
+      if (volta % 2 === 1 && m) nota(proxima, mtof(m), colcheia * 1.6, 'triangle', 0.05);
+      passo++; proxima += colcheia;
+    }
+  }
+  return {
+    tocar(){
+      if (ativa) return;
+      try {
+        AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+        if (AC.state === 'suspended') AC.resume();
+        if (!master){
+          master = AC.createGain(); const filtro = AC.createBiquadFilter();
+          filtro.type = 'lowpass'; filtro.frequency.value = 2400;
+          master.connect(filtro).connect(AC.destination);
+        }
+        master.gain.cancelScheduledValues(AC.currentTime);
+        master.gain.setValueAtTime(0.0001, AC.currentTime);
+        master.gain.exponentialRampToValueAtTime(0.55, AC.currentTime + 1.2);
+        proxima = AC.currentTime + 0.08; ativa = true;
+        agendar(); timer = setInterval(agendar, 80);
+      } catch(e){}
+    },
+    parar(){
+      if (!ativa) return;
+      ativa = false; clearInterval(timer);
+      try { master.gain.cancelScheduledValues(AC.currentTime); master.gain.setTargetAtTime(0.0001, AC.currentTime, 0.15); } catch(e){}
+    },
+    get ativa(){ return ativa; }
+  };
+})();
+function ajustarMusica(){
+  const deveTocar = musicaLigada && !$('#player') && document.visibilityState === 'visible';
+  if (deveTocar) MUSICA.tocar(); else MUSICA.parar();
+}
+let interagiu = false;
+document.addEventListener('pointerdown', e => {
+  const alvo = e.target.closest('button, [data-act], label.arquivo, a, summary, select');
+  if (alvo && !alvo.matches('[data-act="som"]')) som('clique');
+  if (!interagiu){ interagiu = true; ajustarMusica(); }
+}, true);
+document.addEventListener('visibilitychange', ajustarMusica);
+
 function confete(el){
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const r = el.getBoundingClientRect(), cores = ['#ffd23f','#ff8b7b','#61d4a3','#93b6ff','#c9baf0'];
@@ -564,8 +669,13 @@ function telaCriar(app){
   });
 }
 
+function botoesSom(extra){
+  return `<button class="btn ${extra} btn-pequeno btn-som" data-act="musica" aria-pressed="${musicaLigada}" aria-label="${musicaLigada?'Desligar música':'Ligar música'}" title="${musicaLigada?'Desligar música':'Ligar música'}">🎵</button>
+    <button class="btn ${extra} btn-pequeno btn-som" data-act="som" aria-pressed="${somLigado}" aria-label="${somLigado?'Desligar efeitos sonoros':'Ligar efeitos sonoros'}" title="${somLigado?'Desligar efeitos sonoros':'Ligar efeitos sonoros'}">${somLigado?'🔊':'🔇'}</button>`;
+}
 function telaLogin(app){
   app.innerHTML = `
+  <div class="controles-som">${botoesSom('')}</div>
   <div class="tela-entrada gutter">
     <div class="simbolos" aria-hidden="true">${simbolos()}</div>
     <main class="ficha" id="ficha">
@@ -579,7 +689,6 @@ function telaLogin(app){
         <button class="btn btn-primario btn-grande" id="lgBtn">Entrar</button>
       </form>
       <p class="nota-rodape">Esqueceu a senha? Peça uma nova a quem te deu o acesso.</p>
-      <p class="nota-rodape" style="opacity:.6;font-size:12px">Versão 3</p>
     </main>
   </div>`;
   $('#fLogin').addEventListener('submit', async e => {
@@ -614,7 +723,7 @@ function telaApp(app){
     </nav>` : ''}
     <div class="usuario">
       <span class="quem">${esc(meuNome())}</span>
-      <button class="btn btn-texto btn-pequeno" data-act="som" aria-label="${somLigado?'Desligar sons':'Ligar sons'}" title="${somLigado?'Desligar sons':'Ligar sons'}">${somLigado?'🔊':'🔇'}</button>
+      ${botoesSom('btn-texto')}
       <button class="btn btn-pequeno" data-act="sair">Sair</button>
     </div>
   </div></header>
@@ -638,13 +747,23 @@ function viewAtividades(c){
   const nFeitas = ats.filter(a => f.has(a.id)).length;
   const pct = ats.length ? Math.round(nFeitas*100/ats.length) : 0;
   const temas = [...new Set(ats.map(a => a.tema).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  const nPart = V.usuarios.filter(u=>!u.adm).length;
   c.innerHTML = `
-    <section class="saudacao">
-      <div><h2>Olá, ${esc(primeiroNome())}!</h2>
-      <p>${ME.adm ? `${ats.length} ${ats.length===1?'atividade postada':'atividades postadas'} · ${V.usuarios.filter(u=>!u.adm).length} participantes com acesso` : 'Escolha uma atividade e divirta-se aprendendo.'}</p></div>
-      ${!ME.adm && ats.length ? `<div class="progresso" aria-label="Seu progresso">
-        <div class="rot"><span>Seu progresso</span><span>${nFeitas} de ${ats.length}</span></div>
-        <div class="barra"><i style="width:${pct}%"></i></div></div>` : ''}
+    <section class="hero">
+      <span class="deco" aria-hidden="true" style="right:4%;top:-18px;font-size:120px">π</span>
+      <span class="deco" aria-hidden="true" style="right:30%;bottom:-30px;font-size:90px">%</span>
+      <span class="deco" aria-hidden="true" style="left:46%;top:8px;font-size:54px">√</span>
+      <div style="flex:1 1 300px;min-width:0">
+        <h2>Olá, ${esc(primeiroNome())}! 👋</h2>
+        <p>${ME.adm ? 'Seu portal está no ar. Acompanhe as atividades e os participantes por aqui.' : 'Escolha uma atividade, jogue e aprenda Matemática se divertindo.'}</p>
+      </div>
+      <div class="hero-stats">
+        ${ME.adm
+          ? `<div class="hero-stat"><b>${ats.length}</b><span>${ats.length===1?'atividade':'atividades'}</span></div>
+             <div class="hero-stat"><b>${nPart}</b><span>${nPart===1?'participante':'participantes'}</span></div>`
+          : `<div class="hero-stat"><b>${nFeitas}<small style="font-size:16px;opacity:.7">/${ats.length}</small></b><span>feitas</span></div>
+             <div class="hero-stat" style="min-width:160px"><b>${pct}%</b><span>do caminho</span><div class="barra"><i style="width:${pct}%"></i></div></div>`}
+      </div>
     </section>
     ${ME.adm && !V.correioPriv ? `<aside class="painel" style="border-color:var(--azul)">
       <h2>Ativar envio pelo Claude</h2>
@@ -690,7 +809,6 @@ function renderGrade(){
       ${ME.adm ? `<button class="btn-editar" data-act="editar" data-id="${a.id}">Editar</button>` : ''}
     </div>`).join('');
   if (!ats.length) h = `<div class="vazio" style="grid-column:1/-1"><h3>Nada encontrado</h3><p>Tente outra palavra ou escolha “Todas”.</p></div>`;
-  if (ME.adm && !filtro.q && !filtro.tema) h = `<button class="cartao-novo" data-act="nova"><span class="mais">+</span>Nova atividade</button>` + h;
   g.innerHTML = h;
 }
 
@@ -709,6 +827,7 @@ function abrirPlayer(a, teste){
   document.body.appendChild(p);
   try { history.pushState({ portalPlayer:1 }, ''); } catch(e){}
   p.querySelector('iframe').srcdoc = a.html;
+  ajustarMusica();
   document.body.style.overflow = 'hidden';
   p.querySelector('[data-act="voltar"]').focus();
 }
@@ -718,8 +837,9 @@ function fecharPlayer(daHistoria){
   document.body.style.overflow = '';
   if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
   const id = tocando && tocando.id; tocando = null;
+  ajustarMusica();
   renderGrade();
-  const prog = $('.progresso'); if (prog) viewAtividades($('#conteudo'));
+  if (!ME.adm && $('.hero')) viewAtividades($('#conteudo'));
   const alvo = id && document.querySelector('[data-act="abrir"][data-id="' + id + '"]'); if (alvo) alvo.focus();
 }
 
@@ -950,9 +1070,10 @@ document.addEventListener('click', async e => {
     case 'sair': sair(); break;
     case 'sair-mesmo': sujo = false; modal = null; sair(); break;
     case 'som': somLigado = !somLigado; LS.set('portal_som', somLigado ? '1' : '0'); som('clique'); render(); break;
+    case 'musica': musicaLigada = !musicaLigada; LS.set('portal_musica', musicaLigada ? '1' : '0'); ajustarMusica(); render(); break;
     case 'aba': aba = v; window.scrollTo(0,0); render(); break;
-    case 'tema': filtro.tema = v; som('clique'); viewAtividades($('#conteudo')); break;
-    case 'abrir': { const a = V.atividades.find(x => x.id === id); if (a){ som('clique'); abrirPlayer(a, false); } break; }
+    case 'tema': filtro.tema = v; viewAtividades($('#conteudo')); break;
+    case 'abrir': { const a = V.atividades.find(x => x.id === id); if (a) abrirPlayer(a, false); break; }
     case 'voltar': fecharPlayer(); break;
     case 'telacheia': { const p = $('#player'); if (p && p.requestFullscreen) p.requestFullscreen().catch(() => toast('Tela cheia não está disponível neste aparelho.')); else toast('Tela cheia não está disponível neste aparelho.'); break; }
     case 'feita': {
