@@ -494,8 +494,9 @@ const MUSICA = (() => {
         }
         master.gain.cancelScheduledValues(AC.currentTime);
         master.gain.setValueAtTime(0.0001, AC.currentTime);
-        master.gain.exponentialRampToValueAtTime(0.55, AC.currentTime + 1.2);
+        master.gain.exponentialRampToValueAtTime(0.9, AC.currentTime + 1.2);
         proxima = AC.currentTime + 0.08; ativa = true;
+        if (AC.state !== 'running') AC.resume().then(() => { proxima = AC.currentTime + 0.08; }).catch(()=>{});
         agendar(); timer = setInterval(agendar, 80);
       } catch(e){}
     },
@@ -511,11 +512,23 @@ function ajustarMusica(){
   const deveTocar = musicaLigada && !$('#player') && document.visibilityState === 'visible';
   if (deveTocar) MUSICA.tocar(); else MUSICA.parar();
 }
-let interagiu = false;
+/* O som só é liberado pelo navegador num gesto "completo": clique, soltar o dedo ou tecla.
+   Tenta de novo a cada gesto até o áudio ficar realmente ativo (celulares e iPhone). */
+function destravarAudio(){
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state !== 'running') AC.resume();
+    // toca um silêncio curtíssimo: exigido pelo iPhone para liberar o som
+    const b = AC.createBuffer(1, 1, 22050), f = AC.createBufferSource(); f.buffer = b; f.connect(AC.destination); f.start(0);
+  } catch(e){}
+  ajustarMusica();
+}
+['click','touchend','keydown'].forEach(ev => document.addEventListener(ev, () => {
+  if (!AC || AC.state !== 'running' || (musicaLigada && !MUSICA.ativa && !$('#player'))) destravarAudio();
+}, true));
 document.addEventListener('pointerdown', e => {
   const alvo = e.target.closest('button, [data-act], label.arquivo, a, summary, select');
   if (alvo && !alvo.matches('[data-act="som"]')) som('clique');
-  if (!interagiu){ interagiu = true; ajustarMusica(); }
 }, true);
 document.addEventListener('visibilitychange', ajustarMusica);
 
