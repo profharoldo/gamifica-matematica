@@ -1013,8 +1013,27 @@ document.addEventListener('keydown', e => {
   else if (modal){ modal = null; renderModal(); }
 });
 
+/* ---------- Atualização automática: se o site publicado mudou, recarrega uma vez ---------- */
+async function conferirVersaoNova(){
+  if (!MODO_ARQUIVO || location.protocol.indexOf('http') !== 0) return;
+  try {
+    const r = await fetch(location.pathname + '?nocache=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const t = await r.text();
+    const m = t.match(/<script type="application\/json" id="portalData">([\s\S]*?)<\/script>/);
+    if (!m || m[1].trim() === $('#portalData').textContent.trim()) return;
+    if (sujo) return;   // não interrompe quem está editando
+    const ultimo = Number(SS.get('portal_recarga') || 0);
+    if (Date.now() - ultimo < 60000) return;   // evita recarregar em sequência
+    SS.set('portal_recarga', String(Date.now()));
+    location.reload();
+  } catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !$('#player')) conferirVersaoNova(); });
+
 /* ---------- Início ---------- */
 (async () => {
+  conferirVersaoNova();
   if (!(window.crypto && crypto.subtle)){
     $('#app').innerHTML = '<div class="tela-entrada gutter"><main class="ficha"><h1>Navegador sem suporte</h1><p style="margin-top:10px">Abra o portal em um navegador atualizado (Chrome, Edge, Safari ou Firefox).</p></main></div>';
     return;
