@@ -123,7 +123,7 @@ textarea{min-height:90px;resize:vertical}
 .usuario .quem{font-weight:700;font-size:14px;color:var(--tinta2)}
 @media (max-width:720px){.abas{order:3;width:100%;justify-content:space-between}.aba{flex:1}.usuario .quem{display:none}}
 
-main.conteudo{max-width:1180px;margin:0 auto;padding-block:26px 120px;display:flex;flex-direction:column;gap:22px}
+main.conteudo{max-width:1180px;margin:0 auto;padding-block:26px 16px;display:flex;flex-direction:column;gap:22px}
 
 /* Saudação e progresso */
 .saudacao{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
@@ -259,6 +259,12 @@ td.acoes{text-align:right;white-space:nowrap}
   .hero .deco:nth-of-type(3){display:none}
   .hero-stat{flex:1 1 0;min-width:0;padding:10px 12px}
 }
+/* Crédito do autor */
+.credito{text-align:center;font-size:13.5px;color:var(--tinta2);padding-block:6px 4px}
+.credito i{font-weight:700;color:var(--tinta)}
+.credito .ano{opacity:.75}
+.tela-entrada .credito{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:1;padding-inline:16px}
+.rodape-app{border-top:2px solid var(--linha);margin-top:8px;padding-top:18px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 </head>
@@ -661,6 +667,7 @@ function telaCriar(app){
       </form>
       <p class="nota-rodape">Guarde bem essa senha: ninguém consegue recuperá-la, nem o Claude.</p>
     </main>
+    ${CREDITO}
   </div>`;
   $('#fCriar').addEventListener('submit', async e => {
     e.preventDefault();
@@ -682,6 +689,7 @@ function telaCriar(app){
   });
 }
 
+const CREDITO = `<p class="credito">Desenvolvido por <i>Prof. Dr. Haroldo Aleixo de Lima Junior</i> <span class="ano">· ${new Date().getFullYear()}</span></p>`;
 function botoesSom(extra){
   return `<button class="btn ${extra} btn-pequeno btn-som" data-act="musica" aria-pressed="${musicaLigada}" aria-label="${musicaLigada?'Desligar música':'Ligar música'}" title="${musicaLigada?'Desligar música':'Ligar música'}">🎵</button>
     <button class="btn ${extra} btn-pequeno btn-som" data-act="som" aria-pressed="${somLigado}" aria-label="${somLigado?'Desligar efeitos sonoros':'Ligar efeitos sonoros'}" title="${somLigado?'Desligar efeitos sonoros':'Ligar efeitos sonoros'}">${somLigado?'🔊':'🔇'}</button>`;
@@ -703,6 +711,7 @@ function telaLogin(app){
       </form>
       <p class="nota-rodape">Esqueceu a senha? Peça uma nova a quem te deu o acesso.</p>
     </main>
+    ${CREDITO}
   </div>`;
   $('#fLogin').addEventListener('submit', async e => {
     e.preventDefault();
@@ -751,6 +760,7 @@ function telaApp(app){
   if (!adm || aba === 'atividades') viewAtividades(c);
   else if (aba === 'acessos') viewAcessos(c);
   else viewAjustes(c);
+  c.insertAdjacentHTML('afterend', `<footer class="gutter rodape-app" style="max-width:1180px;margin-inline:auto;padding-bottom:${sujo ? '96px' : '28px'}">${CREDITO}</footer>`);
   renderModal();
 }
 
