@@ -1,0 +1,1171 @@
+<title>Portal de Atividades</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link id="fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style id="appStyle">
+/* Caderno quadriculado: fundo de papel milimetrado, login em ficha pautada, atividades como post-its. No escuro, vira lousa. */
+:root{
+  --chao:#f3f6fb; --quadro:rgba(47,91,170,.11); --cartao:#ffffff; --cartao2:#f7f9fd;
+  --tinta:#1d2b53; --tinta2:#55627f; --linha:#d9e1ee;
+  --marca:#ffd23f; --marca-borda:#e0ad00; --coral:#d9442f; --verde:#12865f; --azul:#2f63d6;
+  --margem:#ef8a8a; --pauta:#c9d9f2;
+  --sombra:0 1px 0 rgba(29,43,83,.06),0 10px 26px -14px rgba(29,43,83,.32);
+  --n-amarelo:#ffe27a; --n-coral:#ffb4a6; --n-verde:#a6e4c6; --n-azul:#b9d4ff; --n-lilas:#d8c9ff; --n-laranja:#ffc88a;
+  --tinta-nota:#1d2b53; --veu:rgba(16,26,48,.5);
+  --hero-bg:#1d2b53; --hero-bg2:#2f4aa0; --hero-fg:#ffffff; --hero-fg2:rgba(255,255,255,.78);
+  --f-display:'Fredoka','Nunito',system-ui,sans-serif;
+  --f-corpo:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --chao:#1c2925; --quadro:rgba(232,240,228,.055); --cartao:#25342f; --cartao2:#2c3c36;
+  --tinta:#eef3ea; --tinta2:#a9b8b0; --linha:#3b4c46;
+  --marca:#ffd23f; --marca-borda:#c99a00; --coral:#ff8b7b; --verde:#61d4a3; --azul:#93b6ff;
+  --margem:#b85d5d; --pauta:#3a4c47;
+  --sombra:0 1px 0 rgba(0,0,0,.25),0 12px 28px -14px rgba(0,0,0,.65);
+  --n-amarelo:#f0d36c; --n-coral:#f0a598; --n-verde:#97d6b8; --n-azul:#a9c5f2; --n-lilas:#c9baf0; --n-laranja:#f0b97c;
+  --veu:rgba(0,0,0,.6);
+  --hero-bg:#13221d; --hero-bg2:#24433a; --hero-fg:#eef3ea; --hero-fg2:rgba(238,243,234,.75); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --chao:#1c2925; --quadro:rgba(232,240,228,.055); --cartao:#25342f; --cartao2:#2c3c36;
+  --tinta:#eef3ea; --tinta2:#a9b8b0; --linha:#3b4c46;
+  --marca:#ffd23f; --marca-borda:#c99a00; --coral:#ff8b7b; --verde:#61d4a3; --azul:#93b6ff;
+  --margem:#b85d5d; --pauta:#3a4c47;
+  --sombra:0 1px 0 rgba(0,0,0,.25),0 12px 28px -14px rgba(0,0,0,.65);
+  --n-amarelo:#f0d36c; --n-coral:#f0a598; --n-verde:#97d6b8; --n-azul:#a9c5f2; --n-lilas:#c9baf0; --n-laranja:#f0b97c;
+  --veu:rgba(0,0,0,.6);
+  --hero-bg:#13221d; --hero-bg2:#24433a; --hero-fg:#eef3ea; --hero-fg2:rgba(238,243,234,.75); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background-color:var(--chao);background-image:linear-gradient(var(--quadro) 1px,transparent 1px),linear-gradient(90deg,var(--quadro) 1px,transparent 1px);background-size:26px 26px;color:var(--tinta);font-family:var(--f-corpo);font-size:16px;line-height:1.5;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--cartao)}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;line-height:1.15;margin:0;text-wrap:balance}
+p{margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--azul);outline-offset:2px}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;border:2px solid var(--linha);background:var(--cartao);padding:9px 16px;font-weight:800;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s;white-space:nowrap;text-decoration:none}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.6;cursor:wait;transform:none}
+.btn-primario{background:var(--marca);border-color:var(--marca-borda);color:var(--tinta-nota);box-shadow:0 3px 0 var(--marca-borda)}
+.btn-primario:active{box-shadow:0 1px 0 var(--marca-borda)}
+.btn-perigo{border-color:var(--coral);color:var(--coral);background:transparent}
+.btn-perigo.confirmar{background:var(--coral);color:#fff}
+.btn-texto{border-color:transparent;background:transparent;padding:8px 10px}
+.btn-grande{width:100%;padding:13px 18px;font-size:18px}
+.btn-pequeno{padding:6px 11px;font-size:14px;border-radius:10px}
+
+/* Formulários */
+.form{display:flex;flex-direction:column;gap:6px}
+.form label{font-weight:800;font-size:14px;margin-top:8px}
+.form .dica{font-size:13px;color:var(--tinta2)}
+input[type=text],input[type=password],input:not([type]),textarea,select{width:100%;border:2px solid var(--linha);background:var(--cartao2);border-radius:12px;padding:11px 13px;font-size:16px;transition:border-color .15s}
+input:focus,textarea:focus{border-color:var(--azul);outline:none}
+textarea{min-height:90px;resize:vertical}
+.campo-senha{position:relative}
+.campo-senha input{padding-right:48px}
+.olho{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;font-size:18px;cursor:pointer;padding:6px;border-radius:8px}
+.erro{color:var(--coral);font-weight:700;font-size:14px}
+.linha2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.linha2>div{min-width:0;display:flex;flex-direction:column;gap:6px}
+@media (max-width:520px){.linha2{grid-template-columns:1fr}}
+
+/* Tela de entrada */
+.tela-entrada{min-height:100vh;display:grid;place-items:center;padding-block:40px;position:relative;overflow:hidden}
+.simbolos{position:absolute;inset:0;pointer-events:none}
+.simbolo{position:absolute;font-family:var(--f-display);font-weight:600;color:var(--tinta);opacity:.09;animation:flutua 16s ease-in-out infinite alternate}
+@keyframes flutua{from{transform:translateY(0) rotate(-8deg)}to{transform:translateY(-34px) rotate(10deg)}}
+.ficha{position:relative;width:100%;max-width:420px;background:var(--cartao);border-radius:8px;box-shadow:var(--sombra);padding:34px 28px 26px 58px;background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--pauta) 31px 32px);background-position:0 92px;animation:chega .5s ease-out both}
+.ficha::before{content:"";position:absolute;left:40px;top:0;bottom:0;width:2px;background:var(--margem);opacity:.7}
+.ficha::after{content:"";position:absolute;top:-14px;left:50%;width:110px;height:30px;transform:translateX(-50%) rotate(-3deg);background:var(--marca);opacity:.75;border-radius:3px}
+@keyframes chega{from{opacity:0;transform:translateY(16px) rotate(-1deg)}to{opacity:1;transform:none}}
+.ficha.treme{animation:treme .4s}
+@keyframes treme{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.ficha-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.ficha-topo h1{font-size:26px}
+.ficha-topo p{color:var(--tinta2);font-size:15px}
+.logo{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:12px;background:var(--marca);color:var(--tinta-nota);font-family:var(--f-display);font-size:30px;font-weight:700;transform:rotate(-6deg);box-shadow:0 3px 0 var(--marca-borda)}
+.logo.mini{width:40px;height:40px;font-size:23px;border-radius:10px}
+.ficha .btn-grande{margin-top:16px}
+.nota-rodape{margin-top:14px;font-size:13.5px;color:var(--tinta2)}
+.aviso{background:var(--cartao2);border:2px dashed var(--linha);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--tinta2)}
+
+/* Topo do app */
+.topo{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--cartao);border-bottom:2px solid var(--linha)}
+.topo-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;padding-block:10px;flex-wrap:wrap}
+.marca-site{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.marca-site b{font-family:var(--f-display);font-size:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.abas{display:flex;gap:4px;background:var(--cartao2);padding:4px;border-radius:12px;border:1px solid var(--linha)}
+.aba{border:0;background:transparent;padding:7px 13px;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer;color:var(--tinta2)}
+.aba[aria-current="page"]{background:var(--marca);color:var(--tinta-nota)}
+.usuario{display:flex;align-items:center;gap:6px}
+.usuario .quem{font-weight:700;font-size:14px;color:var(--tinta2)}
+@media (max-width:720px){.abas{order:3;width:100%;justify-content:space-between}.aba{flex:1}.usuario .quem{display:none}}
+
+main.conteudo{max-width:1180px;margin:0 auto;padding-block:26px 16px;display:flex;flex-direction:column;gap:22px}
+
+/* Saudação e progresso */
+.saudacao{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+.saudacao h2{font-size:clamp(26px,4vw,36px)}
+.saudacao p{color:var(--tinta2);margin-top:4px}
+.progresso{background:var(--cartao);border:2px solid var(--linha);border-radius:var(--r);padding:12px 16px;min-width:240px;flex:0 1 320px}
+.progresso .rot{display:flex;justify-content:space-between;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+.barra{height:12px;border-radius:99px;background:var(--cartao2);border:1px solid var(--linha);overflow:hidden;margin-top:8px}
+.barra i{display:block;height:100%;background:repeating-linear-gradient(45deg,var(--verde) 0 10px,color-mix(in srgb,var(--verde) 80%,#fff) 10px 20px);border-radius:99px;transition:width .6s ease}
+.recado{position:relative;background:var(--n-amarelo);color:var(--tinta-nota);border-radius:4px;padding:16px 18px 16px 20px;box-shadow:var(--sombra);max-width:720px;transform:rotate(-.6deg)}
+.recado b{font-family:var(--f-display);font-weight:600;font-size:15px;display:block;margin-bottom:2px}
+.recado p{white-space:pre-wrap}
+
+/* Ferramentas */
+.ferramentas{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.busca{flex:1 1 260px;position:relative}
+.busca input{padding-left:40px}
+.busca::before{content:"⌕";position:absolute;left:14px;top:50%;transform:translateY(-52%);font-size:20px;color:var(--tinta2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--linha);background:var(--cartao);border-radius:99px;padding:5px 13px;font-weight:700;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--tinta);color:var(--chao);border-color:var(--tinta)}
+
+/* Cartões de atividade */
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px}
+.cartao-wrap{position:relative;min-width:0}
+.cartao-ativ{width:100%;height:100%;display:flex;flex-direction:column;text-align:left;background:var(--cartao);border:2px solid var(--linha);border-radius:var(--r);padding:0;overflow:hidden;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}
+.cartao-ativ:hover{transform:translateY(-4px) rotate(-.5deg);box-shadow:var(--sombra)}
+.nota{background:var(--n,var(--n-amarelo));height:112px;display:grid;place-items:center;font-size:54px;position:relative}
+.nota .tema{position:absolute;left:12px;top:10px;font-size:12px;font-weight:800;color:var(--tinta-nota);background:rgba(255,255,255,.6);padding:2px 9px;border-radius:99px;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nota .emoji{transition:transform .25s}
+.cartao-ativ:hover .emoji{transform:scale(1.15) rotate(-6deg)}
+.corpo{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.corpo h3{font-size:19px}
+.corpo p{color:var(--tinta2);font-size:14.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.selos{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.selo{font-size:12px;font-weight:800;padding:3px 9px;border-radius:99px;border:1.5px solid currentColor}
+.selo.novo{color:var(--azul)}
+.selo.feita{color:var(--verde)}
+.selo.jogar{color:var(--tinta2);border-style:dashed}
+.btn-editar{position:absolute;top:8px;right:8px;z-index:2;background:var(--cartao);border:2px solid var(--linha);border-radius:10px;padding:5px 10px;font-weight:800;font-size:13px;cursor:pointer}
+.cartao-novo{border:3px dashed var(--linha);border-radius:var(--r);background:transparent;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-weight:800;color:var(--tinta2);transition:border-color .15s,color .15s}
+.cartao-novo:hover{border-color:var(--azul);color:var(--azul)}
+.cartao-novo .mais{font-size:44px;font-family:var(--f-display);line-height:1}
+.vazio{text-align:center;padding:48px 16px;background:var(--cartao);border:2px dashed var(--linha);border-radius:var(--r);color:var(--tinta2)}
+.vazio h3{color:var(--tinta);font-size:22px;margin-bottom:6px}
+
+/* Painéis */
+.painel{background:var(--cartao);border:2px solid var(--linha);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.painel h2{font-size:22px}
+.painel>p{color:var(--tinta2)}
+.duas-col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:20px;align-items:start}
+@media (max-width:860px){.duas-col{grid-template-columns:1fr}}
+.tabela-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta2);padding:8px 10px;border-bottom:2px solid var(--linha)}
+td{padding:10px;border-bottom:1px solid var(--linha);vertical-align:middle}
+td.acoes{text-align:right;white-space:nowrap}
+.tipo{font-size:12px;font-weight:800;padding:2px 9px;border-radius:99px;background:var(--cartao2);border:1px solid var(--linha)}
+.tipo.prof{background:var(--n-amarelo);color:var(--tinta-nota);border-color:transparent}
+.creds{background:var(--n-verde);color:var(--tinta-nota);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.creds code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;background:rgba(255,255,255,.55);padding:1px 6px;border-radius:6px}
+.creds ul{margin:0;padding-left:18px}
+.espaco .barra i{background:var(--azul)}
+.inline-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.inline-form input{flex:1 1 160px;width:auto}
+
+/* Escolhas de emoji e cor */
+.escolhas{display:flex;flex-wrap:wrap;gap:6px}
+.esc-emoji{width:44px;height:44px;border-radius:10px;border:2px solid var(--linha);background:var(--cartao2);font-size:22px;cursor:pointer}
+.esc-cor{width:38px;height:38px;border-radius:10px;border:3px solid transparent;cursor:pointer;background:var(--n)}
+.esc-emoji[aria-pressed="true"]{border-color:var(--azul);background:var(--cartao)}
+.esc-cor[aria-pressed="true"]{border-color:var(--tinta)}
+.arquivo{border:2px dashed var(--linha);border-radius:12px;padding:16px;text-align:center;background:var(--cartao2);cursor:pointer;display:block;font-weight:700}
+.arquivo.tem{border-style:solid;border-color:var(--verde);color:var(--verde)}
+.arquivo input{display:none}
+
+/* Modal */
+.veu{position:fixed;inset:0;z-index:60;background:var(--veu);display:grid;place-items:center;padding:16px;animation:aparece .15s}
+@keyframes aparece{from{opacity:0}}
+.modal{width:100%;max-width:580px;max-height:calc(100vh - 32px);overflow:auto;background:var(--cartao);border-radius:18px;box-shadow:var(--sombra);padding:22px;display:flex;flex-direction:column;gap:6px}
+.modal-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
+.modal-topo h2{font-size:22px}
+.modal-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.modal-acoes .esp{flex:1}
+
+/* Player */
+.player{position:fixed;inset:0;z-index:50;background:var(--chao);display:flex;flex-direction:column}
+.player-barra{display:flex;align-items:center;gap:10px;padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:10px;background:var(--cartao);border-bottom:2px solid var(--linha);flex-wrap:wrap}
+.player-barra h2{font-size:18px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player iframe{flex:1;width:100%;border:0;background:#fff}
+.btn-feita[aria-pressed="true"]{background:var(--verde);border-color:var(--verde);color:#fff}
+
+/* Barra de salvar e avisos */
+.barra-salvar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--tinta);color:var(--chao);padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));animation:sobe .25s ease-out}
+@keyframes sobe{from{transform:translateY(100%)}}
+.barra-salvar .in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.barra-salvar .txt{flex:1;min-width:200px;font-weight:700}
+.barra-salvar .btn-texto{color:var(--chao)}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--tinta);color:var(--chao);padding:12px 18px;border-radius:12px;font-weight:700;box-shadow:var(--sombra);max-width:calc(100% - 32px);animation:aparece .2s}
+.toast.erro{background:var(--coral);color:#fff}
+.ocupado{position:fixed;inset:0;z-index:90;background:var(--veu);display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px}
+.ocupado span{background:var(--tinta);color:var(--chao);padding:14px 22px;border-radius:14px}
+.confete{position:fixed;width:9px;height:14px;z-index:95;pointer-events:none;border-radius:2px;animation:voa .9s ease-out forwards}
+@keyframes voa{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
+/* Painel de boas-vindas */
+.hero{position:relative;overflow:hidden;border-radius:20px;padding:26px 28px;color:var(--hero-fg);
+  background:radial-gradient(120% 140% at 100% 0%,var(--hero-bg2) 0%,var(--hero-bg) 60%);box-shadow:var(--sombra);
+  display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;justify-content:space-between}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;
+  background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:26px 26px}
+.hero > *{position:relative;z-index:1}
+.hero h2{font-size:clamp(26px,4vw,38px);color:var(--hero-fg)}
+.hero p{color:var(--hero-fg2);margin-top:6px;max-width:52ch}
+.hero .deco{position:absolute;z-index:0;font-family:var(--f-display);font-weight:700;color:var(--hero-fg);opacity:.09;pointer-events:none;line-height:1}
+.hero-stats{display:flex;gap:10px;flex-wrap:wrap}
+.hero-stat{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 16px;min-width:108px}
+.hero-stat b{display:block;font-family:var(--f-display);font-size:28px;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--marca)}
+.hero-stat span{font-size:12.5px;font-weight:700;color:var(--hero-fg2);letter-spacing:.02em}
+.hero .barra{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2);margin-top:6px;width:100%}
+.nota{background-image:radial-gradient(rgba(255,255,255,.35) 1.5px,transparent 1.6px);background-size:14px 14px}
+.nota .emoji{filter:drop-shadow(0 4px 6px rgba(29,43,83,.22))}
+.cartao-ativ:hover{box-shadow:0 0 0 3px color-mix(in srgb,var(--n,var(--marca)) 70%,transparent),var(--sombra)}
+.controles-som{position:fixed;z-index:30;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));display:flex;gap:6px}
+.controles-som .btn{background:var(--cartao);box-shadow:var(--sombra)}
+.btn-som[aria-pressed="false"]{opacity:.55}
+@media (max-width:720px){
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px;padding-bottom:2px;width:calc(100% + 32px)}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none}
+  .ferramentas .btn-primario{width:100%}
+  .marca-site b{white-space:normal;font-size:17px;line-height:1.15}
+  .hero{padding:22px 20px}
+  .hero .deco:nth-of-type(3){display:none}
+  .hero-stat{flex:1 1 0;min-width:0;padding:10px 12px}
+}
+/* Crédito do autor */
+.credito{text-align:center;font-size:13.5px;color:var(--tinta2);padding-block:6px 4px}
+.credito i{font-weight:700;color:var(--tinta)}
+.credito .ano{opacity:.75}
+.tela-entrada .credito{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:1;padding-inline:16px}
+.rodape-app{border-top:2px solid var(--linha);margin-top:8px;padding-top:18px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+</style>
+<div id="app"></div>
+<script type="application/json" id="portalData">{"v":1,"site":{"nome":"Gamifica Ação em Matemática","subtitulo":"Matemática de um jeito lúdico"},"iter":150000,"contas":[{"id":"0962311ba2e287e054fc9f69fe5218691428b86c58d080e46f5394c4cdf17bbe","salt":"MUSDPFJP5gCOTJflV9+rUg==","wk":"JIu8dPAXA46ojDbfPaz6wU4esI/hprVDYPYcUXqS7ydK5jah9iXQaNYw6gwwL5Fy2HzPiZn4Vkwh+ktF","adm":true}],"cofre":"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","gz":true}</script>
+<script id="portalApp">
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const enc = new TextEncoder(), dec = new TextDecoder();
+const mkStore = name => ({
+  get(k){ try { return window[name].getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { window[name].setItem(k,v); } catch(e){} },
+  del(k){ try { window[name].removeItem(k); } catch(e){} }
+});
+const SS = mkStore('sessionStorage'), LS = mkStore('localStorage');
+const clone = o => JSON.parse(JSON.stringify(o));
+const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+
+/* ---------- Fonte da própria página (para republicar) ---------- */
+const FONTS_HTML = '<' + 'link id="fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">';
+const RESET_PADRAO = ':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}';
+const MODO_ARQUIVO = !(window.claude && typeof window.claude.use === 'function');
+const headStyle = document.getElementById('reset') || (document.head && document.head.querySelector('style:not(#appStyle)'));
+const RESET = (headStyle && headStyle.textContent) || RESET_PADRAO;
+const CSS_APP = $('#appStyle').textContent;
+const JS_APP = $('#portalApp').textContent;
+const TITULO = ($('title') && $('title').textContent) || 'Portal de Atividades';
+
+function montarDocumento(){
+  const json = JSON.stringify(PUB).replace(/</g,'\\u003c');
+  if (MODO_ARQUIVO) return montarSite(json);
+  return '<!doctype html><html><head><' + 'meta charset=utf8><' + 'meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><' + 'style>' + RESET + '<' + '/style></head><body>'
+    + '<' + 'title>' + esc(TITULO) + '<' + '/title>\n<' + 'meta name="claude:viewport-fit-sides" content="cover">\n' + FONTS_HTML + '\n'
+    + '<' + 'style id="appStyle">' + CSS_APP + '<' + '/style>\n<div id="app"></div>\n'
+    + '<' + 'script type="application/json" id="portalData">' + json + '<' + '/script>\n'
+    + '<' + 'script id="portalApp">' + JS_APP + '<' + '/script>\n</body></html>';
+}
+
+function montarSite(json){
+  const LT = '<';
+  const base = String(location.href).replace(/[#?].*$/, '').replace(/index\.html$/, '');
+  const nome = esc(PUB.site.nome), desc = esc(PUB.site.subtitulo);
+  const capa = base + 'capa.png';
+  const m = (attr, k, v) => LT + 'meta ' + attr + '="' + k + '" content="' + v + '">\n';
+  return LT + '!doctype html>\n' + LT + 'html lang="pt-BR">\n' + LT + 'head>\n'
+    + LT + 'meta charset="utf-8">\n'
+    + LT + 'title>' + nome + LT + '/title>\n'
+    + m('name', 'description', desc)
+    + m('property', 'og:type', 'website')
+    + m('property', 'og:site_name', nome)
+    + m('property', 'og:title', nome)
+    + m('property', 'og:description', desc)
+    + m('property', 'og:url', esc(base))
+    + m('property', 'og:image', esc(capa))
+    + m('property', 'og:image:width', '1200')
+    + m('property', 'og:image:height', '630')
+    + m('property', 'og:locale', 'pt_BR')
+    + m('name', 'twitter:card', 'summary_large_image')
+    + m('name', 'twitter:image', esc(capa))
+    + m('name', 'theme-color', '#ffd23f')
+    + LT + 'meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
+    + LT + 'link rel="icon" href="' + ICONE + '">\n'
+    + FONTS_HTML + '\n' + LT + 'style id="reset">' + RESET + LT + '/style>\n'
+    + LT + 'style id="appStyle">' + CSS_APP + LT + '/style>\n' + LT + '/head>\n' + LT + 'body>\n'
+    + LT + 'div id="app">' + LT + '/div>\n'
+    + LT + 'script type="application/json" id="portalData">' + json + LT + '/script>\n'
+    + LT + 'script id="portalApp">' + JS_APP + LT + '/script>\n' + LT + '/body>\n' + LT + '/html>\n';
+}
+const ICONE = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="14" fill="#ffd23f"/><text x="32" y="46" font-size="38" text-anchor="middle" font-family="Georgia,serif" font-weight="700" fill="#1d2b53">π</text></svg>');
+const ROTULO_SALVAR = MODO_ARQUIVO ? 'Baixar portal atualizado' : 'Publicar alterações';
+const DICA_SALVAR = MODO_ARQUIVO ? 'Depois, baixe o portal atualizado.' : 'Publique para os participantes verem.';
+
+/* ---------- Dados públicos (sem conteúdo legível) ---------- */
+let PUB;
+try { PUB = JSON.parse($('#portalData').textContent || '{}'); } catch(e) { PUB = {}; }
+PUB = Object.assign({ v:1, site:{ nome:'Portal de Matemática', subtitulo:'Matemática de um jeito lúdico' }, iter:150000, contas:[], cofre:null, gz:false }, PUB);
+let PUB0 = clone(PUB);
+if (MODO_ARQUIVO && PUB.site && PUB.site.nome) document.title = PUB.site.nome;
+
+/* ---------- Criptografia ---------- */
+const b64e = u8 => { let s=''; for (let i=0;i<u8.length;i+=0x8000) s += String.fromCharCode.apply(null, u8.subarray(i,i+0x8000)); return btoa(s); };
+const b64d = s => { const b = atob(s); const u = new Uint8Array(b.length); for (let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; };
+async function sha(t){ const h = await crypto.subtle.digest('SHA-256', enc.encode(t)); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+const loginId = l => sha('portal-mat:' + String(l).trim().toLowerCase());
+async function chaveDaSenha(pw, salt){
+  const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:PUB.iter, hash:'SHA-256' }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function lacrar(key, bytes){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, bytes));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return b64e(out);
+}
+async function abrir(key, b64){ const a = b64d(b64); return new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv:a.subarray(0,12) }, key, a.subarray(12))); }
+const chaveMestra = raw => crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt','decrypt']);
+async function gz(bytes, comprimir){
+  if (typeof CompressionStream === 'undefined') return null;
+  const s = new Blob([bytes]).stream().pipeThrough(comprimir ? new CompressionStream('gzip') : new DecompressionStream('gzip'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+async function lacrarCofre(){
+  if (PUB.extras && idsCorreio.size) PUB.extras = PUB.extras.filter(e => !idsCorreio.has(e.id));
+  const b = enc.encode(JSON.stringify(V));
+  const z = await gz(b, true);
+  PUB.gz = !!z;
+  PUB.cofre = await lacrar(await chaveMestra(MK), z || b);
+}
+async function abrirCofre(raw){
+  let b = await abrir(await chaveMestra(raw), PUB.cofre);
+  if (PUB.gz) { const u = await gz(b, false); if (!u) throw new Error('navegador antigo'); b = u; }
+  return JSON.parse(dec.decode(b));
+}
+/* Caixa de correio: atividades enviadas pelo Claude, cifradas com a chave pública do portal */
+let idsCorreio = new Set();
+async function integrarCorreio(){
+  idsCorreio = new Set();
+  const extras = PUB.extras || [];
+  if (!V || !V.correioPriv || !extras.length) return;
+  let priv;
+  try { priv = await crypto.subtle.importKey('jwk', V.correioPriv, { name:'ECDH', namedCurve:'P-256' }, false, ['deriveKey']); }
+  catch(e){ return; }
+  for (const ex of extras){
+    try {
+      const epk = await crypto.subtle.importKey('raw', b64d(ex.epk), { name:'ECDH', namedCurve:'P-256' }, false, []);
+      const k = await crypto.subtle.deriveKey({ name:'ECDH', public:epk }, priv, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+      let b = await abrir(k, ex.ct);
+      const u = await gz(b, false); if (u) b = u;
+      const a = JSON.parse(dec.decode(b));
+      idsCorreio.add(ex.id);
+      const existente = V.atividades.find(x => x.id === a.id);
+      if (!existente) V.atividades.push(a);
+      else if (a.atualizacao) existente.html = a.html;   // nova versão: troca só o conteúdo, mantém título e cores
+    } catch(e){}
+  }
+}
+async function ativarCorreio(){
+  const par = await crypto.subtle.generateKey({ name:'ECDH', namedCurve:'P-256' }, true, ['deriveKey']);
+  V.correioPriv = await crypto.subtle.exportKey('jwk', par.privateKey);
+  PUB.correio = { pub: b64e(new Uint8Array(await crypto.subtle.exportKey('raw', par.publicKey))) };
+  marcarSujo();
+}
+async function criarConta(id, senha, adm){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  return { id, salt:b64e(salt), wk: await lacrar(await chaveDaSenha(senha, salt), MK), adm: !!adm };
+}
+async function destravar(login, senha){
+  const id = await loginId(login);
+  const c = PUB.contas.find(x => x.id === id);
+  const k = await chaveDaSenha(senha, c ? b64d(c.salt) : crypto.getRandomValues(new Uint8Array(16)));
+  if (!c) return null;
+  try { return { id, raw: await abrir(k, c.wk), adm: c.adm }; } catch(e) { return null; }
+}
+
+/* ---------- Estado ---------- */
+let MK = null, ME = null, V = null, ART = null;
+let sujo = false, aba = 'atividades', filtro = { q:'', tema:'' }, credsNovas = [], modal = null, tocando = null;
+let somLigado = LS.get('portal_som') !== '0';
+const artPronto = (window.claude && typeof window.claude.use === 'function')
+  ? window.claude.use('artifact').then(a => (ART = a)).catch(() => null) : Promise.resolve(null);
+
+const EMOJIS = ['➕','➖','✖️','➗','🔢','🧮','📐','📏','📊','📈','🍕','💰','🎯','🧩','🎲','🏆','⭐','🚀','🧠','🕵️'];
+const CORES = ['amarelo','coral','verde','azul','lilas','laranja'];
+const PALAVRAS = ['gato','lua','mar','pato','bola','nuvem','raio','pipa','flor','peixe','urso','vento','sapo','foca','trem','dado'];
+
+const meuNome = () => { const u = V && V.usuarios.find(x => x.id === ME.id); return u ? u.nome : ''; };
+const primeiroNome = () => (meuNome().split(' ')[0] || 'pessoa');
+const feitasKey = () => 'portal_feitas_' + (ME ? ME.id.slice(0,16) : '');
+function feitas(){ try { return new Set(JSON.parse(LS.get(feitasKey()) || '[]')); } catch(e){ return new Set(); } }
+function salvarFeitas(s){ LS.set(feitasKey(), JSON.stringify([...s])); }
+
+/* ---------- Som e efeitos ---------- */
+let AC = null;
+function som(tipo){
+  if (!somLigado) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (tipo === 'clique'){
+      const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'square'; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(1480, t + 0.05);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      o.connect(g).connect(AC.destination); o.start(t); o.stop(t + 0.1);
+      return;
+    }
+    const notas = { ok:[523,784], erro:[220,165], feita:[523,659,784,1047] }[tipo] || [600];
+    notas.forEach((f,i) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = tipo === 'erro' ? 'square' : 'triangle'; o.frequency.value = f;
+      const t = AC.currentTime + i*0.09, vol = tipo === 'erro' ? 0.06 : 0.16;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t+0.02); g.gain.exponentialRampToValueAtTime(0.0001, t+0.24);
+      o.connect(g).connect(AC.destination); o.start(t); o.stop(t+0.26);
+    });
+  } catch(e){}
+}
+/* Música de fundo: trilha 8-bit gerada no próprio navegador (sem arquivos), em loop suave */
+let musicaLigada = LS.get('portal_musica') !== '0';
+const MUSICA = (() => {
+  let master = null, timer = null, passo = 0, proxima = 0, ativa = false;
+  const colcheia = 60 / 112 / 2;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const acordes = [[48,[60,64,67,72]],[45,[57,60,64,69]],[41,[53,57,60,65]],[43,[55,59,62,67]]]; // Dó, Lá m, Fá, Sol
+  const arpejo = [0,1,2,3,2,1,2,1];
+  const melodia = [76,0,79,0,81,0,79,76, 72,0,76,0,81,0,79,0, 77,0,76,0,72,0,74,76, 74,0,79,0,83,0,81,79];
+  function nota(t, f, d, tipo, vol){
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = tipo; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(master); o.start(t); o.stop(t + d + 0.03);
+  }
+  function agendar(){
+    while (proxima < AC.currentTime + 0.3){
+      const compasso = Math.floor(passo / 8) % 4, i = passo % 8, volta = Math.floor(passo / 32);
+      const [baixo, arp] = acordes[compasso];
+      nota(proxima, mtof(arp[arpejo[i]] + 12), colcheia * 0.85, 'square', 0.022);
+      if (i % 2 === 0) nota(proxima, mtof(baixo), colcheia * 1.9, 'triangle', 0.075);
+      const m = melodia[passo % 32];
+      if (volta % 2 === 1 && m) nota(proxima, mtof(m), colcheia * 1.6, 'triangle', 0.05);
+      passo++; proxima += colcheia;
+    }
+  }
+  return {
+    tocar(){
+      if (ativa) return;
+      try {
+        AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+        if (AC.state === 'suspended') AC.resume();
+        if (!master){
+          master = AC.createGain(); const filtro = AC.createBiquadFilter();
+          filtro.type = 'lowpass'; filtro.frequency.value = 2400;
+          master.connect(filtro).connect(AC.destination);
+        }
+        master.gain.cancelScheduledValues(AC.currentTime);
+        master.gain.setValueAtTime(0.0001, AC.currentTime);
+        master.gain.exponentialRampToValueAtTime(0.9, AC.currentTime + 1.2);
+        proxima = AC.currentTime + 0.08; ativa = true;
+        if (AC.state !== 'running') AC.resume().then(() => { proxima = AC.currentTime + 0.08; }).catch(()=>{});
+        agendar(); timer = setInterval(agendar, 80);
+      } catch(e){}
+    },
+    parar(){
+      if (!ativa) return;
+      ativa = false; clearInterval(timer);
+      try { master.gain.cancelScheduledValues(AC.currentTime); master.gain.setTargetAtTime(0.0001, AC.currentTime, 0.15); } catch(e){}
+    },
+    get ativa(){ return ativa; }
+  };
+})();
+function ajustarMusica(){
+  const deveTocar = musicaLigada && !$('#player') && document.visibilityState === 'visible';
+  if (deveTocar) MUSICA.tocar(); else MUSICA.parar();
+}
+/* O som só é liberado pelo navegador num gesto "completo": clique, soltar o dedo ou tecla.
+   Tenta de novo a cada gesto até o áudio ficar realmente ativo (celulares e iPhone). */
+function destravarAudio(){
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state !== 'running') AC.resume();
+    // toca um silêncio curtíssimo: exigido pelo iPhone para liberar o som
+    const b = AC.createBuffer(1, 1, 22050), f = AC.createBufferSource(); f.buffer = b; f.connect(AC.destination); f.start(0);
+  } catch(e){}
+  ajustarMusica();
+}
+['click','touchend','keydown'].forEach(ev => document.addEventListener(ev, () => {
+  if (!AC || AC.state !== 'running' || (musicaLigada && !MUSICA.ativa && !$('#player'))) destravarAudio();
+}, true));
+document.addEventListener('pointerdown', e => {
+  const alvo = e.target.closest('button, [data-act], label.arquivo, a, summary, select');
+  if (alvo && !alvo.matches('[data-act="som"]')) som('clique');
+}, true);
+document.addEventListener('visibilitychange', ajustarMusica);
+
+function confete(el){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect(), cores = ['#ffd23f','#ff8b7b','#61d4a3','#93b6ff','#c9baf0'];
+  for (let i=0;i<26;i++){
+    const c = document.createElement('i'); c.className = 'confete';
+    c.style.left = (r.left + r.width/2) + 'px'; c.style.top = (r.top + r.height/2) + 'px';
+    c.style.background = cores[i % cores.length];
+    c.style.setProperty('--dx', (Math.random()*260-130) + 'px');
+    c.style.setProperty('--dy', (Math.random()*-220-40) + 'px');
+    c.style.setProperty('--rot', (Math.random()*720-360) + 'deg');
+    document.body.appendChild(c); setTimeout(() => c.remove(), 950);
+  }
+}
+let toastT;
+function toast(msg, tipo){
+  let t = $('#toast'); if (!t){ t = document.createElement('div'); t.id = 'toast'; t.setAttribute('role','status'); document.body.appendChild(t); }
+  t.className = 'toast' + (tipo === 'erro' ? ' erro' : ''); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200);
+}
+function ocupado(msg){
+  let o = $('#ocupado');
+  if (!msg){ if (o) o.remove(); return; }
+  if (!o){ o = document.createElement('div'); o.id = 'ocupado'; o.className = 'ocupado'; document.body.appendChild(o); }
+  o.innerHTML = '<span>' + esc(msg) + '</span>';
+}
+function simbolos(){
+  const s = ['π','√','÷','×','+','−','=','%','∑','½','x²','∞','≥','△','7','3'];
+  let h = '';
+  for (let i=0;i<22;i++){
+    h += '<span class="simbolo" style="left:' + (Math.random()*96).toFixed(1) + '%;top:' + (Math.random()*94).toFixed(1) + '%;font-size:' + (26+Math.random()*48).toFixed(0) + 'px;animation-delay:-' + (Math.random()*16).toFixed(1) + 's">' + s[i % s.length] + '</span>';
+  }
+  return h;
+}
+
+/* ---------- Sessão ---------- */
+const VALIDADE_SESSAO = 12 * 3600 * 1000; // 12 horas
+function guardarSessao(){
+  const v = JSON.stringify({ id:ME.id, mk:b64e(MK), exp:Date.now() + VALIDADE_SESSAO });
+  SS.set('portal_sess', v); LS.set('portal_sess', v);
+}
+function apagarSessao(){ SS.del('portal_sess'); LS.del('portal_sess'); }
+async function retomarSessao(){
+  const s = SS.get('portal_sess') || LS.get('portal_sess'); if (!s) return false;
+  try {
+    const o = JSON.parse(s); const c = PUB.contas.find(x => x.id === o.id);
+    if (!c || !PUB.cofre || (o.exp && o.exp < Date.now())) throw 0;
+    MK = b64d(o.mk); V = await abrirCofre(MK); ME = { id:o.id, adm:c.adm }; await integrarCorreio();
+    guardarSessao(); return true;
+  } catch(e){ apagarSessao(); MK = null; V = null; ME = null; return false; }
+}
+function sair(){
+  if (sujo && !modal) { modal = { tipo:'sair' }; render(); return; }
+  apagarSessao(); MK = null; ME = null; V = null; sujo = false; credsNovas = []; modal = null; render();
+}
+
+/* ---------- Publicar ---------- */
+async function baixarArquivo(){
+  ocupado('Preparando o arquivo…');
+  try {
+    await lacrarCofre();
+    const html = montarDocumento();
+    const url = URL.createObjectURL(new Blob([html], { type:'text/html' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'index.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    PUB0 = clone(PUB); sujo = false; ocupado();
+    toast('Arquivo index.html baixado. Envie para o Claude ou para o GitHub para atualizar o site.');
+    render(); return true;
+  } catch(e){ ocupado(); toast('Não foi possível gerar o arquivo. Tente de novo.', 'erro'); return false; }
+}
+async function publicar(){
+  if (MODO_ARQUIVO) return baixarArquivo();
+  await artPronto;
+  if (!ART){ toast('Para salvar, abra o portal pelo Claude, entrando com a sua conta.', 'erro'); return false; }
+  ocupado('Salvando e publicando…');
+  try {
+    await lacrarCofre();
+    const html = montarDocumento();
+    if (html.length > 15.5e6){ ocupado(); toast('O portal passou do limite de 16 MB. Remova alguma atividade grande e tente de novo.', 'erro'); return false; }
+    SS.set('portal_flash', 'Alterações publicadas! Os participantes já veem a versão nova.');
+    await ART.publish(html);
+    sujo = false; return true;
+  } catch(e){
+    SS.del('portal_flash'); ocupado();
+    const c = e && e.code;
+    if (c === 'conflict') toast('O portal foi atualizado em outra janela. Recarregando a versão mais nova…');
+    else if (['not_writer','not_granted','consent_required','capability_disabled','capability_removed','not_declared'].includes(c))
+      toast('Esta janela só pode visualizar. Abra o portal pela conta do Claude que o criou para salvar.', 'erro');
+    else if (c === 'too_large') toast('O portal ficou grande demais (limite de 16 MB). Remova alguma atividade.', 'erro');
+    else if (c === 'rate_limited') toast('Muitas publicações seguidas. Espere um minuto e tente de novo.', 'erro');
+    else toast('Não foi possível publicar agora. Tente de novo em instantes.', 'erro');
+    return false;
+  }
+}
+async function descartar(){
+  PUB = clone(PUB0); V = await abrirCofre(MK); await integrarCorreio(); sujo = false; credsNovas = []; modal = null;
+  if (!PUB.contas.find(c => c.id === ME.id)) { sair(); return; }
+  toast('Alterações descartadas.'); render();
+}
+function marcarSujo(){ sujo = true; }
+window.addEventListener('beforeunload', e => { if (sujo) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- Telas ---------- */
+function render(){
+  const app = $('#app');
+  if (!PUB.contas.length) return telaCriar(app);
+  if (!ME) return telaLogin(app);
+  telaApp(app);
+}
+
+function telaCriar(app){
+  app.innerHTML = `
+  <div class="tela-entrada gutter">
+    <div class="simbolos" aria-hidden="true">${simbolos()}</div>
+    <main class="ficha">
+      <div class="ficha-topo"><span class="logo">π</span><div><h1>Vamos começar</h1><p>Crie o seu acesso de administrador</p></div></div>
+      <p class="aviso">Primeira vez aqui. Escolha o nome do portal e o seu login. Depois você cadastra os participantes e posta as atividades.</p>
+      <form id="fCriar" class="form">
+        <label for="crSite">Nome do portal</label><input id="crSite" value="${esc(PUB.site.nome)}" required maxlength="60">
+        <label for="crNome">Seu nome</label><input id="crNome" placeholder="Ex.: Haroldo" required maxlength="60">
+        <label for="crLogin">Seu usuário</label><input id="crLogin" autocapitalize="none" spellcheck="false" placeholder="Ex.: haroldo" required autocomplete="username">
+        <span class="dica">Letras sem acento, números, ponto ou traço.</span>
+        <label for="crSenha">Senha</label><div class="campo-senha"><input id="crSenha" type="password" required minlength="6" autocomplete="new-password"><button type="button" class="olho" data-act="olho" aria-label="Mostrar senha">👁</button></div>
+        <label for="crSenha2">Repita a senha</label><input id="crSenha2" type="password" required autocomplete="new-password">
+        <p class="erro" id="crErro" role="alert" hidden></p>
+        <button class="btn btn-primario btn-grande" id="crBtn">Criar meu portal</button>
+      </form>
+      <p class="nota-rodape">Guarde bem essa senha: ninguém consegue recuperá-la, nem o Claude.</p>
+    </main>
+    ${CREDITO}
+  </div>`;
+  $('#fCriar').addEventListener('submit', async e => {
+    e.preventDefault();
+    const site = $('#crSite').value.trim(), nome = $('#crNome').value.trim(), login = $('#crLogin').value.trim().toLowerCase();
+    const s1 = $('#crSenha').value, s2 = $('#crSenha2').value, err = $('#crErro');
+    const falha = m => { err.textContent = m; err.hidden = false; som('erro'); };
+    if (!/^[a-z0-9._-]{3,30}$/.test(login)) return falha('O usuário precisa ter de 3 a 30 caracteres: letras sem acento, números, ponto ou traço.');
+    if (s1.length < 6) return falha('A senha precisa ter pelo menos 6 caracteres.');
+    if (s1 !== s2) return falha('As duas senhas não são iguais.');
+    $('#crBtn').disabled = true;
+    MK = crypto.getRandomValues(new Uint8Array(32));
+    const id = await loginId(login);
+    V = { professor:nome, recado:'', usuarios:[{ id, nome, login, adm:true, criado:Date.now() }], atividades:[] };
+    PUB.site.nome = site || 'Portal de Matemática';
+    PUB.contas = [await criarConta(id, s1, true)];
+    ME = { id, adm:true }; guardarSessao();
+    const ok = await publicar();
+    if (!ok){ PUB = clone(PUB0); MK = null; V = null; ME = null; apagarSessao(); $('#crBtn').disabled = false; }
+  });
+}
+
+const CREDITO = `<p class="credito">Desenvolvido por <i>Prof. Dr. Haroldo Aleixo de Lima Junior</i> <span class="ano">· ${new Date().getFullYear()}</span></p>`;
+function botoesSom(extra){
+  return `<button class="btn ${extra} btn-pequeno btn-som" data-act="musica" aria-pressed="${musicaLigada}" aria-label="${musicaLigada?'Desligar música':'Ligar música'}" title="${musicaLigada?'Desligar música':'Ligar música'}">🎵</button>
+    <button class="btn ${extra} btn-pequeno btn-som" data-act="som" aria-pressed="${somLigado}" aria-label="${somLigado?'Desligar efeitos sonoros':'Ligar efeitos sonoros'}" title="${somLigado?'Desligar efeitos sonoros':'Ligar efeitos sonoros'}">${somLigado?'🔊':'🔇'}</button>`;
+}
+function telaLogin(app){
+  app.innerHTML = `
+  <div class="controles-som">${botoesSom('')}</div>
+  <div class="tela-entrada gutter">
+    <div class="simbolos" aria-hidden="true">${simbolos()}</div>
+    <main class="ficha" id="ficha">
+      <div class="ficha-topo"><span class="logo">π</span><div><h1>${esc(PUB.site.nome)}</h1><p>${esc(PUB.site.subtitulo)}</p></div></div>
+      <form id="fLogin" class="form" autocomplete="on">
+        <label for="lgUser">Usuário</label>
+        <input id="lgUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <label for="lgPass">Senha</label>
+        <div class="campo-senha"><input id="lgPass" type="password" autocomplete="current-password" required><button type="button" class="olho" data-act="olho" aria-label="Mostrar senha">👁</button></div>
+        <p class="erro" id="lgErro" role="alert" hidden></p>
+        <button class="btn btn-primario btn-grande" id="lgBtn">Entrar</button>
+      </form>
+      <p class="nota-rodape">Esqueceu a senha? Peça uma nova a quem te deu o acesso.</p>
+    </main>
+    ${CREDITO}
+  </div>`;
+  $('#fLogin').addEventListener('submit', async e => {
+    e.preventDefault();
+    const b = $('#lgBtn'), err = $('#lgErro');
+    b.disabled = true; b.textContent = 'Conferindo…'; err.hidden = true;
+    const r = await destravar($('#lgUser').value, $('#lgPass').value);
+    if (!r){
+      b.disabled = false; b.textContent = 'Entrar';
+      err.textContent = 'Usuário ou senha incorretos. Confira e tente de novo.'; err.hidden = false;
+      const f = $('#ficha'); f.classList.remove('treme'); void f.offsetWidth; f.classList.add('treme'); som('erro');
+      $('#lgPass').select(); return;
+    }
+    try { V = await abrirCofre(r.raw); }
+    catch(x){ b.disabled = false; b.textContent = 'Entrar'; err.textContent = 'Este navegador é antigo demais para abrir o portal. Tente pelo Chrome, Edge, Safari ou Firefox atualizados.'; err.hidden = false; return; }
+    MK = r.raw; ME = { id:r.id, adm:r.adm }; await integrarCorreio(); guardarSessao(); som('ok');
+    if (ME.adm && !V.correioPriv && MODO_ARQUIVO){ await ativarCorreio(); modal = { tipo:'ativado' }; }
+    render();
+  });
+  setTimeout(() => { const u = $('#lgUser'); if (u) u.focus(); }, 50);
+}
+
+function telaApp(app){
+  const adm = ME.adm;
+  app.innerHTML = `
+  <header class="topo"><div class="topo-in gutter">
+    <div class="marca-site"><span class="logo mini">π</span><b>${esc(PUB.site.nome)}</b></div>
+    ${adm ? `<nav class="abas" aria-label="Seções">
+      <button class="aba" data-act="aba" data-v="atividades" ${aba==='atividades'?'aria-current="page"':''}>Atividades</button>
+      <button class="aba" data-act="aba" data-v="acessos" ${aba==='acessos'?'aria-current="page"':''}>Participantes</button>
+      <button class="aba" data-act="aba" data-v="ajustes" ${aba==='ajustes'?'aria-current="page"':''}>Ajustes</button>
+    </nav>` : ''}
+    <div class="usuario">
+      <span class="quem">${esc(meuNome())}</span>
+      ${botoesSom('btn-texto')}
+      <button class="btn btn-pequeno" data-act="sair">Sair</button>
+    </div>
+  </div></header>
+  <main class="conteudo gutter" id="conteudo"></main>
+  ${sujo ? `<div class="barra-salvar"><div class="in gutter">
+     <span class="txt">${MODO_ARQUIVO ? 'Você tem alterações. Baixe o portal atualizado e envie para o site.' : 'Você tem alterações que os participantes ainda não veem.'}</span>
+     <button class="btn btn-texto" data-act="descartar">Descartar</button>
+     <button class="btn btn-primario" data-act="publicar">${ROTULO_SALVAR}</button>
+  </div></div>` : ''}
+  <div id="modalRaiz"></div>`;
+  const c = $('#conteudo');
+  if (!adm || aba === 'atividades') viewAtividades(c);
+  else if (aba === 'acessos') viewAcessos(c);
+  else viewAjustes(c);
+  c.insertAdjacentHTML('afterend', `<footer class="gutter rodape-app" style="max-width:1180px;margin-inline:auto;padding-bottom:${sujo ? '96px' : '28px'}">${CREDITO}</footer>`);
+  renderModal();
+}
+
+/* ----- Atividades ----- */
+function viewAtividades(c){
+  const ats = V.atividades, f = feitas();
+  const nFeitas = ats.filter(a => f.has(a.id)).length;
+  const pct = ats.length ? Math.round(nFeitas*100/ats.length) : 0;
+  const temas = [...new Set(ats.map(a => a.tema).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  const nPart = V.usuarios.filter(u=>!u.adm).length;
+  c.innerHTML = `
+    <section class="hero">
+      <span class="deco" aria-hidden="true" style="right:4%;top:-18px;font-size:120px">π</span>
+      <span class="deco" aria-hidden="true" style="right:30%;bottom:-30px;font-size:90px">%</span>
+      <span class="deco" aria-hidden="true" style="left:46%;top:8px;font-size:54px">√</span>
+      <div style="flex:1 1 300px;min-width:0">
+        <h2>Olá, ${esc(primeiroNome())}! 👋</h2>
+        <p>${ME.adm ? 'Seu portal está no ar. Acompanhe as atividades e os participantes por aqui.' : 'Escolha uma atividade, jogue e aprenda Matemática se divertindo.'}</p>
+      </div>
+      <div class="hero-stats">
+        ${ME.adm
+          ? `<div class="hero-stat"><b>${ats.length}</b><span>${ats.length===1?'atividade':'atividades'}</span></div>
+             <div class="hero-stat"><b>${nPart}</b><span>${nPart===1?'participante':'participantes'}</span></div>`
+          : `<div class="hero-stat"><b>${nFeitas}<small style="font-size:16px;opacity:.7">/${ats.length}</small></b><span>feitas</span></div>
+             <div class="hero-stat" style="min-width:160px"><b>${pct}%</b><span>do caminho</span><div class="barra"><i style="width:${pct}%"></i></div></div>`}
+      </div>
+    </section>
+    ${ME.adm && !V.correioPriv ? `<aside class="painel" style="border-color:var(--azul)">
+      <h2>Ativar envio pelo Claude</h2>
+      <p style="color:var(--tinta2)">Com isso, o Claude passa a publicar atividades novas direto no portal, sem você precisar cadastrar uma por uma. Só quem tem login continua vendo o conteúdo.</p>
+      <div><button class="btn btn-primario" data-act="ativar-correio">Ativar envio pelo Claude</button></div>
+    </aside>` : ''}
+    ${V.recado ? `<aside class="recado"><b>Recado</b><p>${esc(V.recado)}</p></aside>` : ''}
+    ${ats.length ? `<div class="ferramentas">
+      <div class="busca"><input id="busca" type="text" placeholder="Procurar atividade…" value="${esc(filtro.q)}" aria-label="Procurar atividade"></div>
+      ${temas.length > 1 ? `<div class="chips" role="group" aria-label="Filtrar por tema">
+        <button class="chip" data-act="tema" data-v="" aria-pressed="${!filtro.tema}">Todas</button>
+        ${temas.map(t => `<button class="chip" data-act="tema" data-v="${esc(t)}" aria-pressed="${filtro.tema===t}">${esc(t)}</button>`).join('')}
+      </div>` : ''}
+      ${ME.adm ? `<button class="btn btn-primario" data-act="nova">+ Nova atividade</button>` : ''}
+    </div>` : ''}
+    <section class="grade" id="grade" aria-live="polite"></section>`;
+  const b = $('#busca');
+  if (b) b.addEventListener('input', () => { filtro.q = b.value; renderGrade(); });
+  renderGrade();
+}
+function renderGrade(){
+  const g = $('#grade'); if (!g) return;
+  const f = feitas(), q = norm(filtro.q);
+  const ats = V.atividades.slice().sort((a,b) => b.data - a.data)
+    .filter(a => (!filtro.tema || a.tema === filtro.tema) && (!q || norm(a.titulo + ' ' + a.desc + ' ' + a.tema).includes(q)));
+  if (!V.atividades.length){
+    g.style.display = 'block';
+    g.innerHTML = ME.adm
+      ? `<div class="vazio"><h3>Nenhuma atividade ainda</h3><p>Envie o seu primeiro arquivo HTML e ele aparece aqui como um cartão para os participantes.</p><p style="margin-top:16px"><button class="btn btn-primario" data-act="nova">+ Adicionar a primeira atividade</button></p></div>`
+      : `<div class="vazio"><h3>Ainda não há atividades por aqui</h3><p>Assim que novas atividades forem postadas, elas aparecem nesta página.</p></div>`;
+    return;
+  }
+  g.style.display = '';
+  const semana = Date.now() - 7*864e5;
+  let h = ats.map(a => `
+    <div class="cartao-wrap">
+      <button class="cartao-ativ" data-act="abrir" data-id="${a.id}" style="--n:var(--n-${a.cor})">
+        <div class="nota">${a.tema ? `<span class="tema">${esc(a.tema)}</span>` : ''}<span class="emoji" aria-hidden="true">${esc(a.emoji)}</span></div>
+        <div class="corpo"><h3>${esc(a.titulo)}</h3>${a.desc ? `<p>${esc(a.desc)}</p>` : ''}
+          <div class="selos">${f.has(a.id) ? '<span class="selo feita">✓ Feita</span>' : '<span class="selo jogar">Abrir ▸</span>'}${a.data > semana ? '<span class="selo novo">Nova</span>' : ''}</div>
+        </div>
+      </button>
+      ${ME.adm ? `<button class="btn-editar" data-act="editar" data-id="${a.id}">Editar</button>` : ''}
+    </div>`).join('');
+  if (!ats.length) h = `<div class="vazio" style="grid-column:1/-1"><h3>Nada encontrado</h3><p>Tente outra palavra ou escolha “Todas”.</p></div>`;
+  g.innerHTML = h;
+}
+
+function abrirPlayer(a, teste){
+  tocando = { id:a.id, teste };
+  const f = feitas(), feita = f.has(a.id);
+  const p = document.createElement('div');
+  p.className = 'player'; p.id = 'player'; p.setAttribute('role','dialog'); p.setAttribute('aria-label', a.titulo);
+  p.innerHTML = `<div class="player-barra gutter">
+      <button class="btn btn-pequeno" data-act="voltar">← Voltar</button>
+      <h2>${esc(a.titulo)}${teste ? ' (teste)' : ''}</h2>
+      ${teste ? '' : `<button class="btn btn-pequeno btn-feita" data-act="feita" data-id="${a.id}" aria-pressed="${feita}">${feita ? '✓ Feita!' : 'Marcar como feita'}</button>`}
+      <button class="btn btn-pequeno" data-act="telacheia" aria-label="Tela cheia">⛶</button>
+    </div>
+    <iframe title="${esc(a.titulo)}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-pointer-lock" allow="fullscreen; autoplay; camera; microphone; clipboard-write"></iframe>`;
+  document.body.appendChild(p);
+  try { history.pushState({ portalPlayer:1 }, ''); } catch(e){}
+  p.querySelector('iframe').srcdoc = a.html;
+  ajustarMusica();
+  document.body.style.overflow = 'hidden';
+  p.querySelector('[data-act="voltar"]').focus();
+}
+function fecharPlayer(daHistoria){
+  if (!daHistoria && history.state && history.state.portalPlayer){ try { history.back(); return; } catch(e){} }
+  const p = $('#player'); if (p) p.remove();
+  document.body.style.overflow = '';
+  if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  const id = tocando && tocando.id; tocando = null;
+  ajustarMusica();
+  renderGrade();
+  if (!ME.adm && $('.hero')) viewAtividades($('#conteudo'));
+  const alvo = id && document.querySelector('[data-act="abrir"][data-id="' + id + '"]'); if (alvo) alvo.focus();
+}
+
+/* ----- Alunos / acessos ----- */
+function viewAcessos(c){
+  const us = V.usuarios.slice().sort((a,b) => (b.adm - a.adm) || a.nome.localeCompare(b.nome,'pt'));
+  c.innerHTML = `
+  <section class="saudacao"><div><h2>Participantes e acessos</h2><p>Crie um usuário e uma senha para cada pessoa que vai participar. Só quem tem acesso consegue ver as atividades.</p></div></section>
+  <div class="duas-col">
+    <section class="painel">
+      <h2>Novo acesso</h2>
+      <form id="fUser" class="form">
+        <label for="nuNome">Nome</label><input id="nuNome" required maxlength="60" placeholder="Ex.: Ana Souza">
+        <label for="nuLogin">Usuário</label><input id="nuLogin" required autocapitalize="none" spellcheck="false" placeholder="Ex.: ana.souza">
+        <label for="nuSenha">Senha</label>
+        <div class="inline-form" style="margin:0"><input id="nuSenha" type="text" required minlength="4" autocomplete="off"><button type="button" class="btn" data-act="gerar" data-alvo="nuSenha">Gerar</button></div>
+        <span class="dica">Senhas simples como “pipa472” são fáceis de lembrar.</span>
+        <label for="nuTipo">Tipo de acesso</label>
+        <select id="nuTipo"><option value="aluno">Participante</option><option value="prof">Administrador (pode editar)</option></select>
+        <p class="erro" id="nuErro" role="alert" hidden></p>
+        <button class="btn btn-primario" style="margin-top:12px" id="nuBtn">Adicionar acesso</button>
+      </form>
+    </section>
+    <section class="painel">
+      <h2>Quem tem acesso (${us.length})</h2>
+      ${credsNovas.length ? `<div class="creds"><b>Anote ou copie antes de publicar:</b> as senhas não ficam visíveis depois.
+        <ul>${credsNovas.map(x => `<li>${esc(x.nome)}: usuário <code>${esc(x.login)}</code> senha <code>${esc(x.senha)}</code></li>`).join('')}</ul>
+        <div><button class="btn btn-pequeno" data-act="copiar-creds">Copiar lista</button></div></div>` : ''}
+      <div class="tabela-wrap"><table>
+        <thead><tr><th>Nome</th><th>Usuário</th><th>Tipo</th><th></th></tr></thead>
+        <tbody>${us.map(u => `<tr>
+          <td><b>${esc(u.nome)}</b>${u.id === ME.id ? ' <span class="dica">(você)</span>' : ''}</td>
+          <td>${esc(u.login)}</td>
+          <td><span class="tipo ${u.adm?'prof':''}">${u.adm ? 'Administrador' : 'Participante'}</span></td>
+          <td class="acoes">
+            <button class="btn btn-pequeno" data-act="nova-senha" data-id="${u.id}">Nova senha</button>
+            ${u.id !== ME.id ? `<button class="btn btn-pequeno btn-perigo" data-act="remover" data-id="${u.id}">Remover</button>` : ''}
+          </td></tr>`).join('')}</tbody>
+      </table></div>
+      <p class="dica">As alterações valem para os participantes depois que você clicar em “${ROTULO_SALVAR}”.</p>
+    </section>
+  </div>`;
+  $('#nuSenha').value = gerarSenha();
+  $('#fUser').addEventListener('submit', async e => {
+    e.preventDefault();
+    const nome = $('#nuNome').value.trim(), login = $('#nuLogin').value.trim().toLowerCase(), senha = $('#nuSenha').value.trim(), adm = $('#nuTipo').value === 'prof';
+    const err = $('#nuErro'), falha = m => { err.textContent = m; err.hidden = false; som('erro'); };
+    if (!/^[a-z0-9._-]{3,30}$/.test(login)) return falha('O usuário precisa ter de 3 a 30 caracteres: letras sem acento, números, ponto ou traço.');
+    if (senha.length < 4) return falha('A senha precisa ter pelo menos 4 caracteres.');
+    const id = await loginId(login);
+    if (PUB.contas.some(x => x.id === id)) return falha('Já existe alguém com esse usuário. Escolha outro.');
+    $('#nuBtn').disabled = true;
+    PUB.contas.push(await criarConta(id, senha, adm));
+    V.usuarios.push({ id, nome, login, adm, criado:Date.now() });
+    credsNovas.push({ nome, login, senha });
+    marcarSujo(); som('ok'); toast(nome + ' foi adicionado.'); render();
+    setTimeout(() => { const n = $('#nuNome'); if (n) n.focus(); }, 30);
+  });
+}
+function gerarSenha(){
+  const r = crypto.getRandomValues(new Uint32Array(2));
+  return PALAVRAS[r[0] % PALAVRAS.length] + String(100 + r[1] % 900);
+}
+
+/* ----- Ajustes ----- */
+function viewAjustes(c){
+  c.innerHTML = `
+  <section class="saudacao"><div><h2>Ajustes do portal</h2><p>Nome, recado para os participantes e a sua senha.</p></div></section>
+  <div class="duas-col">
+    <section class="painel">
+      <h2>Portal</h2>
+      <form id="fSite" class="form">
+        <label for="ajNome">Nome do portal</label><input id="ajNome" value="${esc(PUB.site.nome)}" maxlength="60" required>
+        <label for="ajSub">Frase da tela de entrada</label><input id="ajSub" value="${esc(PUB.site.subtitulo)}" maxlength="90">
+        <span class="dica">O nome e a frase aparecem antes do login. Todo o resto só aparece para quem entra.</span>
+        <label for="ajRecado">Recado para os participantes</label><textarea id="ajRecado" maxlength="600" placeholder="Ex.: Atividade nova de frações no ar. Bom divertimento!">${esc(V.recado)}</textarea>
+        <button class="btn btn-primario" style="margin-top:12px">Aplicar</button>
+      </form>
+    </section>
+    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+      <section class="painel">
+        <h2>Minha senha</h2>
+        <form id="fSenha" class="form">
+          <label for="msNova">Nova senha</label><input id="msNova" type="password" minlength="6" required autocomplete="new-password">
+          <label for="msNova2">Repita a nova senha</label><input id="msNova2" type="password" required autocomplete="new-password">
+          <p class="erro" id="msErro" role="alert" hidden></p>
+          <button class="btn" style="margin-top:12px">Trocar senha</button>
+        </form>
+      </section>
+      <section class="painel espaco">
+        <h2>Espaço usado</h2>
+        <div class="rot" style="display:flex;justify-content:space-between;font-weight:800;font-variant-numeric:tabular-nums"><span id="espTxt">Calculando…</span><span>limite 16 MB</span></div>
+        <div class="barra"><i id="espBarra" style="width:0%"></i></div>
+        <p class="dica">As atividades ficam compactadas e protegidas por senha dentro do próprio portal.</p>
+      </section>
+    </div>
+  </div>`;
+  $('#fSite').addEventListener('submit', e => {
+    e.preventDefault();
+    PUB.site.nome = $('#ajNome').value.trim() || 'Portal de Matemática';
+    PUB.site.subtitulo = $('#ajSub').value.trim();
+    V.recado = $('#ajRecado').value.trim();
+    marcarSujo(); toast('Ajustes aplicados. ' + DICA_SALVAR); render();
+  });
+  $('#fSenha').addEventListener('submit', async e => {
+    e.preventDefault();
+    const a = $('#msNova').value, b = $('#msNova2').value, err = $('#msErro');
+    if (a.length < 6){ err.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; err.hidden = false; return; }
+    if (a !== b){ err.textContent = 'As duas senhas não são iguais.'; err.hidden = false; return; }
+    const i = PUB.contas.findIndex(x => x.id === ME.id);
+    PUB.contas[i] = await criarConta(ME.id, a, PUB.contas[i].adm);
+    marcarSujo(); toast('Senha trocada. ' + DICA_SALVAR); render();
+  });
+  medirEspaco();
+}
+async function medirEspaco(){
+  const cofreAntes = PUB.cofre, gzAntes = PUB.gz;
+  try {
+    await lacrarCofre();
+    const mb = montarDocumento().length / 1048576;
+    const t = $('#espTxt'), b = $('#espBarra');
+    if (t) t.textContent = mb.toFixed(2).replace('.', ',') + ' MB';
+    if (b) b.style.width = Math.min(100, mb/16*100).toFixed(1) + '%';
+  } catch(e){}
+  finally { if (!sujo){ PUB.cofre = cofreAntes; PUB.gz = gzAntes; } }
+}
+
+/* ----- Modais ----- */
+function renderModal(){
+  const raiz = $('#modalRaiz'); if (!raiz) return;
+  if (!modal){ raiz.innerHTML = ''; return; }
+  if (modal.tipo === 'sair'){
+    raiz.innerHTML = `<div class="veu"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
+      <div class="modal-topo"><h2 id="mTit">Sair sem publicar?</h2></div>
+      <p>Você tem alterações que ainda não foram publicadas. Se sair agora, elas se perdem.</p>
+      <div class="modal-acoes"><button class="btn" data-act="fechar-modal">Continuar aqui</button><span class="esp"></span>
+      <button class="btn btn-perigo confirmar" data-act="sair-mesmo">Sair e descartar</button></div></div></div>`;
+    return;
+  }
+  if (modal.tipo === 'ativado'){
+    raiz.innerHTML = `<div class="veu"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
+      <div class="modal-topo"><h2 id="mTit">Falta só um passo!</h2></div>
+      <p>O envio de atividades pelo Claude foi ativado. Clique no botão abaixo para baixar o arquivo e depois <b>envie esse arquivo para o Claude</b> na conversa.</p>
+      <div class="modal-acoes"><span class="esp"></span><button class="btn btn-primario btn-grande" data-act="baixar-ativacao">Baixar arquivo para enviar ao Claude</button></div>
+    </div></div>`;
+    return;
+  }
+  if (modal.tipo === 'senha'){
+    const u = V.usuarios.find(x => x.id === modal.id);
+    raiz.innerHTML = `<div class="veu"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
+      <div class="modal-topo"><h2 id="mTit">Nova senha para ${esc(u.nome)}</h2><button class="btn btn-texto" data-act="fechar-modal" aria-label="Fechar">✕</button></div>
+      <form id="fNs" class="form">
+        <label for="nsSenha">Nova senha</label>
+        <div class="inline-form" style="margin:0"><input id="nsSenha" type="text" value="${esc(gerarSenha())}" required minlength="4"><button type="button" class="btn" data-act="gerar" data-alvo="nsSenha">Gerar</button></div>
+        <div class="modal-acoes"><button type="button" class="btn" data-act="fechar-modal">Cancelar</button><span class="esp"></span><button class="btn btn-primario">Trocar senha</button></div>
+      </form></div></div>`;
+    $('#fNs').addEventListener('submit', async e => {
+      e.preventDefault();
+      const s = $('#nsSenha').value.trim(); if (s.length < 4) return;
+      const i = PUB.contas.findIndex(x => x.id === u.id);
+      PUB.contas[i] = await criarConta(u.id, s, PUB.contas[i].adm);
+      credsNovas.push({ nome:u.nome, login:u.login, senha:s });
+      modal = null; marcarSujo(); toast('Senha de ' + u.nome + ' trocada.'); render();
+    });
+    return;
+  }
+  if (modal.tipo === 'ativ'){
+    const d = modal.dados, editando = !!modal.id;
+    const temas = [...new Set(V.atividades.map(a => a.tema).filter(Boolean))];
+    raiz.innerHTML = `<div class="veu"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTit">
+      <div class="modal-topo"><h2 id="mTit">${editando ? 'Editar atividade' : 'Nova atividade'}</h2><button class="btn btn-texto" data-act="fechar-modal" aria-label="Fechar">✕</button></div>
+      <form id="fAt" class="form">
+        ${d.colar ? `<label for="atCodigo">Código HTML</label><textarea id="atCodigo" style="min-height:140px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="Cole aqui o código completo da atividade">${esc(d.html)}</textarea>
+          <button type="button" class="btn btn-texto btn-pequeno" data-act="modo-arquivo" style="align-self:flex-start">Prefiro enviar um arquivo</button>`
+        : `<label class="arquivo ${d.html ? 'tem' : ''}" for="atArq">${d.html ? '✓ ' + esc(d.arquivo || 'Atividade carregada') + ' · toque para trocar' : '📂 Escolher arquivo .html'}<input type="file" id="atArq" accept=".html,.htm,text/html"></label>
+          <button type="button" class="btn btn-texto btn-pequeno" data-act="modo-colar" style="align-self:flex-start">Prefiro colar o código</button>`}
+        <label for="atTit">Título</label><input id="atTit" value="${esc(d.titulo)}" maxlength="70" required placeholder="Ex.: Caça às frações">
+        <label for="atDesc">Descrição curta</label><input id="atDesc" value="${esc(d.desc)}" maxlength="140" placeholder="Ex.: Encontre frações equivalentes e ganhe estrelas">
+        <label for="atTema">Tema</label><input id="atTema" value="${esc(d.tema)}" maxlength="30" list="listaTemas" placeholder="Ex.: Frações">
+        <datalist id="listaTemas">${temas.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+        <label>Ícone</label>
+        <div class="escolhas" role="group" aria-label="Ícone">${EMOJIS.map(e => `<button type="button" class="esc-emoji" data-act="emoji" data-v="${e}" aria-pressed="${d.emoji===e}">${e}</button>`).join('')}</div>
+        <label>Cor do cartão</label>
+        <div class="escolhas" role="group" aria-label="Cor">${CORES.map(c => `<button type="button" class="esc-cor" data-act="cor" data-v="${c}" style="--n:var(--n-${c})" aria-pressed="${d.cor===c}" aria-label="${c}"></button>`).join('')}</div>
+        <p class="erro" id="atErro" role="alert" hidden></p>
+        <div class="modal-acoes">
+          ${editando ? `<button type="button" class="btn btn-perigo ${modal.confirmar ? 'confirmar' : ''}" data-act="excluir">${modal.confirmar ? 'Confirmar exclusão' : 'Excluir'}</button>` : ''}
+          <span class="esp"></span>
+          <button type="button" class="btn" data-act="testar">Testar</button>
+          <button class="btn btn-primario">${editando ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </form></div></div>`;
+    const lerCampos = () => {
+      d.titulo = $('#atTit').value; d.desc = $('#atDesc').value; d.tema = $('#atTema').value;
+      const cod = $('#atCodigo'); if (cod) d.html = cod.value;
+    };
+    modal.ler = lerCampos;
+    const arq = $('#atArq');
+    if (arq) arq.addEventListener('change', async () => {
+      const f = arq.files && arq.files[0]; if (!f) return;
+      lerCampos();
+      d.html = await f.text(); d.arquivo = f.name;
+      if (!d.titulo.trim()){
+        const m = d.html.match(/<(?:title)[^>]*>([\s\S]*?)<\/title>/i);
+        d.titulo = (m && m[1].trim()) || f.name.replace(/\.html?$/i,'').replace(/[-_]+/g,' ');
+      }
+      renderModal();
+    });
+    $('#fAt').addEventListener('submit', e => {
+      e.preventDefault(); lerCampos();
+      const err = $('#atErro');
+      if (!d.html || !d.html.trim()){ err.textContent = 'Escolha o arquivo HTML da atividade ou cole o código.'; err.hidden = false; return; }
+      if (!d.titulo.trim()){ err.textContent = 'Dê um título para a atividade.'; err.hidden = false; return; }
+      const reg = { titulo:d.titulo.trim(), desc:d.desc.trim(), tema:d.tema.trim(), emoji:d.emoji, cor:d.cor, html:d.html };
+      if (editando){ Object.assign(V.atividades.find(a => a.id === modal.id), reg); toast('Atividade atualizada.'); }
+      else { V.atividades.push(Object.assign({ id:'a' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), data:Date.now() }, reg)); toast('Atividade adicionada. ' + DICA_SALVAR); }
+      modal = null; marcarSujo(); som('ok'); render();
+    });
+  }
+}
+
+/* ---------- Cliques ---------- */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, v = el.dataset.v, id = el.dataset.id;
+  switch (act){
+    case 'olho': { const i = el.parentElement.querySelector('input'); i.type = i.type === 'password' ? 'text' : 'password'; el.setAttribute('aria-label', i.type === 'password' ? 'Mostrar senha' : 'Esconder senha'); break; }
+    case 'sair': sair(); break;
+    case 'sair-mesmo': sujo = false; modal = null; sair(); break;
+    case 'som': somLigado = !somLigado; LS.set('portal_som', somLigado ? '1' : '0'); som('clique'); render(); break;
+    case 'musica': musicaLigada = !musicaLigada; LS.set('portal_musica', musicaLigada ? '1' : '0'); ajustarMusica(); render(); break;
+    case 'aba': aba = v; window.scrollTo(0,0); render(); break;
+    case 'tema': filtro.tema = v; viewAtividades($('#conteudo')); break;
+    case 'abrir': { const a = V.atividades.find(x => x.id === id); if (a) abrirPlayer(a, false); break; }
+    case 'voltar': fecharPlayer(); break;
+    case 'telacheia': { const p = $('#player'); if (p && p.requestFullscreen) p.requestFullscreen().catch(() => toast('Tela cheia não está disponível neste aparelho.')); else toast('Tela cheia não está disponível neste aparelho.'); break; }
+    case 'feita': {
+      const f = feitas();
+      if (f.has(id)){ f.delete(id); el.setAttribute('aria-pressed','false'); el.textContent = 'Marcar como feita'; }
+      else { f.add(id); el.setAttribute('aria-pressed','true'); el.textContent = '✓ Feita!'; som('feita'); confete(el); }
+      salvarFeitas(f); break;
+    }
+    case 'nova': modal = { tipo:'ativ', dados:{ titulo:'', desc:'', tema:filtro.tema || '', emoji:'🧩', cor:CORES[V.atividades.length % CORES.length], html:'', colar:false } }; renderModal(); setTimeout(() => { const a = $('#atArq'); if (a) a.parentElement.focus(); }, 30); break;
+    case 'editar': { const a = V.atividades.find(x => x.id === id); modal = { tipo:'ativ', id, dados:Object.assign({ colar:false, arquivo:'' }, clone(a)) }; renderModal(); break; }
+    case 'fechar-modal': modal = null; renderModal(); break;
+    case 'emoji': modal.ler && modal.ler(); modal.dados.emoji = v; renderModal(); break;
+    case 'cor': modal.ler && modal.ler(); modal.dados.cor = v; renderModal(); break;
+    case 'modo-colar': modal.ler && modal.ler(); modal.dados.colar = true; renderModal(); break;
+    case 'modo-arquivo': modal.ler && modal.ler(); modal.dados.colar = false; renderModal(); break;
+    case 'testar': {
+      modal.ler && modal.ler();
+      if (!modal.dados.html.trim()){ const err = $('#atErro'); err.textContent = 'Primeiro escolha o arquivo ou cole o código.'; err.hidden = false; break; }
+      abrirPlayer({ id:'teste', titulo:modal.dados.titulo || 'Atividade', html:modal.dados.html }, true); break;
+    }
+    case 'excluir':
+      if (!modal.confirmar){ modal.ler && modal.ler(); modal.confirmar = true; renderModal(); break; }
+      V.atividades = V.atividades.filter(a => a.id !== modal.id); modal = null; marcarSujo(); toast('Atividade excluída.'); render(); break;
+    case 'gerar': { const i = $('#' + el.dataset.alvo); if (i) i.value = gerarSenha(); break; }
+    case 'nova-senha': modal = { tipo:'senha', id }; renderModal(); break;
+    case 'remover': {
+      if (el.dataset.confirmar !== '1'){ el.dataset.confirmar = '1'; el.classList.add('confirmar'); el.textContent = 'Confirmar'; setTimeout(() => { if (el.isConnected){ el.dataset.confirmar = ''; el.classList.remove('confirmar'); el.textContent = 'Remover'; } }, 4000); break; }
+      const u = V.usuarios.find(x => x.id === id);
+      if (u.adm && V.usuarios.filter(x => x.adm).length <= 1){ toast('O portal precisa de pelo menos um administrador.', 'erro'); break; }
+      V.usuarios = V.usuarios.filter(x => x.id !== id); PUB.contas = PUB.contas.filter(x => x.id !== id);
+      credsNovas = credsNovas.filter(x => x.login !== u.login);
+      marcarSujo(); toast(u.nome + ' foi removido.'); render(); break;
+    }
+    case 'copiar-creds': {
+      const txt = credsNovas.map(x => x.nome + ' | usuário: ' + x.login + ' | senha: ' + x.senha).join('\n');
+      try { await navigator.clipboard.writeText(txt); toast('Lista copiada.'); }
+      catch(x){ const r = document.createRange(); r.selectNodeContents(el.closest('.creds').querySelector('ul')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Lista selecionada. Use Ctrl+C para copiar.'); }
+      break;
+    }
+    case 'baixar-ativacao': {
+      modal = null; const ok = await publicar();
+      if (ok) toast('Arquivo index.html baixado. Agora envie esse arquivo ao Claude na conversa.');
+      break;
+    }
+    case 'ativar-correio':
+      await ativarCorreio();
+      if (MODO_ARQUIVO){ const ok = await publicar(); if (ok) toast('Pronto! Agora envie ao Claude o arquivo index.html que foi baixado.'); }
+      else render();
+      break;
+    case 'publicar': await publicar(); break;
+    case 'descartar': await descartar(); break;
+  }
+});
+window.addEventListener('popstate', () => { if ($('#player')) fecharPlayer(true); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if ($('#player')) fecharPlayer();
+  else if (modal){ modal = null; renderModal(); }
+});
+
+/* ---------- Atualização automática: se o site publicado mudou, recarrega uma vez ---------- */
+async function conferirVersaoNova(){
+  if (!MODO_ARQUIVO || location.protocol.indexOf('http') !== 0) return;
+  try {
+    const r = await fetch(location.pathname + '?nocache=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const t = await r.text();
+    const m = t.match(/<script type="application\/json" id="portalData">([\s\S]*?)<\/script>/);
+    if (!m || m[1].trim() === $('#portalData').textContent.trim()) return;
+    if (sujo) return;   // não interrompe quem está editando
+    const ultimo = Number(SS.get('portal_recarga') || 0);
+    if (Date.now() - ultimo < 60000) return;   // evita recarregar em sequência
+    SS.set('portal_recarga', String(Date.now()));
+    location.reload();
+  } catch(e){}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !$('#player')) conferirVersaoNova(); });
+
+/* ---------- Início ---------- */
+(async () => {
+  conferirVersaoNova();
+  if (!(window.crypto && crypto.subtle)){
+    $('#app').innerHTML = '<div class="tela-entrada gutter"><main class="ficha"><h1>Navegador sem suporte</h1><p style="margin-top:10px">Abra o portal em um navegador atualizado (Chrome, Edge, Safari ou Firefox).</p></main></div>';
+    return;
+  }
+  await retomarSessao();
+  if (ME && ME.adm && V && !V.correioPriv && MODO_ARQUIVO){ await ativarCorreio(); modal = { tipo:'ativado' }; }
+  render();
+  const flash = SS.get('portal_flash');
+  if (flash){ SS.del('portal_flash'); if (ME) setTimeout(() => toast(flash), 300); }
+})();
+})();
+</script>

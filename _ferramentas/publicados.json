@@ -1,0 +1,104 @@
+{
+ "pasta": "C:\\Users\\harol\\OneDrive - Academico - Secretaria do Estado da Educação de São Paulo\\Área de Trabalho\\HTMLs",
+ "como_publicar": "node _ferramentas/correio.mjs index.html lote.json (use 'id' para substituir uma atividade existente)",
+ "arquivos": [
+  {
+   "arquivo": "Aventura-do-Pi-Ensino-Medio-v8.html",
+   "bytes": 130624,
+   "mtimeMs": 1792151448418,
+   "atividade": "Aventura do Pi",
+   "id": "cmvbaoj06ff90491"
+  },
+  {
+   "arquivo": "desafio_estatistica_agrupados_v14.html",
+   "bytes": 104159,
+   "mtimeMs": 1792675162877,
+   "atividade": "Laboratório Estatístico",
+   "id": null
+  },
+  {
+   "arquivo": "DOSSIÊ GEOMÉTRICO.html",
+   "bytes": 47192,
+   "mtimeMs": 1791334719991,
+   "atividade": "Dossiê Geométrico",
+   "id": "cmvbaoj06e902c80"
+  },
+  {
+   "arquivo": "escape-room-projeto-omega.html",
+   "bytes": 65373,
+   "mtimeMs": 1791283878000,
+   "atividade": "Projeto Ômega",
+   "id": "cmvbaoj068e72f84"
+  },
+  {
+   "arquivo": "forca-financeira.html",
+   "bytes": 19920,
+   "mtimeMs": 1790727870854,
+   "atividade": "Forca Financeira",
+   "id": "cmvbaoj06c053008"
+  },
+  {
+   "arquivo": "invasao_alienigena_porcentagem_v2 (3).html",
+   "bytes": 75508,
+   "mtimeMs": 1792432917000,
+   "atividade": "Invasão Alienígena",
+   "id": null
+  },
+  {
+   "arquivo": "laboratorio-de-funcoes.html",
+   "bytes": 85740,
+   "mtimeMs": 1792158466379,
+   "atividade": "Laboratório de Funções",
+   "id": "cmvbaoj067208b52"
+  },
+  {
+   "arquivo": "leitor_de_gabaritos.html",
+   "bytes": 101228,
+   "mtimeMs": 1790532908244,
+   "atividade": "Leitor de Gabaritos (no site está a versão com sincronização)",
+   "id": "cmvbaoj0674573110"
+  },
+  {
+   "arquivo": "Missão Geometria Espacial 3D.html",
+   "bytes": 148930,
+   "mtimeMs": 1792674532317,
+   "atividade": "Missão Geometria Espacial 3D",
+   "id": null
+  },
+  {
+   "arquivo": "sala-de-aula-grupos.html",
+   "bytes": 8609,
+   "mtimeMs": 1791284398000,
+   "atividade": "Mapa da Sala",
+   "id": "cmvbaoj06eac97c9"
+  },
+  {
+   "arquivo": "Show-da-Proporcao-v6.html",
+   "bytes": 79799,
+   "mtimeMs": 1791910144000,
+   "atividade": "Show da Proporção (versão ANTIGA; no site está a nova enviada em 19/10)",
+   "id": "cmvbaoj061ab8f63"
+  },
+  {
+   "arquivo": "uno_da_potenciacao_v2.html",
+   "bytes": 80550,
+   "mtimeMs": 1792151440251,
+   "atividade": "UNO da Potenciação",
+   "id": "cmvbaoj0666d0486"
+  },
+  {
+   "arquivo": "uno_da_radiciacao.html",
+   "bytes": 83583,
+   "mtimeMs": 1792157647964,
+   "atividade": "UNO da Radiciação",
+   "id": "cmvbaoj06e8e40f7"
+  },
+  {
+   "arquivo": "uno_fracoes_decimais.html",
+   "bytes": 86945,
+   "mtimeMs": 1792159500001,
+   "atividade": "UNO de Frações e Decimais",
+   "id": "cmvbaoj06d734c95"
+  }
+ ]
+}
