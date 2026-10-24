@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz de porcentagem (teste)</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(160deg,#0f172a,#1e1b4b);color:#fff;display:flex;align-items:center;justify-content:center;padding:16px}
+  .box{width:100%;max-width:520px;text-align:center}
+  .prog{height:10px;background:#ffffff22;border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#a78bfa);transition:width .4s}
+  h1{font-size:1.2rem;margin:0 0 6px;opacity:.85}
+  .q{font-size:1.7rem;font-weight:800;margin:14px 0 20px}
+  .ops{display:grid;gap:10px}
+  .op{font:inherit;font-size:1.15rem;font-weight:700;padding:14px;border-radius:14px;border:2px solid #ffffff33;background:#ffffff12;color:#fff;cursor:pointer;text-align:left}
+  .op b{display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%;background:#ffffff26;margin-right:10px}
+  .op.certa{background:#16a34a;border-color:#4ade80}
+  .op.errada{background:#dc2626;border-color:#f87171}
+  .fb{min-height:28px;margin-top:14px;font-weight:700}
+  .final{font-size:1.1rem}
+  .final .g{font-size:3rem}
+  small{opacity:.7}
+</style>
+</head>
+<body>
+<div class="box" id="box"></div>
+<script>
+(function(){
+  var perguntas = [
+    {q:'Quanto é 10% de 200?', o:['10','20','30','40'], c:1},
+    {q:'Quanto é 50% de 80?', o:['20','30','40','60'], c:2},
+    {q:'Quanto é 25% de 120?', o:['25','30','35','40'], c:1},
+    {q:'Quanto é 20% de 150?', o:['20','25','30','35'], c:2},
+    {q:'Quanto é 75% de 40?', o:['25','30','35','20'], c:1}
+  ];
+  var letras = ['A','B','C','D'];
+  var box = document.getElementById('box');
+  var i = 0, acertos = 0, travado = false;
+
+  function bip(freq){
+    try{
+      var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+      var ctx = new C(), o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = freq; g.gain.value = .08; o.connect(g); g.connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime + .15);
+    }catch(e){}
+  }
+  function tela(){
+    var p = perguntas[i];
+    box.innerHTML = '';
+    var prog = document.createElement('div'); prog.className = 'prog';
+    var bar = document.createElement('i'); prog.append(bar); box.append(prog);
+    requestAnimationFrame(function(){ bar.style.width = (i / perguntas.length * 100) + '%'; });
+    var h = document.createElement('h1'); h.textContent = 'Questão ' + (i + 1) + ' de ' + perguntas.length; box.append(h);
+    var q = document.createElement('div'); q.className = 'q'; q.textContent = p.q; box.append(q);
+    var ops = document.createElement('div'); ops.className = 'ops';
+    p.o.forEach(function(txt, k){
+      var b = document.createElement('button'); b.className = 'op';
+      var l = document.createElement('b'); l.textContent = letras[k];
+      b.append(l, document.createTextNode(txt));
+      b.addEventListener('click', function(){ responder(k, b, ops, fb); });
+      ops.append(b);
+    });
+    box.append(ops);
+    var fb = document.createElement('div'); fb.className = 'fb'; box.append(fb);
+    travado = false;
+  }
+  function responder(k, b, ops, fb){
+    if(travado) return; travado = true;
+    var p = perguntas[i], botoes = ops.children;
+    if(k === p.c){ acertos++; b.classList.add('certa'); fb.textContent = '✅ Correto!'; bip(880); }
+    else { b.classList.add('errada'); botoes[p.c].classList.add('certa'); fb.textContent = '❌ A resposta certa era ' + letras[p.c] + '.'; bip(220); }
+    setTimeout(function(){ i++; if(i < perguntas.length) tela(); else fim(); }, 1300);
+  }
+  function fim(){
+    box.innerHTML = '<div class="final"><div class="g">🎉</div><h2>Fim do quiz!</h2>' +
+      '<p>Você acertou <b>' + acertos + '</b> de <b>' + perguntas.length + '</b>.</p><small>Enviando para o professor…</small></div>';
+    // Aviso para o portal: é assim que a nota chega ao professor.
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({tipo:'gamifica-resultado', acertos: acertos, total: perguntas.length, pontos: acertos * 100}, '*');
+    }
+  }
+  tela();
+})();
+</script>
+</body>
+</html>

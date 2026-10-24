@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atividade · Gamefica Ação Matemática</title>
+<style>
+  :root{--ink:#1b2440;--muted:#5d6785;--line:#e1e6f0;--primary:#4f46e5;--ok:#16a34a;--bad:#dc2626}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(160deg,#312e81,#4f46e5 55%,#7c3aed);display:flex;flex-direction:column}
+  .centro{flex:1;display:flex;align-items:center;justify-content:center;padding:16px}
+  .cartao{background:#fff;border-radius:22px;padding:24px;width:100%;max-width:440px;box-shadow:0 16px 50px rgba(10,10,60,.35);animation:sobe .4s ease}
+  @keyframes sobe{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  h1{margin:0 0 4px;font-size:1.35rem}
+  p{margin:6px 0}
+  .muted{color:var(--muted);font-size:.95rem}
+  label{display:block;font-weight:700;font-size:.92rem;margin:14px 0 5px}
+  input{width:100%;padding:14px;border:2px solid var(--line);border-radius:14px;font-size:1.05rem}
+  input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(79,70,229,.15)}
+  button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:14px 18px;font-weight:800;font-size:1.05rem;background:var(--primary);color:#fff;width:100%;margin-top:16px}
+  button.sec{background:#eef0fb;color:var(--primary)}
+  button:disabled{opacity:.6}
+  .msg{padding:10px 12px;border-radius:12px;margin-top:12px;font-size:.95rem}
+  .erro{background:#fee2e2;color:#991b1b}
+  .ok{background:#dcfce7;color:#166534}
+  .emoji{font-size:2.6rem;line-height:1}
+  .nota{font-size:3.4rem;font-weight:900;line-height:1.1;margin:6px 0}
+  .barra{display:none;align-items:center;justify-content:space-between;gap:10px;background:#1e1b4b;color:#fff;padding:8px 14px;font-size:.9rem}
+  .barra b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  iframe{display:none;flex:1;width:100%;border:0;background:#fff}
+  body.jogando .barra{display:flex}
+  body.jogando iframe{display:block}
+  body.jogando .centro{display:none}
+  body.fim .centro{display:flex}
+  body.fim iframe{display:none}
+  body.fim .barra{display:none}
+</style>
+</head>
+<body>
+<div class="barra"><b id="barra-titulo"></b><span id="barra-aluno"></span></div>
+<div class="centro"><div class="cartao" id="cartao"><p>Carregando atividade…</p></div></div>
+<iframe id="quadro" title="Atividade" allow="autoplay; fullscreen"></iframe>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="jogos.js"></script>
+<script>
+(function(){
+'use strict';
+
+var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+var cartao = document.getElementById('cartao');
+var quadro = document.getElementById('quadro');
+var codigo = (new URLSearchParams(location.search).get('a') || '').trim().toUpperCase();
+var atividade = null;
+var aluno = {nome:'', turma:''};
+var inicio = 0;
+var enviando = false;
+var pendente = null;
+
+function el(tag, props){
+  var e = document.createElement(tag);
+  props = props || {};
+  Object.keys(props).forEach(function(k){
+    var v = props[k];
+    if(v === null || v === undefined || v === false) return;
+    if(k === 'class') e.className = v;
+    else if(k.indexOf('on') === 0) e.addEventListener(k.slice(2), v);
+    else if(k === 'value') e.value = v;
+    else e.setAttribute(k, v);
+  });
+  for(var i = 2; i < arguments.length; i++){
+    [].concat(arguments[i]).forEach(function(c){
+      if(c === null || c === undefined || c === false) return;
+      e.append(c.nodeType ? c : document.createTextNode(String(c)));
+    });
+  }
+  return e;
+}
+function mostrar(){ cartao.replaceChildren.apply(cartao, arguments); }
+function guardar(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+function ler(k){ try{ return localStorage.getItem(k) || ''; }catch(e){ return ''; } }
+function fmtNota(n){ return Number(n).toFixed(1).replace('.', ','); }
+
+async function iniciar(){
+  if(!/^[A-Z0-9]{4,12}$/.test(codigo)){ return erroTela('Link inválido', 'Peça ao seu professor o link correto da atividade.'); }
+  var r = await sb.rpc('obter_atividade', {p_codigo: codigo});
+  if(r.error){ return erroTela('Sem conexão', 'Não consegui abrir a atividade. Verifique a internet e tente de novo.'); }
+  if(!r.data || r.data.length === 0){ return erroTela('Atividade não encontrada', 'Ela pode ter sido encerrada ou o link está incompleto. Fale com seu professor.'); }
+  atividade = r.data[0];
+  if(!window.JOGOS[atividade.jogo]){ return erroTela('Jogo indisponível', 'Este jogo ainda não está no portal. Avise seu professor.'); }
+  telaNome();
+}
+
+function erroTela(titulo, texto){
+  mostrar(el('div', {class:'emoji'}, '😕'), el('h1', {}, titulo), el('p', {class:'muted'}, texto));
+}
+
+function telaNome(){
+  var nome = el('input', {type:'text', id:'nome', maxlength:'80', autocomplete:'name', placeholder:'Nome e sobrenome', value: ler('gm_nome')});
+  var turma = el('input', {type:'text', id:'turma', maxlength:'40', placeholder:'Ex.: 3ª A', value: atividade.turma || ler('gm_turma')});
+  var aviso = el('div');
+  var form = el('form', {onsubmit: function(ev){
+    ev.preventDefault(); aviso.replaceChildren();
+    var n = nome.value.trim().replace(/\s+/g, ' ');
+    if(n.length < 2){ aviso.append(el('div', {class:'msg erro'}, 'Digite seu nome completo para o professor reconhecer você.')); return; }
+    aluno = {nome: n, turma: turma.value.trim()};
+    guardar('gm_nome', aluno.nome); guardar('gm_turma', aluno.turma);
+    comecar();
+  }},
+    el('label', {for:'nome'}, 'Seu nome'), nome,
+    el('label', {for:'turma'}, 'Sua turma'), turma,
+    el('button', {type:'submit'}, '🚀 Começar'), aviso);
+  mostrar(el('div', {class:'emoji'}, window.JOGOS[atividade.jogo].emoji || '🎮'),
+    el('h1', {}, atividade.titulo),
+    el('p', {class:'muted'}, 'Digite seus dados. Ao terminar, sua nota é enviada automaticamente ao professor.'),
+    form);
+}
+
+function comecar(){
+  document.getElementById('barra-titulo').textContent = atividade.titulo;
+  document.getElementById('barra-aluno').textContent = aluno.nome;
+  document.body.className = 'jogando';
+  enviando = false; pendente = null;
+  inicio = Date.now();
+  quadro.src = window.JOGOS[atividade.jogo].arquivo + '?t=' + Date.now();
+}
+
+window.addEventListener('message', function(ev){
+  if(ev.source !== quadro.contentWindow) return;
+  var d = ev.data;
+  if(!d || d.tipo !== 'gamifica-resultado' || enviando) return;
+  var acertos = Number(d.acertos), total = Number(d.total), pontos = Number(d.pontos || 0);
+  if(!Number.isInteger(acertos) || !Number.isInteger(total) || total < 1 || total > 200 || acertos < 0 || acertos > total) return;
+  pendente = {
+    p_codigo: codigo, p_nome: aluno.nome, p_turma: aluno.turma || '',
+    p_acertos: acertos, p_total: total,
+    p_pontos: Number.isFinite(pontos) ? Math.max(0, Math.round(pontos)) : 0,
+    p_tempo: Math.max(0, Math.round((Date.now() - inicio) / 1000))
+  };
+  enviar();
+});
+
+async function enviar(){
+  enviando = true;
+  document.body.className = 'fim';
+  mostrar(el('div', {class:'emoji'}, '📤'), el('h1', {}, 'Enviando seu resultado…'));
+  var r = await sb.rpc('enviar_resultado', pendente);
+  if(r.error){
+    enviando = false;
+    var aviso = /encerrada/i.test(r.error.message) ? 'Esta atividade foi encerrada pelo professor.' : 'Não consegui enviar agora. Confira a internet e tente de novo — seu resultado está guardado aqui.';
+    mostrar(el('div', {class:'emoji'}, '⚠️'), el('h1', {}, 'Resultado não enviado'),
+      el('div', {class:'msg erro'}, aviso),
+      el('button', {onclick: enviar}, '🔁 Tentar enviar de novo'));
+    return;
+  }
+  var nota = Number(r.data);
+  var bom = nota >= 6;
+  mostrar(
+    el('div', {class:'emoji'}, bom ? '🏆' : '💪'),
+    el('h1', {}, bom ? 'Muito bem, ' + aluno.nome.split(' ')[0] + '!' : 'Bom esforço, ' + aluno.nome.split(' ')[0] + '!'),
+    el('div', {class:'nota', style:'color:' + (bom ? 'var(--ok)' : 'var(--bad)')}, fmtNota(nota)),
+    el('p', {class:'muted'}, 'Você acertou ' + pendente.p_acertos + ' de ' + pendente.p_total + ' questões.'),
+    el('div', {class:'msg ok'}, '✔ Resultado enviado ao seu professor.'),
+    el('button', {class:'sec', onclick: comecar}, '🔄 Jogar de novo'));
+}
+
+iniciar();
+})();
+</script>
+</body>
+</html>
