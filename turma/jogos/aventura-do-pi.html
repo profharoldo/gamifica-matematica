@@ -1,0 +1,1837 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script src="ponte-portal.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<style>html,body{margin:0;height:100%}[hidden]{display:none!important}</style>
+<title>Aventura do Pi — Ensino Médio: Área e Perímetro (v8)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&family=Press+Start+2P&display=swap">
+<style>
+:root{
+  --paper:#e9f2fb; --grid:#c9dcf0; --ink:#1d2552; --ink-soft:#4a5590;
+  --coral:#ff6b4a; --sun:#ffc93c; --mint:#2fbf8f; --grape:#7a4cff; --bad:#e8384f;
+  --card:#ffffff;
+  /* Fundo da página (muda conforme o cenário) */
+  --page:#e9f2fb; --page-grid:#c9dcf0; --page-ink:#1d2552; --page-soft:#4a5590;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito",system-ui,sans-serif;
+  --pixel:"Press Start 2P","Courier New",monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+.tbtn,canvas,.opt,.btn-s,.big,.topic,.xbtn{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html{touch-action:manipulation}
+html,body{
+  width:100%;min-height:100%;min-height:100dvh;
+  background:var(--page);color:var(--ink);font-family:var(--body);
+  background-image:linear-gradient(var(--page-grid) 1px,transparent 1px),linear-gradient(90deg,var(--page-grid) 1px,transparent 1px);
+  background-size:24px 24px;overflow-x:hidden;transition:background-color .4s;
+}
+body{
+  padding-top:max(8px,env(safe-area-inset-top,0px));
+  padding-bottom:max(10px,env(safe-area-inset-bottom,0px));
+  padding-left:max(12px,env(safe-area-inset-left,0px));
+  padding-right:max(12px,env(safe-area-inset-right,0px));
+}
+#gameRoot{width:100%;min-height:calc(100dvh - 20px);display:flex;flex-direction:column;justify-content:flex-start;align-items:center}
+#gameRoot:fullscreen,#gameRoot:-webkit-full-screen,#gameRoot.ios-fullscreen{
+  position:fixed;top:0;right:0;bottom:0;left:0;width:100vw;height:100vh;height:100dvh;
+  background:var(--page);
+  background-image:linear-gradient(var(--page-grid) 1px,transparent 1px),linear-gradient(90deg,var(--page-grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;justify-content:flex-start!important;align-items:center;
+  overflow-y:auto;overflow-x:hidden;z-index:9999;
+}
+.wrap{max-width:1120px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+#gameRoot:fullscreen .wrap,#gameRoot:-webkit-full-screen .wrap,#gameRoot.ios-fullscreen .wrap{max-width:1360px;height:100%;gap:6px}
+
+header{flex-shrink:0;display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(1.25rem,3vw,2rem);margin:0;line-height:1.05;text-wrap:balance;color:var(--page-ink)}
+h1 span{color:var(--coral)}
+.badge-em{font-family:var(--pixel);font-size:.6rem;background:var(--grape);color:#fff;padding:4px 7px;border-radius:8px;vertical-align:middle;margin-left:6px}
+.sub{margin:0;color:var(--page-soft);font-weight:700;font-size:clamp(.78rem,1.8vw,.92rem)}
+.scene-tag{font-family:var(--display);font-weight:800;color:var(--page-ink);font-size:clamp(.85rem,1.8vw,1rem)}
+
+.hud{flex-shrink:0;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:4px 9px;font-weight:800;display:flex;gap:5px;align-items:center;font-variant-numeric:tabular-nums;font-size:clamp(.78rem,1.6vw,.9rem)}
+.chip.rule{background:var(--sun)}
+.chip.player-chip{background:#e2ddff}
+.chip .px{font-family:var(--pixel);font-size:.68rem}
+.hud .sp{flex:1;min-width:4px}
+.btn-s{font:inherit;font-size:clamp(.76rem,1.5vw,.86rem);font-weight:800;background:var(--card);border:2px solid var(--ink);border-radius:10px;padding:5px 9px;cursor:pointer;color:var(--ink);box-shadow:2px 2px 0 var(--ink);transition:transform .1s;user-select:none;-webkit-user-select:none}
+.btn-s:hover{transform:translateY(-1px);background:var(--sun)}
+.btn-s:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+.btn-s.fs-btn{background:var(--mint);color:#fff}
+.btn-s.form-btn{background:#e2ddff}
+.btn-s:focus-visible,.opt:focus-visible,.topic:focus-visible,.big:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--grape);outline-offset:2px}
+
+.stage{position:relative;border:3px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:5px 5px 0 var(--ink);background:#000;width:100%;display:flex;align-items:center;justify-content:center}
+body.dark .stage{border-color:#b388ff;box-shadow:5px 5px 0 #b388ff,0 0 30px rgba(179,136,255,.35)}
+#gameRoot:fullscreen .stage,#gameRoot:-webkit-full-screen .stage,#gameRoot.ios-fullscreen .stage{flex:1;min-height:180px;max-height:calc(100dvh - 145px)}
+canvas{display:block;-webkit-user-drag:none;width:100%;height:auto;max-height:calc(100dvh - 175px);aspect-ratio:16/9;object-fit:contain;touch-action:none;user-select:none;-webkit-user-select:none}
+#gameRoot:fullscreen canvas,#gameRoot:-webkit-full-screen canvas,#gameRoot.ios-fullscreen canvas{width:auto;height:100%;max-width:100%;max-height:100%}
+
+.touch{flex-shrink:0;display:none;justify-content:space-between;align-items:center;gap:12px;padding-top:2px;user-select:none;-webkit-user-select:none}
+.touch .grp{display:flex;gap:10px}
+.tbtn{min-width:68px;height:56px;border:3px solid var(--ink);border-radius:14px;background:var(--card);font-family:var(--display);font-size:1.45rem;font-weight:800;color:var(--ink);box-shadow:3px 3px 0 var(--ink);touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tbtn.jump{background:var(--coral);color:#fff;padding:0 18px;min-width:128px;font-size:1.1rem;gap:6px}
+.tbtn.on{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);filter:brightness(.95)}
+@media (pointer:coarse),(max-width:900px){.touch{display:flex}}
+@media (max-height:540px) and (orientation:landscape){
+  header .sub,.keys{display:none}
+  h1{font-size:1.1rem}
+  .wrap{gap:4px}
+  .chip{padding:2px 7px;font-size:.75rem}
+  .btn-s{padding:3px 7px;font-size:.74rem}
+  canvas{max-height:calc(100dvh - 115px)}
+  .tbtn{height:44px;min-width:58px;font-size:1.2rem}
+  .tbtn.jump{min-width:105px;font-size:.95rem}
+}
+.rotate-tip{display:none;background:var(--sun);color:var(--ink);border:2px solid var(--ink);border-radius:10px;padding:6px 10px;font-weight:800;font-size:.85rem;text-align:center}
+@media (orientation:portrait) and (max-width:600px){.rotate-tip{display:block}}
+.keys{flex-shrink:0;color:var(--page-soft);font-weight:600;margin:0;font-size:.84rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+kbd{font-family:var(--body);font-weight:800;border:2px solid var(--ink-soft);border-bottom-width:3px;border-radius:6px;padding:0 6px;background:var(--card);color:var(--ink)}
+
+/* Notação matemática de livro didático */
+.math-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .22em;line-height:1.05;font-weight:800}
+.math-frac>.num{border-bottom:2.5px solid currentColor;padding:0 .3em .1em;text-align:center;white-space:nowrap}
+.math-frac>.den{padding:.1em .3em 0;text-align:center;white-space:nowrap}
+.math-sqrt{display:inline-flex;align-items:baseline;vertical-align:middle;white-space:nowrap}
+.math-sqrt>.rad{font-size:1.15em;line-height:1;margin-right:1px}
+.math-sqrt>.radicand{border-top:2px solid currentColor;padding:1px 3px 0}
+sub,sup{font-size:.68em;line-height:0}
+sub{vertical-align:sub}
+sup{vertical-align:super}
+
+/* Modais */
+.ov{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(29,37,82,.65);display:flex;align-items:center;justify-content:center;z-index:10000;padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));overflow:auto}
+body.dark .ov{background:rgba(5,1,15,.78)}
+.panel{background:var(--card);border:3px solid var(--ink);border-radius:18px;box-shadow:8px 8px 0 var(--ink);max-width:720px;width:100%;padding:18px;display:flex;flex-direction:column;gap:11px;margin:auto;animation:pop .22s ease-out;max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+body.dark .panel{box-shadow:8px 8px 0 #b388ff}
+/* Botão X para fechar qualquer janela (fica visível mesmo rolando a janela) */
+.xbtn{position:sticky;top:0;align-self:flex-end;margin:-6px -6px -46px 0;z-index:5;width:42px;height:42px;flex-shrink:0;border:3px solid var(--ink);border-radius:50%;background:var(--bad);color:#fff;font-family:var(--display);font-size:1.35rem;font-weight:800;line-height:1;cursor:pointer;box-shadow:2px 2px 0 var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .12s}
+.xbtn:hover{transform:rotate(90deg) scale(1.08)}
+.xbtn:active{transform:scale(.92)}
+.xbtn:focus-visible{outline:3px solid var(--grape);outline-offset:2px}
+.panel>.eyebrow,.panel>h2{padding-right:46px}
+@keyframes pop{from{transform:scale(.92);opacity:.4}to{transform:none;opacity:1}}
+.panel h2{font-family:var(--display);font-weight:800;font-size:clamp(1.25rem,3vw,1.55rem);margin:0;line-height:1.15;text-wrap:balance}
+.panel h3{margin:4px 0 0;font-family:var(--display);font-size:1.2rem}
+.panel p{margin:0;line-height:1.45}
+.eyebrow{font-family:var(--pixel);font-size:.62rem;letter-spacing:.06em;color:var(--grape)}
+
+.student-form{display:grid;grid-template-columns:2fr 1fr;gap:10px;background:var(--paper);padding:12px;border-radius:12px;border:2px solid var(--ink)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.8rem;font-weight:800;color:var(--ink-soft);text-transform:uppercase}
+.field input,.field select{font:inherit;font-size:16px;font-weight:800;padding:8px 10px;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink)}
+
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.legend div{background:#f6f9fe;border:2px solid var(--grid);border-radius:12px;padding:8px 10px;font-weight:700;font-size:.9rem;line-height:1.35}
+.legend b{font-family:var(--display);font-size:1.15rem;color:var(--coral)}
+@media (max-width:480px){.legend{grid-template-columns:1fr}}
+
+/* Botões de tema: cada um mostra as cores do seu cenário */
+.topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.topic{font-family:var(--display);font-weight:800;font-size:1rem;border:3px solid var(--ink);border-radius:14px;padding:8px 6px 6px;cursor:pointer;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .12s;text-align:center;box-shadow:3px 3px 0 var(--ink);position:relative;overflow:hidden}
+.topic .sym{font-size:2rem;line-height:1.1;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.topic .lbl{background:rgba(20,16,50,.78);border-radius:9px;padding:5px 6px;width:100%;line-height:1.15}
+.topic small{display:block;font-family:var(--body);font-size:.72rem;font-weight:700;opacity:.92;margin-top:2px}
+.topic .scene{display:block;font-family:var(--body);font-size:.7rem;font-weight:800;color:#ffe066;margin-top:3px}
+.topic:hover{transform:translateY(-3px) rotate(-1deg)}
+.topic.darkbtn{border-color:#b388ff;box-shadow:3px 3px 0 #b388ff}
+
+.mission{background:#fff8dc;border:2px solid var(--sun);border-radius:12px;padding:12px;font-weight:700;line-height:1.5}
+.scene-box{border-radius:12px;padding:12px;color:#fff;font-weight:800;border:2px solid var(--ink);text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.coin-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.coin-ex{width:46px;height:46px;border-radius:50%;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:1.05rem;background:var(--sun);position:relative}
+.coin-ex.yes::after,.coin-ex.no::after{position:absolute;right:-6px;top:-8px;font-size:.95rem}
+.coin-ex.yes::after{content:"✅"}
+.coin-ex.no::after{content:"❌"}
+.coin-lbl{font-weight:800;font-size:.85rem;min-width:70px}
+
+.quiz-layout{display:grid;grid-template-columns:1fr 190px;gap:12px;align-items:center}
+@media (max-width:560px){.quiz-layout{grid-template-columns:1fr}.student-form{grid-template-columns:1fr}}
+.story{background:var(--paper);border-radius:12px;padding:10px 12px;font-weight:700;font-size:.98rem;border-left:4px solid var(--grape);line-height:1.5}
+.qtype{display:inline-block;font-family:var(--pixel);font-size:.55rem;background:var(--grape);color:#fff;padding:3px 6px;border-radius:6px;margin-bottom:5px}
+.qtype.mem{background:#ff3d7f}
+.fig-box{background:#fff;border:2px dashed var(--ink-soft);border-radius:12px;padding:6px;display:flex;align-items:center;justify-content:center;min-height:120px}
+.fig-box svg{max-width:100%;height:auto}
+.expr{font-family:var(--display);font-weight:800;font-size:clamp(1.15rem,3.4vw,1.6rem);text-align:center;line-height:1.35;color:var(--ink);background:#f6f9fe;padding:10px 12px;border-radius:10px;border:2px solid var(--grid);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
+.expr .q{color:var(--coral)}
+.expr .done{color:var(--mint)}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.opt{font-family:var(--display);font-weight:800;font-size:1.3rem;border:3px solid var(--ink);border-radius:12px;padding:8px 6px;background:var(--sun);color:var(--ink);cursor:pointer;box-shadow:3px 3px 0 var(--ink);display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px}
+.opts.formula .opt{font-size:1.15rem;background:#fff3b0}
+.opt:hover{transform:translateY(-2px)}
+.opt.ok{background:var(--mint)!important;color:#fff}
+.opt.no{background:var(--bad)!important;color:#fff;opacity:.65;animation:shake .35s}
+.opt:disabled{cursor:default}
+.opt svg{flex-shrink:0}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{border-radius:12px;padding:10px 12px;font-weight:700;line-height:1.6;font-size:.94rem}
+.fb.good{background:#d8f5ea;border:2px solid var(--mint)}
+.fb.hint{background:#ffe9e4;border:2px solid var(--coral)}
+.fb .err{display:block;margin-bottom:4px}
+.steps{margin:6px 0 0;padding-left:1.4em;font-family:var(--display);font-size:1.08rem;line-height:1.9}
+.steps li::marker{color:var(--grape);font-weight:800}
+
+details.form-help{border:2px solid var(--grape);border-radius:12px;background:#f4f0ff}
+details.form-help summary{cursor:pointer;font-weight:800;padding:8px 12px;list-style:none;color:var(--grape)}
+details.form-help summary::-webkit-details-marker{display:none}
+details.form-help[open] summary{border-bottom:2px solid var(--grape)}
+details.form-help .form-grid{padding:10px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.fcard{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.fcard .ft{font-weight:800;font-size:.85rem;color:var(--ink-soft);text-transform:uppercase}
+.fcard .ff{font-family:var(--display);font-weight:800;font-size:1.02rem;line-height:1.55;transition:filter .25s}
+.fcard .mn{font-size:.72rem;color:var(--ink-soft);font-weight:700;line-height:1.25}
+.form-grid.train .fcard{cursor:pointer}
+.form-grid.train .fcard .ff{filter:blur(8px)}
+.form-grid.train .fcard.show .ff{filter:none}
+.form-grid.train .fcard::after{content:"👆 toque para ver";font-size:.68rem;font-weight:800;color:var(--grape)}
+.form-grid.train .fcard.show::after{content:"✓ conferido";color:var(--mint)}
+
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.big{font-family:var(--display);font-weight:800;font-size:1.15rem;border:3px solid var(--ink);border-radius:14px;padding:9px 18px;background:var(--coral);color:#fff;cursor:pointer;box-shadow:4px 4px 0 var(--ink)}
+.big.sec{background:var(--paper);color:var(--ink)}
+.big.danger{background:var(--bad);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+@media (max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stats div{background:var(--paper);border-radius:12px;padding:8px 4px;font-weight:700;font-size:.8rem;border:2px solid var(--grid)}
+.stats strong{display:block;font-family:var(--display);font-size:1.45rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.stars{font-size:2rem;text-align:center;letter-spacing:.2em}
+.tip{font-size:.86rem;color:var(--ink-soft);font-weight:700}
+
+.worth{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;font-weight:800;font-size:.9rem}
+.worth span{background:#f4f0ff;border:2px solid var(--grape);border-radius:10px;padding:4px 10px}
+.worth span.hot{background:#fff3b0;border-color:#e0a800}
+.worth span.off{opacity:.45;text-decoration:line-through}
+.worth b{font-family:var(--display);font-size:1.05rem}
+.pts-ladder{display:flex;gap:4px;justify-content:center;font-size:.75rem;font-weight:800;color:var(--ink-soft)}
+.pts-ladder i{font-style:normal;padding:2px 7px;border-radius:7px;background:var(--paper)}
+.pts-ladder i.now{background:var(--mint);color:#fff}
+.pts-ladder i.gone{text-decoration:line-through;opacity:.5}
+.extrato{width:100%;border-collapse:collapse;font-size:.9rem;background:var(--paper);border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+.extrato td{padding:5px 10px;border-bottom:1px solid var(--grid);font-weight:700}
+.extrato td:last-child{text-align:right;font-family:var(--display);font-weight:800;white-space:nowrap}
+.extrato tr.neg td:last-child{color:var(--bad)}
+.extrato tr.pos td:last-child{color:#16855f}
+.extrato tr.total td{background:var(--ink);color:#fff;font-size:1.05rem}
+.extrato tr.total td:last-child{color:var(--sun)}
+.extrato small{color:var(--ink-soft);font-weight:700}
+.rank-box{background:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:10px;max-height:230px;overflow:auto}
+.rank-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.rank-table th{text-align:left;padding:6px 8px;border-bottom:2px solid var(--ink);font-size:.78rem;text-transform:uppercase;color:var(--ink-soft)}
+.rank-table td{padding:6px 8px;border-bottom:1px solid var(--grid);font-weight:700}
+.rank-table tr.me{background:#fff3b0;font-weight:800}
+.rank-empty{text-align:center;padding:14px;color:var(--ink-soft);font-weight:700}
+/* ===== Celulares: janelas mais compactas (em pé e deitado) ===== */
+@media (max-width:600px),(max-height:520px){
+  .panel{padding:12px;gap:8px;border-radius:14px;box-shadow:5px 5px 0 var(--ink);max-height:94dvh}
+  .panel h2{font-size:1.1rem}
+  .panel h3{font-size:1rem}
+  .eyebrow{font-size:.5rem}
+  .worth{gap:4px;font-size:.74rem}
+  .worth span{padding:2px 7px;border-radius:8px}
+  .worth b{font-size:.88rem}
+  .pts-ladder{font-size:.66rem}
+  .story{font-size:.86rem;padding:7px 9px;line-height:1.38}
+  .qtype{font-size:.46rem}
+  .fig-box{min-height:0;padding:2px}
+  .fig-box svg{max-height:96px;width:auto}
+  .expr{font-size:1.05rem;padding:6px 8px}
+  .opts{gap:7px}
+  .opt{font-size:1.02rem;min-height:44px;padding:5px 4px;box-shadow:2px 2px 0 var(--ink)}
+  .opts.formula .opt{font-size:.95rem}
+  .opt svg{width:24px;height:auto}
+  .fb{font-size:.84rem;padding:7px 9px;line-height:1.45}
+  .steps{font-size:.95rem;line-height:1.7}
+  .big{font-size:1rem;padding:7px 14px}
+  .xbtn{width:36px;height:36px;font-size:1.1rem;margin-bottom:-40px}
+  .topics{grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:7px}
+  .topic .sym{font-size:1.5rem}
+  .topic .lbl{font-size:.88rem}
+  .legend div{font-size:.8rem;padding:6px 8px}
+  .extrato{font-size:.8rem}
+  .mission{font-size:.88rem;padding:9px}
+}
+/* Celular deitado: figura ao lado do enunciado e sem a escada de pontos */
+@media (max-height:520px){
+  .quiz-layout{grid-template-columns:1fr 140px;gap:8px}
+  .pts-ladder{display:none}
+}
+/* Celular em pé: figura menor embaixo do enunciado */
+@media (max-width:560px){
+  .quiz-layout{grid-template-columns:1fr}
+  .fig-box svg{max-height:84px}
+}
+</style>
+</head>
+<body>
+<div id="gameRoot">
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Aventura do <span>Pi</span> <span class="badge-em">ENSINO MÉDIO</span></h1>
+        <p class="sub">Geometria Plana: Área e Perímetro · 7 mundos, 7 músicas, todas as figuras planas!</p>
+      </div>
+      <span class="scene-tag" id="sceneTag"></span>
+    </header>
+
+    <div class="hud" aria-live="polite">
+      <div class="chip player-chip" title="Aluno atual">👤 <span id="hudPlayer">Aluno</span></div>
+      <div class="chip" title="Vidas"><span id="hearts">❤❤❤</span></div>
+      <div class="chip" title="Pontos">⭐ <span class="px" id="score">0</span></div>
+      <div class="chip" title="Portões abertos">🔒 <span class="px" id="gates">0/4</span></div>
+      <div class="chip rule" id="rule">Pegue só: QUADRADOS PERFEITOS</div>
+      <span class="sp"></span>
+      <button class="btn-s form-btn" id="formBtn" type="button" title="Ver e treinar as fórmulas">📋 Fórmulas</button>
+      <button class="btn-s" id="bgmBtn" type="button" title="Ligar/Desligar a música de fundo">🎵 Música: ON</button>
+      <button class="btn-s" id="mute" type="button" title="Ligar/Desligar todos os sons">🔊 Som</button>
+      <button class="btn-s" id="rankBtn" type="button" title="Ver o ranking salvo neste aparelho">🏆 Ranking</button>
+      <button class="btn-s fs-btn" id="fsBtn" type="button" title="Alternar Tela Cheia (Tecla F)">⛶ Tela Cheia</button>
+      <button class="btn-s" id="menuBtn" type="button">☰ Tema / Aluno</button>
+    </div>
+
+    <div class="rotate-tip" id="rotTip">📱 Dica: gire o celular (tela deitada) para jogar melhor!</div>
+    <div class="stage"><canvas id="cv" width="960" height="540" aria-label="Tela do jogo"></canvas></div>
+
+    <div class="touch" aria-label="Controles de toque">
+      <div class="grp">
+        <button class="tbtn" data-k="left" type="button" aria-label="Andar para a esquerda">◀</button>
+        <button class="tbtn" data-k="right" type="button" aria-label="Andar para a direita">▶</button>
+      </div>
+      <button class="tbtn jump" data-k="jump" type="button" aria-label="Pular">PULAR ⤒</button>
+    </div>
+    <p class="keys">
+      <span>Teclado: <kbd>←</kbd> <kbd>→</kbd> andar · <kbd>Espaço</kbd> pular · <kbd>F</kbd> Tela Cheia</span>
+      <span>💡 Quebre os <b>blocos</b> batendo a cabeça por baixo e pule em cima dos inimigos!</span>
+    </p>
+  </div>
+
+  <div class="ov" id="ov"><div class="panel" id="panel"></div></div>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const W=960,H=540,WORLD=4300,GROUND=470;
+const dpr=Math.min(window.devicePixelRatio||1,2);
+cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+const $=id=>document.getElementById(id);
+const ov=$('ov'),panel=$('panel'),gameRoot=$('gameRoot');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function drawRoundRect(c,x,y,w,h,r){
+  let tl,tr,br,bl;
+  if(Array.isArray(r)){tl=r[0]||0;tr=r[1]!=null?r[1]:tl;br=r[2]!=null?r[2]:tl;bl=r[3]!=null?r[3]:tr}else{tl=tr=br=bl=r||0}
+  c.beginPath();c.moveTo(x+tl,y);c.lineTo(x+w-tr,y);c.quadraticCurveTo(x+w,y,x+w,y+tr);
+  c.lineTo(x+w,y+h-br);c.quadraticCurveTo(x+w,y+h,x+w-br,y+h);c.lineTo(x+bl,y+h);
+  c.quadraticCurveTo(x,y+h,x,y+h-bl);c.lineTo(x,y+tl);c.quadraticCurveTo(x,y,x+tl,y);c.closePath();
+}
+
+/*@@QGEN_START*/
+/* ===================== Utilitários ===================== */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const rd=n=>Math.round(n*10)/10;
+const sq=x=>`${x}<sup>2</sup>`;
+function frac(num,den){return `<span class="math-frac"><span class="num">${num}</span><span class="den">${den}</span></span>`}
+function sqrt(val){return `<span class="math-sqrt"><span class="rad">√</span><span class="radicand">${val}</span></span>`}
+function multHint(a,b){
+  const big=Math.max(a,b),small=Math.min(a,b);
+  if(big>10) return `Dica de cálculo: ${big} · ${small} = 10 · ${small} + ${big-10} · ${small} = ${10*small} + ${(big-10)*small}.`;
+  return `Dica de cálculo: use a tabuada do ${small}.`;
+}
+
+/* ===================== Figuras SVG (proporcionais às medidas) ===================== */
+const TXT='font-weight="800" font-size="12" font-family="Nunito,sans-serif"';
+const INK='#1d2552',CORAL='#ff6b4a',GRAPE='#7a4cff',FILL='#e9f2fb';
+const svgOpen=(label,h=110)=>`<svg viewBox="0 0 180 ${h}" width="180" height="${h}" role="img" aria-label="${label}">`;
+const T_=(x,y,txt,col=INK,anchor='middle')=>txt?`<text x="${rd(x)}" y="${rd(y)}" text-anchor="${anchor}" ${TXT} fill="${col}">${txt}</text>`:'';
+
+function svgRect(b,h,labB,labH,cut,cutLab){
+  const s=Math.min(110/b,72/h),w=b*s,hh=h*s;
+  const x0=rd(14+(110-w)/2),y0=rd(6+(72-hh)/2);
+  let shape,right;
+  if(cut){
+    const c=cut*s;
+    shape=`<rect x="${rd(x0+w-c)}" y="${y0}" width="${rd(c)}" height="${rd(c)}" fill="#ffe1da" stroke="#e8384f" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="${rd(x0+w-c/2)}" y="${rd(y0+c/2+5)}" text-anchor="middle" font-size="13">✂</text>
+      <polygon points="${x0},${y0} ${rd(x0+w-c)},${y0} ${rd(x0+w-c)},${rd(y0+c)} ${rd(x0+w)},${rd(y0+c)} ${rd(x0+w)},${rd(y0+hh)} ${x0},${rd(y0+hh)}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+    right=T_(x0+w+5,y0+c/2+4,cutLab,'#e8384f','start')+T_(x0+w+5,y0+c+(hh-c)/2+4,labH,CORAL,'start');
+  }else{
+    shape=`<rect x="${x0}" y="${y0}" width="${rd(w)}" height="${rd(hh)}" fill="${FILL}" stroke="${INK}" stroke-width="3"/>`;
+    right=T_(x0+w+5,y0+hh/2+4,labH,CORAL,'start');
+  }
+  return `${svgOpen('Retângulo',100)}${shape}
+    <rect x="${x0}" y="${rd(y0+hh-9)}" width="9" height="9" fill="none" stroke="${INK}" stroke-width="1.5"/>
+    ${T_(x0+w/2,y0+hh+16,labB)}${right}</svg>`;
+}
+function svgTrapezoid(B,b,h,lB,lb,lh,lc){
+  const s=Math.min(140/B,62/h),Bw=B*s,bw=b*s,hh=h*s;
+  const x0=rd(20+(140-Bw)/2),y0=rd(22+(62-hh)/2),xt=rd(x0+(Bw-bw)/2),yb=rd(y0+hh);
+  return `${svgOpen('Trapézio')}
+    <polygon points="${x0},${yb} ${rd(x0+Bw)},${yb} ${rd(xt+bw)},${y0} ${xt},${y0}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    ${lh?`<line x1="${xt}" y1="${y0}" x2="${xt}" y2="${yb}" stroke="${CORAL}" stroke-width="2.5" stroke-dasharray="4 3"/>`:''}
+    ${T_(90,y0-6,lb)}${T_(90,yb+16,lB)}${T_(xt+5,y0+hh/2+4,lh,CORAL,'start')}
+    ${T_((x0+Bw+xt+bw)/2+6,(y0+yb)/2+4,lc,GRAPE,'start')}</svg>`;
+}
+function svgRhombus(D,d,lD,ld,lL){
+  const s=Math.min(150/D,96/d),hw=D*s/2,hv=d*s/2,cx=90,cy=55;
+  return `${svgOpen('Losango')}
+    <polygon points="${cx},${rd(cy-hv)} ${rd(cx+hw)},${cy} ${cx},${rd(cy+hv)} ${rd(cx-hw)},${cy}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    ${lD?`<line x1="${rd(cx-hw)}" y1="${cy}" x2="${rd(cx+hw)}" y2="${cy}" stroke="${GRAPE}" stroke-width="2.5" stroke-dasharray="4 3"/>`:''}
+    ${ld?`<line x1="${cx}" y1="${rd(cy-hv)}" x2="${cx}" y2="${rd(cy+hv)}" stroke="${CORAL}" stroke-width="2.5" stroke-dasharray="4 3"/>`:''}
+    ${T_(cx+hw/2,cy-5,lD,GRAPE)}${T_(cx+5,cy+hv/2+10,ld,CORAL,'start')}${T_(cx+hw/2+6,cy-hv/2-2,lL,INK,'start')}</svg>`;
+}
+function svgRightTri(c1,c2,l1,l2,lh){
+  const s=Math.min(110/c1,74/c2),a=c1*s,v=c2*s;
+  const x0=48,y0=rd(8+(74-v)/2),yb=rd(y0+v);
+  return `${svgOpen('Triângulo retângulo')}
+    <polygon points="${x0},${yb} ${rd(x0+a)},${yb} ${x0},${y0}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="${x0}" y="${rd(yb-10)}" width="10" height="10" fill="none" stroke="${INK}" stroke-width="2"/>
+    ${T_(x0+a/2,yb+16,l1)}${T_(x0-5,y0+v/2+4,l2,INK,'end')}${T_(x0+a/2+6,y0+v/2-2,lh,CORAL,'start')}</svg>`;
+}
+function svgTri(b,h,lb,lh){
+  const s=Math.min(130/b,70/h),w=b*s,hh=h*s;
+  const x0=rd(14+(130-w)/2),y0=rd(8+(70-hh)/2),yb=rd(y0+hh),ax=rd(x0+w*.35);
+  return `${svgOpen('Triângulo')}
+    <polygon points="${x0},${yb} ${rd(x0+w)},${yb} ${ax},${y0}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="${ax}" y1="${y0}" x2="${ax}" y2="${yb}" stroke="${CORAL}" stroke-width="2.5" stroke-dasharray="4 3"/>
+    <rect x="${ax}" y="${rd(yb-8)}" width="8" height="8" fill="none" stroke="${CORAL}" stroke-width="1.5"/>
+    ${T_(x0+w/2,yb+16,lb)}${T_(ax+6,y0+hh/2+4,lh,CORAL,'start')}</svg>`;
+}
+/* Triângulo com os 3 lados reais: a = lado direito, b = lado esquerdo, c = base */
+function svgTri3(a,b,c,la,lb,lc){
+  const px=(b*b-a*a+c*c)/(2*c),py=Math.sqrt(Math.max(b*b-px*px,.01));
+  const minX=Math.min(0,px),maxX=Math.max(c,px),s=Math.min(130/(maxX-minX),70/py);
+  const ox=25+(130-(maxX-minX)*s)/2-minX*s,yb=rd(10+70);
+  const A=[rd(ox),yb],Bp=[rd(ox+c*s),yb],Cp=[rd(ox+px*s),rd(yb-py*s)];
+  return `${svgOpen('Triângulo')}
+    <polygon points="${A} ${Bp} ${Cp}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    ${T_((A[0]+Bp[0])/2,yb+16,lc)}${T_((A[0]+Cp[0])/2-5,(A[1]+Cp[1])/2,lb,INK,'end')}${T_((Bp[0]+Cp[0])/2+5,(Bp[1]+Cp[1])/2,la,INK,'start')}</svg>`;
+}
+function svgParal(b,h,a,lb,lh,la){
+  const o=Math.sqrt(Math.max(a*a-h*h,.01)),s=Math.min(140/(b+o),66/h),bw=b*s,ow=o*s,hh=h*s;
+  const x0=rd(16+(140-(bw+ow))/2),y0=rd(12+(66-hh)/2),yb=rd(y0+hh);
+  return `${svgOpen('Paralelogramo')}
+    <polygon points="${x0},${yb} ${rd(x0+bw)},${yb} ${rd(x0+bw+ow)},${y0} ${rd(x0+ow)},${y0}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    ${lh?`<line x1="${rd(x0+ow)}" y1="${y0}" x2="${rd(x0+ow)}" y2="${yb}" stroke="${CORAL}" stroke-width="2.5" stroke-dasharray="4 3"/>
+    <rect x="${rd(x0+ow)}" y="${rd(yb-8)}" width="8" height="8" fill="none" stroke="${CORAL}" stroke-width="1.5"/>`:''}
+    ${T_(x0+bw/2,yb+16,lb)}${T_(x0+ow/2-4,y0+hh/2+4,la,GRAPE,'end')}${T_(x0+ow+10,y0+hh/2+4,lh,CORAL,'start')}</svg>`;
+}
+function svgCircle(lR,deg,lAng,diam){
+  const cx=90,cy=58,R=44;
+  let sector='',ang='',line,lab;
+  if(deg){
+    const t=deg*Math.PI/180,ex=rd(cx+R*Math.cos(t)),ey=rd(cy-R*Math.sin(t)),large=deg>180?1:0;
+    sector=`<path d="M${cx},${cy} L${cx+R},${cy} A${R},${R} 0 ${large},0 ${ex},${ey} Z" fill="#ffc93c" stroke="${INK}" stroke-width="2"/>`;
+    const m=t/2;
+    ang=`<text x="${rd(cx+20*Math.cos(m))}" y="${rd(cy-20*Math.sin(m)+4)}" text-anchor="middle" font-weight="800" font-size="10" fill="${GRAPE}">${lAng||deg+'°'}</text>`;
+  }
+  if(diam){line=`<line x1="${cx-R}" y1="${cy}" x2="${cx+R}" y2="${cy}" stroke="${CORAL}" stroke-width="3"/>`;lab=T_(cx,cy-7,lR,CORAL)}
+  else{line=`<line x1="${cx}" y1="${cy}" x2="${cx+R}" y2="${cy}" stroke="${CORAL}" stroke-width="3"/>`;lab=T_(cx+22,cy+17,lR,CORAL)}
+  return `${svgOpen(deg?'Setor circular':'Círculo',120)}
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="${FILL}" stroke="${INK}" stroke-width="3"/>${sector}${line}
+    <circle cx="${cx}" cy="${cy}" r="3.5" fill="${INK}"/>${ang}${lab}</svg>`;
+}
+function svgPolygon(n,lL,center){
+  const cx=90,cy=52,R=42,pts=[];
+  for(let i=0;i<n;i++){const t=Math.PI/2+Math.PI/n+2*Math.PI*i/n;pts.push(`${rd(cx+R*Math.cos(t))},${rd(cy+R*Math.sin(t))}`)}
+  const yb=rd(cy+R*Math.cos(Math.PI/n));
+  return `${svgOpen('Polígono regular',120)}
+    <polygon points="${pts.join(' ')}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    ${T_(cx,cy+5,center,GRAPE)}${T_(cx,yb+18,lL,CORAL)}</svg>`;
+}
+function svgScale(k){
+  const w=24,h=16,yb=88;
+  return `${svgOpen('Ampliação de figura',110)}
+    <rect x="14" y="${yb-h}" width="${w}" height="${h}" fill="${FILL}" stroke="${INK}" stroke-width="2.5"/>
+    ${T_(26,yb+16,'A')}
+    <text x="54" y="${yb-4}" text-anchor="middle" font-size="16" font-weight="800" fill="${GRAPE}">→</text>
+    <rect x="70" y="${yb-h*k}" width="${w*k}" height="${h*k}" fill="#fff3b0" stroke="${INK}" stroke-width="2.5"/>
+    ${T_(70+w*k/2,yb+16,'A nova')}${T_(70+w*k/2,yb-h*k-6,`lados × ${k}`,CORAL)}</svg>`;
+}
+function svgL(a1,b1,a2,b2){
+  const s=Math.min(120/a1,74/(b1+b2)),A1=a1*s,B1=b1*s,A2=a2*s,B2=b2*s;
+  const x0=rd(30+(120-A1)/2),y0=rd(10+(74-B1-B2)/2),ym=rd(y0+B2),yb=rd(ym+B1);
+  return `${svgOpen('Figura em L',110)}
+    <polygon points="${x0},${y0} ${rd(x0+A2)},${y0} ${rd(x0+A2)},${ym} ${rd(x0+A1)},${ym} ${rd(x0+A1)},${yb} ${x0},${yb}" fill="${FILL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="${x0}" y1="${ym}" x2="${rd(x0+A2)}" y2="${ym}" stroke="${GRAPE}" stroke-width="2" stroke-dasharray="4 3"/>
+    ${T_(x0+A1/2,yb+15,a1+' m')}${T_(x0+A1+4,ym+B1/2+4,b1+' m',CORAL,'start')}
+    ${T_(x0+A2+4,y0+B2/2+4,a2+' m','#2fbf8f','start')}${T_(x0-4,y0+B2/2+4,b2+' m','#2fbf8f','end')}</svg>`;
+}
+function svgAsk(){
+  return `${svgOpen('Qual figura?',110)}<rect x="40" y="10" width="100" height="90" rx="14" fill="#fff3b0" stroke="${INK}" stroke-width="3" stroke-dasharray="6 4"/>
+    <text x="90" y="74" text-anchor="middle" font-size="56" font-weight="800" fill="${GRAPE}" font-family="Baloo 2,sans-serif">?</text></svg>`;
+}
+
+/* Ícones pequenos das figuras (formulário e alternativas) */
+function icon(inner,w=40){return `<svg viewBox="0 0 36 28" width="${w}" height="${rd(w*28/36)}" fill="#e9f2fb" stroke="#1d2552" stroke-width="2" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`}
+const ICONS={
+  quadrado:'<rect x="8" y="3" width="21" height="21"/>',
+  retangulo:'<rect x="3" y="6" width="30" height="16"/>',
+  triangulo:'<polygon points="3,24 33,24 14,4"/>',
+  paralelogramo:'<polygon points="3,23 25,23 33,5 11,5"/>',
+  trapezio:'<polygon points="3,24 33,24 26,5 10,5"/>',
+  losango:'<polygon points="18,2 33,14 18,26 3,14"/>',
+  circulo:'<circle cx="18" cy="14" r="11"/>',
+  setor:'<circle cx="18" cy="14" r="11"/><path d="M18,14 L29,14 A11,11 0 0,0 18,3 Z" fill="#ffc93c"/>',
+  poligono:'<polygon points="18,2 31,11 26,26 10,26 5,11"/>',
+  hexagono:'<polygon points="11,3 25,3 32,14 25,25 11,25 4,14"/>',
+  pitagoras:'<polygon points="5,24 33,24 5,4"/><rect x="5" y="19" width="5" height="5" fill="none"/>',
+  ampliacao:'<rect x="3" y="18" width="8" height="6"/><rect x="15" y="8" width="18" height="16" fill="#fff3b0"/>'
+};
+
+/* ===================== Banco de fórmulas (para estudar e DECORAR) =====================
+   g = "família" da fórmula; excl = famílias que NÃO podem ser alternativa errada (porque também valeriam);
+   bad = figuras que não podem ser alternativa na pergunta "qual figura?"; unique:false = fórmula compartilhada. */
+const FIG={
+  quadrado:{nome:'Quadrado',svgL:()=>svgRect(5,5,'L','L'),
+    area:{f:`A = ${sq('L')}`,g:'L2',excl:['bh','Dd','trap'],bad:[],words:'lado vezes lado (L · L)',mnem:'Quadrado → "ao quadrado": L².',
+      traps:[{f:'A = 4 · L',m:'Essa é a fórmula do <b>perímetro</b> do quadrado.'},{f:'A = 2 · L',m:`${sq('L')} é L · L, e não 2 · L.`}]},
+    perim:{f:'P = 4 · L',g:'p4',unique:false,excl:['p2','p4lados','pn'],words:'soma dos 4 lados iguais',mnem:'4 lados iguais → 4 · L.',
+      traps:[{f:`P = ${sq('L')}`,m:`${sq('L')} é a <b>área</b>. O perímetro é o contorno.`},{f:'P = 2 · L',m:'O quadrado tem 4 lados, e não 2.'}]}},
+  retangulo:{nome:'Retângulo',svgL:()=>svgRect(8,5,'b','h'),
+    area:{f:'A = b · h',g:'bh',unique:false,excl:['trap'],words:'base vezes altura',mnem:'Conte os quadradinhos: linhas × colunas.',
+      traps:[{f:'A = b + h',m:'Na área nós <b>multiplicamos</b>, não somamos.'},{f:'A = 2 · b + 2 · h',m:'Essa é a fórmula do <b>perímetro</b>.'}]},
+    perim:{f:'P = 2 · b + 2 · h',g:'p2',unique:false,excl:['p4lados'],words:'duas bases mais duas alturas',mnem:'O retângulo tem 2 lados de cada tamanho.',
+      traps:[{f:'P = b + h',m:'Faltou contar os outros 2 lados.'},{f:'P = b · h',m:'b · h é a <b>área</b>.'}]}},
+  triangulo:{nome:'Triângulo',svgL:()=>svgTri(8,5,'b','h'),
+    area:{f:`A = ${frac('b · h','2')}`,g:'bh2',bad:[],excl:[],words:'base vezes altura, dividido por 2',mnem:'O triângulo é a <b>metade</b> de um retângulo.',
+      traps:[{f:'A = b · h',m:'Faltou dividir por 2: o triângulo é metade do retângulo.'},{f:`A = ${frac('b + h','2')}`,m:'Base e altura são <b>multiplicadas</b>.'}]},
+    perim:{f:'P = a + b + c',g:'p3',bad:[],excl:[],words:'soma dos 3 lados',mnem:'Contorno = some todos os lados.',
+      traps:[{f:`P = ${frac('b · h','2')}`,m:'Essa é a fórmula da <b>área</b> do triângulo.'},{f:'P = a · b · c',m:'No perímetro nós <b>somamos</b> os lados.'}]}},
+  paralelogramo:{nome:'Paralelogramo',svgL:()=>svgParal(8,4,5,'b','h','a'),
+    area:{f:'A = b · h',g:'bh',unique:false,excl:['trap'],words:'base vezes altura (a altura é a distância reta, não o lado inclinado)',mnem:'Corte o triângulo da ponta e encaixe do outro lado: vira um retângulo!',
+      traps:[{f:`A = ${frac('b · h','2')}`,m:'Não divide por 2: o paralelogramo vira um retângulo inteiro.'},{f:'A = a · b',m:'O lado inclinado (a) <b>não</b> é a altura.'}]},
+    perim:{f:'P = 2 · a + 2 · b',g:'p2',unique:false,excl:['p4lados'],words:'dois lados de cada tamanho',mnem:'Os lados opostos são iguais.',
+      traps:[{f:'P = a + b',m:'Faltou contar os outros 2 lados.'},{f:'P = a · b',m:'No perímetro nós <b>somamos</b> os lados.'}]}},
+  trapezio:{nome:'Trapézio',svgL:()=>svgTrapezoid(10,6,4,'B','b','h','c'),
+    area:{f:`A = ${frac('(B + b) · h','2')}`,g:'trap',bad:['paralelogramo','retangulo','quadrado','losango'],excl:[],words:'some as bases, multiplique pela altura e divida por 2',mnem:'"Base maior mais base menor, vezes a altura, sobre dois."',
+      traps:[{f:'A = (B + b) · h',m:'Faltou dividir por 2.'},{f:`A = ${frac('B · b · h','2')}`,m:'As bases são <b>somadas</b>, não multiplicadas.'}]},
+    perim:{f:'P = B + b + c + d',g:'p4lados',unique:false,excl:[],words:'soma dos 4 lados',mnem:'Contorno = some os 4 lados.',
+      traps:[{f:'P = B + b',m:'Faltou somar os lados inclinados (c e d).'}]}},
+  losango:{nome:'Losango',svgL:()=>svgRhombus(10,6,'D','d'),
+    area:{f:`A = ${frac('D · d','2')}`,g:'Dd',bad:['quadrado'],excl:['bh','trap'],words:'diagonal maior vezes diagonal menor, dividido por 2',mnem:'O losango é a metade do retângulo formado pelas diagonais.',
+      traps:[{f:'A = D · d',m:'Faltou dividir por 2.'},{f:`A = ${frac('D + d','2')}`,m:'As diagonais são <b>multiplicadas</b>.'}]},
+    perim:{f:'P = 4 · L',g:'p4',unique:false,excl:['p2','p4lados','pn'],words:'4 lados iguais',mnem:'Igual ao quadrado: 4 lados iguais.',
+      traps:[{f:`P = ${frac('D · d','2')}`,m:'Essa é a <b>área</b> do losango.'}]}},
+  circulo:{nome:'Círculo',perimLabel:'COMPRIMENTO DA CIRCUNFERÊNCIA',svgL:()=>svgCircle('R'),
+    area:{f:`A = π · ${sq('R')}`,g:'circA',bad:['setor'],excl:['setor'],words:'pi vezes o raio ao quadrado',mnem:'Área tem unidade ao quadrado (m²), então o R também vem ao quadrado.',
+      traps:[{f:'A = 2 · π · R',m:'Essa é a fórmula do <b>comprimento</b> da circunferência.'},{f:`A = 2 · π · ${sq('R')}`,m:`Não tem o 2: A = π · ${sq('R')}.`}]},
+    perim:{f:'C = 2 · π · R',g:'circC',bad:['setor'],excl:[],words:'duas vezes pi vezes o raio',mnem:'"2 pi R": o contorno do círculo.',
+      traps:[{f:`C = π · ${sq('R')}`,m:`π · ${sq('R')} é a <b>área</b> do círculo.`},{f:'C = π · R',m:'Faltou o 2: C = 2 · π · R.'}]}},
+  setor:{nome:'Setor circular',svgL:()=>svgCircle('R',90,'α'),
+    area:{f:`A = ${frac('α','360°')} · π · ${sq('R')}`,g:'setor',bad:['circulo'],excl:['circA'],words:'a fração do ângulo (α de 360°) vezes a área do círculo',mnem:'Setor = fatia de pizza: pegue só a parte do ângulo.',
+      traps:[{f:`A = π · ${sq('R')}`,m:'Essa é a área do círculo <b>inteiro</b>.'},{f:`A = ${frac('α','360°')} · 2 · π · R`,m:'Isso mede o <b>arco</b> (contorno), não a área.'}]},
+    perim:null},
+  poligono:{nome:'Polígono regular',svgL:()=>svgPolygon(5,'L','n lados'),
+    area:null,
+    perim:{f:'P = n · L',g:'pn',unique:false,excl:['p4','p6'],words:'número de lados vezes a medida do lado',mnem:'Regular = todos os lados iguais.',
+      traps:[{f:'P = n + L',m:'São n lados de tamanho L: <b>multiplique</b>.'}]}},
+  hexagono:{nome:'Hexágono regular',svgL:()=>svgPolygon(6,'L','6 lados'),
+    area:{f:`A = ${frac(`3 · ${sq('L')} · ${sqrt('3')}`,'2')}`,g:'hexA',bad:[],excl:[],words:'6 triângulos equiláteros juntos',mnem:'O hexágono é formado por 6 triângulos equiláteros.',
+      traps:[{f:`A = 6 · ${sq('L')}`,m:'São 6 <b>triângulos</b>, e não 6 quadrados.'}]},
+    perim:{f:'P = 6 · L',g:'p6',bad:['poligono'],excl:['pn'],words:'6 lados iguais',mnem:'Hexa = 6.',
+      traps:[{f:'P = 5 · L',m:'5 · L é do pentágono. Hexa = 6 lados.'}]}}
+};
+const ALL_FIGS=Object.keys(FIG);
+
+function measLabel(F,m){return m==='area'?'ÁREA':(F.perimLabel||'PERÍMETRO')}
+
+/* Perguntas de FÓRMULA: "qual é a fórmula?" ou "qual é a figura?" */
+function formulaQ(keys){
+  const pool=[];
+  keys.forEach(k=>['area','perim'].forEach(m=>{if(FIG[k][m])pool.push([k,m])}));
+  const uniq=pool.filter(([k,m])=>FIG[k][m].unique!==false);
+  if(uniq.length&&Math.random()<.35)return whichFigure(...pick(uniq));
+  return whichFormula(...pick(pool));
+}
+function whichFormula(k,m){
+  const F=FIG[k],E=F[m],label=measLabel(F,m);
+  const seen=new Set([E.f]),wrong=[];
+  for(const t of shuffle(E.traps||[])){if(wrong.length>=2)break;if(!seen.has(t.f)){seen.add(t.f);wrong.push({html:t.f,correct:false,msg:t.m})}}
+  const others=[];
+  for(const F2 of Object.values(FIG))for(const m2 of ['area','perim']){
+    const E2=F2[m2];
+    if(E2&&E2.g!==E.g&&!(E.excl||[]).includes(E2.g)&&!seen.has(E2.f))
+      others.push({html:E2.f,correct:false,msg:`Essa é a fórmula ${m2==='area'?'da área':(F2.perimLabel?'do comprimento da circunferência':'do perímetro')} do ${F2.nome.toLowerCase()}.`});
+  }
+  for(const o of shuffle(others)){if(wrong.length>=3)break;if(!seen.has(o.html)){seen.add(o.html);wrong.push(o)}}
+  const choices=shuffle([{html:E.f,correct:true,msg:''},...wrong]);
+  return {kind:'formula',sub:'f_'+k+m,mem:true,
+    story:`Qual é a fórmula ${m==='area'?'da':'do'} <b>${label}</b> do <b>${F.nome.toLowerCase()}</b>? Observe as letras na figura.`,
+    svg:F.svgL(),choices,
+    exprAsk:`<span>${label==='ÁREA'?'Área':label==='PERÍMETRO'?'Perímetro':'Comprimento'} do ${F.nome.toLowerCase()}</span><span>=</span><span class="q">?</span>`,
+    exprDone:`<span class="done">${E.f}</span>`,
+    hint1:m==='area'?'Área é o <b>espaço de dentro</b> da figura (unidade ao quadrado, como m²).':(k==='circulo'?'O comprimento da circunferência é o <b>contorno</b> do círculo.':'Perímetro é o <b>contorno</b>: a soma dos lados.'),
+    hint2:`Em palavras: ${E.words}.`,
+    steps:[`<b>${E.f}</b>`,`Em palavras: ${E.words}.`,`🧠 Para decorar: ${E.mnem}`]};
+}
+function whichFigure(k,m){
+  const F=FIG[k],E=F[m];
+  const cands=Object.keys(FIG).filter(k2=>k2!==k&&!(E.bad||[]).includes(k2)&&!(FIG[k2][m]&&FIG[k2][m].f===E.f));
+  const wrong=shuffle(cands).slice(0,3).map(k2=>{
+    const F2=FIG[k2],E2=F2[m]||F2.area||F2.perim;
+    return {html:`${icon(ICONS[k2],30)} ${F2.nome}`,correct:false,
+      msg:F2[m]?`No ${F2.nome.toLowerCase()}, ${m==='area'?'a área é':'o contorno é'} ${E2.f}.`:`O ${F2.nome.toLowerCase()} usa outra fórmula: ${E2.f}.`};
+  });
+  const choices=shuffle([{html:`${icon(ICONS[k],30)} ${F.nome}`,correct:true,msg:''},...wrong]);
+  return {kind:'formula',sub:'q_'+k+m,mem:true,
+    story:`Qual figura tem ${m==='area'?'a <b>ÁREA</b>':(k==='circulo'?'o <b>COMPRIMENTO DA CIRCUNFERÊNCIA</b>':'o <b>PERÍMETRO</b>')} calculada por esta fórmula?`,
+    svg:svgAsk(),choices,
+    exprAsk:`<span>${E.f}</span><span>→</span><span class="q">?</span>`,
+    exprDone:`<span>${E.f}</span><span>→</span><span class="done">${F.nome}</span>`,
+    hint1:'Olhe as <b>letras</b> da fórmula: elas mostram quais medidas a figura tem (lado, base, diagonais, raio...).',
+    hint2:`Pista: ${E.mnem}`,
+    steps:[`<b>${E.f}</b> é a fórmula do <b>${F.nome.toLowerCase()}</b>.`,`Em palavras: ${E.words}.`,`🧠 Para decorar: ${E.mnem}`]};
+}
+
+/* ===================== Banco de questões de CÁLCULO ===================== */
+const CALC_TOPICS=['quadret','triangulos','quadesp','circulo','poligonos'];
+const SUBS={
+  quadret:['quad_area','quad_perim','ret_area','ret_perim','quad_perim_area','ret_altura'],
+  triangulos:['tri_perim','tri_equi','base_altura','pitagoras_perim','pitagoras_area'],
+  quadesp:['paral_area','paral_perim','trapezio','trap_perim','losango','los_perim'],
+  circulo:['area_circ','comp_circ','diam_area','roda','semi','setor_circ'],
+  poligonos:['poligono_perim','poly_lado','recorte_area','figura_L','escala_area']
+};
+function makeQ(topic,avoid){
+  if(!SUBS[topic])topic=pick(CALC_TOPICS);
+  let list=SUBS[topic].filter(s=>s!==avoid);
+  const sub=pick(list.length?list:SUBS[topic]);
+  const q=GEN[sub]();q.sub=sub;
+  return finishQ(q);
+}
+const GEN={
+  /* ---- Quadrado e retângulo ---- */
+  quad_area(){const L=rnd(3,15),ans=L*L;return{unit:'m²',ans,
+    story:`Uma sala de aula tem formato <b>quadrado</b>, com lado de ${L} m. Quantos m² de piso cobrem o chão (<b>ÁREA</b>)?`,
+    expr:`A = ${sq(L)}`,hint1:`Área do quadrado: A = ${sq('L')} = L · L (lado vezes lado).`,hint2:`A = ${L} · ${L}. ${multHint(L,L)}`,
+    steps:[`A = ${sq('L')}`,`A = ${L} · ${L}`,`A = <b>${ans} m²</b>`],
+    errs:[{v:4*L,msg:'Você calculou o <b>perímetro</b> (4 · L). A área é L · L.'},{v:2*L,msg:`Cuidado: ${sq('L')} é L · L, e <b>não</b> 2 · L.`}],
+    svg:svgRect(L,L,`${L} m`,`${L} m`)}},
+  quad_perim(){const L=rnd(3,25),ans=4*L;return{unit:'m',ans,
+    story:`Uma horta <b>quadrada</b> tem lado de ${L} m. Quantos metros de tela são necessários para cercar todo o seu <b>PERÍMETRO</b>?`,
+    expr:`P = 4 · ${L}`,hint1:'O quadrado tem <b>4 lados iguais</b>. Perímetro = soma dos 4 lados.',hint2:`P = ${L} + ${L} + ${L} + ${L} = 4 · ${L}.`,
+    steps:[`P = 4 · L`,`P = 4 · ${L}`,`P = <b>${ans} m</b>`],
+    errs:[{v:L*L,msg:`${sq('L')} é a <b>área</b>. Para cercar, precisamos do contorno: 4 · L.`},{v:2*L,msg:'Faltaram 2 lados. O quadrado tem 4.'},{v:3*L,msg:'Faltou 1 lado. O quadrado tem 4.'}],
+    svg:svgRect(L,L,`${L} m`,`${L} m`)}},
+  ret_area(){const b=rnd(6,16),h=rnd(4,12);return{unit:'m²',ans:b*h,
+    story:`Um terreno retangular mede ${b} m de frente por ${h} m de fundo. Qual é a <b>ÁREA</b> desse terreno?`,
+    expr:`A = ${b} · ${h}`,hint1:'A área do retângulo é <b>base vezes altura</b>: A = b · h.',hint2:`A = ${b} · ${h}. ${multHint(b,h)}`,
+    steps:[`A = b · h`,`A = ${b} · ${h}`,`A = <b>${b*h} m²</b>`],
+    errs:[{v:2*(b+h),msg:'Você calculou o <b>perímetro</b> (o contorno). A pergunta pede a <b>área</b>: b · h.'},{v:b+h,msg:'Você <b>somou</b> os lados. Na área, nós <b>multiplicamos</b>.'}],
+    svg:svgRect(b,h,`${b} m`,`${h} m`)}},
+  ret_perim(){const b=rnd(6,16),h=rnd(4,12),ans=2*(b+h);return{unit:'m',ans,
+    story:`Uma quadra retangular tem ${b} m de comprimento e ${h} m de largura. Quantos metros de tela cercam todo o <b>PERÍMETRO</b>?`,
+    expr:`P = ${b} + ${h} + ${b} + ${h}`,hint1:'Perímetro é a <b>soma de todos os lados</b>. O retângulo tem 4 lados!',hint2:`São 2 lados de ${b} m e 2 lados de ${h} m: P = ${b} + ${h} + ${b} + ${h}.`,
+    steps:[`P = b + h + b + h`,`P = ${b} + ${h} + ${b} + ${h}`,`P = <b>${ans} m</b>`],
+    errs:[{v:b*h,msg:'Você calculou a <b>área</b>. Para cercar, some os 4 lados.'},{v:b+h,msg:'Você somou só <b>2 lados</b>. O retângulo tem <b>4</b>.'},{v:2*b+h,msg:`Faltou um lado de ${h} m.`}],
+    svg:svgRect(b,h,`${b} m`,`${h} m`)}},
+  quad_perim_area(){const L=rnd(4,12),P=4*L,ans=L*L;return{unit:'m²',ans,
+    story:`Um jardim <b>quadrado</b> tem PERÍMETRO igual a ${P} m. Qual é a <b>ÁREA</b> desse jardim?`,
+    expr:`L = ${frac(P,4)} &nbsp;⇒&nbsp; A = ${sq('L')}`,hint1:'O quadrado tem <b>4 lados iguais</b>. Primeiro descubra o lado: L = P ÷ 4. Depois calcule A = L · L.',hint2:`L = ${P} ÷ 4 = ${L} m. Agora: A = ${L} · ${L}.`,
+    steps:[`L = ${frac(P,4)} = ${L} m`,`A = ${sq('L')} = ${L} · ${L}`,`A = <b>${ans} m²</b>`],
+    errs:[{v:L,msg:'Você achou o <b>lado</b>. Falta a área: A = L · L.'},{v:2*L,msg:`Cuidado: ${sq('L')} é L · L, e <b>não</b> 2 · L.`},{v:P,msg:'Esse é o perímetro, que já foi dado.'}],
+    svg:svgRect(L,L,'L = ?',`P = ${P} m`)}},
+  ret_altura(){const b=rnd(4,12),h=rnd(3,12),A=b*h;return{unit:'m',ans:h,
+    story:`Um tapete retangular tem <b>ÁREA</b> de ${A} m² e base de ${b} m. Qual é a medida da <b>altura</b>?`,
+    expr:`${A} = ${b} · h`,hint1:'A = b · h. Se já sabemos A e b, descobrimos h <b>dividindo</b>: h = A ÷ b.',hint2:`h = ${A} ÷ ${b}. Pense: ${b} vezes quanto dá ${A}?`,
+    steps:[`A = b · h`,`${A} = ${b} · h`,`h = ${frac(A,b)}`,`h = <b>${h} m</b>`],
+    errs:[{v:A-b,msg:'Você subtraiu. Como A = b · h, a conta que desfaz a multiplicação é a <b>divisão</b>.'},{v:A*b,msg:'Você multiplicou. Para achar h, <b>divida</b> a área pela base.'},{v:b,msg:'Essa é a base, que já foi dada.'}],
+    svg:svgRect(b,h,`${b} m`,'h = ?')}},
+
+  /* ---- Triângulos ---- */
+  tri_perim(){const a=rnd(5,14),b=rnd(5,14),c=rnd(Math.abs(a-b)+2,Math.min(a+b-2,20)),ans=a+b+c;return{unit:'m',ans,
+    story:`Um terreno triangular tem lados de ${a} m, ${b} m e ${c} m. Quantos metros de cerca são necessários para contornar o terreno (<b>PERÍMETRO</b>)?`,
+    expr:`P = ${a} + ${b} + ${c}`,hint1:'O perímetro do triângulo é a <b>soma dos 3 lados</b>.',hint2:`P = ${a} + ${b} + ${c}. Some de dois em dois: ${a} + ${b} = ${a+b}.`,
+    steps:[`P = a + b + c`,`P = ${a} + ${b} + ${c}`,`P = <b>${ans} m</b>`],
+    errs:[{v:a+b,msg:'Faltou somar o terceiro lado.'},{v:b+c,msg:'Faltou somar um dos lados.'},{v:2*ans,msg:'Não precisa dobrar: some só os 3 lados.'}],
+    svg:svgTri3(a,b,c,`${a} m`,`${b} m`,`${c} m`)}},
+  tri_equi(){const L=rnd(3,30),ans=3*L;return{unit:'cm',ans,
+    story:`Uma placa de trânsito tem forma de <b>triângulo equilátero</b> (3 lados iguais) com lado de ${L} cm. Qual é o <b>PERÍMETRO</b> da placa?`,
+    expr:`P = 3 · ${L}`,hint1:'Equilátero = <b>3 lados iguais</b>. Some os 3 lados.',hint2:`P = ${L} + ${L} + ${L} = 3 · ${L}.`,
+    steps:[`P = L + L + L = 3 · L`,`P = 3 · ${L}`,`P = <b>${ans} cm</b>`],
+    errs:[{v:L*L,msg:`${sq('L')} não serve aqui: o perímetro é a soma dos lados.`},{v:2*L,msg:'Faltou 1 lado. O triângulo tem 3.'},{v:4*L,msg:'O triângulo tem 3 lados, e não 4.'}],
+    svg:svgTri3(L,L,L,`${L} cm`,`${L} cm`,`${L} cm`)}},
+  base_altura(){const b=rnd(5,16)*2,h=rnd(4,13),ans=b*h/2;return{unit:'cm²',ans,
+    story:`Uma placa triangular de sinalização tem base b = ${b} cm e altura h = ${h} cm. Determine a <b>ÁREA</b> da placa.`,
+    expr:`A = ${frac(`${b} · ${h}`,'2')}`,hint1:`A área de qualquer triângulo é ${frac('b · h','2')}: base vezes altura, dividido por 2.`,hint2:`${b} · ${h} = ${b*h}. Agora divida por 2.`,
+    steps:[`A = ${frac('b · h','2')}`,`A = ${frac(`${b} · ${h}`,'2')}`,`A = ${frac(b*h,'2')}`,`A = <b>${ans} cm²</b>`],
+    errs:[{v:b*h,msg:'Você esqueceu de <b>dividir por 2</b>. O triângulo é metade de um retângulo!'},{v:b+h,msg:'Você <b>somou</b> base e altura. A fórmula manda <b>multiplicar</b>.'}],
+    svg:svgTri(b,h,`b = ${b} cm`,`h = ${h} cm`)}},
+  pitagoras_perim(){const [c1,c2,hyp]=pick(TRIPLES),s2=c1*c1+c2*c2,ans=c1+c2+hyp;return{unit:'m',ans,
+    story:`Um terreno em forma de triângulo retângulo tem catetos de ${c1} m e ${c2} m. Use o Teorema de Pitágoras para achar a hipotenusa e calcule o <b>PERÍMETRO</b>.`,
+    expr:`${sq('a')} = ${sq(c1)} + ${sq(c2)} &nbsp;⇒&nbsp; P = ${c1} + ${c2} + a`,
+    hint1:`Primeiro ache a hipotenusa <b>a</b> (o maior lado): ${sq('a')} = ${sq('b')} + ${sq('c')}. Depois some os 3 lados.`,
+    hint2:`${sq('a')} = ${c1*c1} + ${c2*c2} = ${s2}, então a = ${sqrt(s2)} = ${hyp} m. Agora: P = ${c1} + ${c2} + ${hyp}.`,
+    steps:[`${sq('a')} = ${sq(c1)} + ${sq(c2)} = ${c1*c1} + ${c2*c2} = ${s2}`,`a = ${sqrt(s2)} = ${hyp} m`,`P = ${c1} + ${c2} + ${hyp} = <b>${ans} m</b>`],
+    errs:[{v:c1+c2,msg:'Faltou somar a <b>hipotenusa</b>. O triângulo tem 3 lados!'},{v:2*(c1+c2),msg:`A hipotenusa <b>não</b> é ${c1} + ${c2}. Use Pitágoras.`},{v:c1*c2/2,msg:'Você calculou a <b>área</b>. O perímetro é a soma dos 3 lados.'}],
+    svg:svgRightTri(c1,c2,`${c1} m`,`${c2} m`,'a = ?')}},
+  pitagoras_area(){const t=pick(TRIPLES),hyp=t[2],[k,u]=shuffle([t[0],t[1]]),ans=k*u/2;return{unit:'m²',ans,
+    story:`Um triângulo retângulo tem hipotenusa de ${hyp} m e um cateto de ${k} m. Use Pitágoras para achar o outro cateto e calcule a <b>ÁREA</b>.`,
+    expr:`c = ${sqrt(`${sq(hyp)} − ${sq(k)}`)} &nbsp;⇒&nbsp; A = ${frac(`${k} · c`,'2')}`,
+    hint1:`Os dois <b>catetos</b> formam o ângulo reto: eles são a base e a altura. Ache o que falta: ${sq('c')} = ${sq('a')} − ${sq('b')}.`,
+    hint2:`${sq('c')} = ${hyp*hyp} − ${k*k} = ${u*u}, então c = ${u} m. Agora: A = ${frac(`${k} · ${u}`,'2')}.`,
+    steps:[`${sq('c')} = ${sq(hyp)} − ${sq(k)} = ${hyp*hyp} − ${k*k} = ${u*u}`,`c = ${sqrt(u*u)} = ${u} m`,`A = ${frac(`${k} · ${u}`,'2')} = ${frac(k*u,'2')} = <b>${ans} m²</b>`],
+    errs:[{v:k*hyp/2,msg:'Você usou a <b>hipotenusa</b> como altura. Base e altura são os dois <b>catetos</b>.'},{v:k*u,msg:'Você esqueceu de <b>dividir por 2</b>.'},{v:k+u+hyp,msg:'Você calculou o <b>perímetro</b>.'}],
+    svg:svgRightTri(k,u,`${k} m`,'c = ?',`${hyp} m`)}},
+
+  /* ---- Paralelogramo, trapézio e losango ---- */
+  paral_area(){const b=rnd(6,16),h=rnd(3,10),a=h+rnd(1,4),ans=b*h;return{unit:'m²',ans,
+    story:`Um canteiro tem formato de <b>paralelogramo</b>: base ${b} m, lado inclinado ${a} m e altura ${h} m. Qual é a <b>ÁREA</b>?`,
+    expr:`A = ${b} · ${h}`,hint1:'Área do paralelogramo: A = b · h. Use a <b>altura</b> (linha tracejada), não o lado inclinado.',hint2:`A = ${b} · ${h}. ${multHint(b,h)}`,
+    steps:[`A = b · h`,`A = ${b} · ${h}`,`A = <b>${ans} m²</b>`],
+    errs:[{v:b*a,msg:'Você usou o <b>lado inclinado</b>. A altura é a distância <b>reta</b> (tracejada).'},{v:b*h/2,msg:'Não divide por 2: o paralelogramo vira um retângulo inteiro.'},{v:2*(a+b),msg:'Isso é o <b>perímetro</b>.'}],
+    svg:svgParal(b,h,a,`b = ${b} m`,`h = ${h} m`,`${a} m`)}},
+  paral_perim(){const a=rnd(4,12),b=rnd(6,16),ans=2*(a+b);return{unit:'cm',ans,
+    story:`Uma moldura tem forma de <b>paralelogramo</b> com lados de ${b} cm e ${a} cm. Quantos centímetros de fita contornam a moldura (<b>PERÍMETRO</b>)?`,
+    expr:`P = 2 · ${b} + 2 · ${a}`,hint1:'No paralelogramo, os <b>lados opostos são iguais</b>: são 2 lados de cada tamanho.',hint2:`P = ${b} + ${a} + ${b} + ${a}.`,
+    steps:[`P = 2 · a + 2 · b`,`P = 2 · ${b} + 2 · ${a} = ${2*b} + ${2*a}`,`P = <b>${ans} cm</b>`],
+    errs:[{v:a+b,msg:'Faltou contar os outros 2 lados.'},{v:a*b,msg:'No perímetro nós <b>somamos</b> os lados.'},{v:2*a+b,msg:`Faltou um lado de ${b} cm.`}],
+    svg:svgParal(b,Math.max(2,a-2),a,`${b} cm`,'',`${a} cm`)}},
+  trapezio(){const b=rnd(4,10),B=b+rnd(4,10),h=rnd(2,6)*2,ans=(B+b)*h/2;return{unit:'m²',ans,
+    story:`Um canteiro tem formato de trapézio com base maior B = ${B} m, base menor b = ${b} m e altura h = ${h} m. Calcule a sua <b>ÁREA</b>.`,
+    expr:`A = ${frac(`(${B} + ${b}) · ${h}`,'2')}`,
+    hint1:`Área do trapézio: A = ${frac('(B + b) · h','2')}. Some as bases, multiplique pela altura e divida por 2.`,
+    hint2:`(${B} + ${b}) · ${h} = ${B+b} · ${h} = ${(B+b)*h}. Agora divida por 2.`,
+    steps:[`A = ${frac(`(${B} + ${b}) · ${h}`,'2')}`,`A = ${frac(`${B+b} · ${h}`,'2')}`,`A = ${frac((B+b)*h,'2')}`,`A = <b>${ans} m²</b>`],
+    errs:[{v:(B+b)*h,msg:'Você esqueceu de <b>dividir por 2</b>.'},{v:B*h/2,msg:'Você usou só a base maior. <b>Some as duas bases</b>: B + b.'},{v:B+b+h,msg:'Você somou tudo. Siga a fórmula: some as bases, <b>multiplique</b> pela altura e divida por 2.'}],
+    svg:svgTrapezoid(B,b,h,`B = ${B} m`,`b = ${b} m`,`h = ${h} m`)}},
+  trap_perim(){const b=rnd(4,10),d=rnd(2,4),B=b+2*d,c=d+rnd(1,5),h=Math.sqrt(c*c-d*d),ans=B+b+2*c;return{unit:'m',ans,
+    story:`Um canteiro em forma de <b>trapézio</b> tem bases de ${B} m e ${b} m, e os dois lados inclinados medem ${c} m cada. Qual é o <b>PERÍMETRO</b>?`,
+    expr:`P = ${B} + ${b} + ${c} + ${c}`,hint1:'Perímetro = soma dos <b>4 lados</b>: as 2 bases e os 2 lados inclinados.',hint2:`P = ${B} + ${b} + ${c} + ${c}.`,
+    steps:[`P = B + b + c + d`,`P = ${B} + ${b} + ${c} + ${c}`,`P = <b>${ans} m</b>`],
+    errs:[{v:B+b,msg:'Faltou somar os <b>lados inclinados</b>.'},{v:B+b+c,msg:'Faltou um dos lados inclinados.'},{v:2*(B+b),msg:'As bases não se repetem: some os 4 lados.'}],
+    svg:svgTrapezoid(B,b,h,`B = ${B} m`,`b = ${b} m`,'',`${c} m`)}},
+  losango(){const D=rnd(4,12)*2,d=rnd(3,Math.min(10,D-2)),ans=D*d/2;return{unit:'cm²',ans,
+    story:`Um vitral em forma de losango tem diagonal maior D = ${D} cm e diagonal menor d = ${d} cm. Qual é a <b>ÁREA</b> do vitral?`,
+    expr:`A = ${frac(`${D} · ${d}`,'2')}`,hint1:`A área do losango é a <b>metade</b> do produto das diagonais: A = ${frac('D · d','2')}.`,hint2:`${D} · ${d} = ${D*d}. Agora divida por 2.`,
+    steps:[`A = ${frac('D · d','2')}`,`A = ${frac(`${D} · ${d}`,'2')}`,`A = ${frac(D*d,'2')}`,`A = <b>${ans} cm²</b>`],
+    errs:[{v:D*d,msg:'Você esqueceu de <b>dividir por 2</b>.'},{v:D+d,msg:'Você <b>somou</b> as diagonais. A fórmula manda <b>multiplicar</b>.'},{v:2*(D+d),msg:'Isso não é a fórmula do losango. Use D · d dividido por 2.'}],
+    svg:svgRhombus(D,d,`D = ${D}`,`d = ${d}`)}},
+  los_perim(){const L=rnd(4,20),ans=4*L;return{unit:'cm',ans,
+    story:`Uma pipa tem forma de <b>losango</b> com lado de ${L} cm. Quantos centímetros de fita contornam a pipa (<b>PERÍMETRO</b>)?`,
+    expr:`P = 4 · ${L}`,hint1:'O losango tem <b>4 lados iguais</b>, igual ao quadrado.',hint2:`P = ${L} + ${L} + ${L} + ${L} = 4 · ${L}.`,
+    steps:[`P = 4 · L`,`P = 4 · ${L}`,`P = <b>${ans} cm</b>`],
+    errs:[{v:L*L,msg:`${sq('L')} não é perímetro. Some os 4 lados.`},{v:2*L,msg:'Faltaram 2 lados.'},{v:3*L,msg:'Faltou 1 lado.'}],
+    svg:svgRhombus(1.6,1.2,'','',`L = ${L} cm`)}},
+
+  /* ---- Círculo e circunferência ---- */
+  area_circ(){const r=rnd(2,10),ans=3*r*r;return{unit:'m²',ans,
+    story:`(Estilo ENEM) Uma praça circular tem raio R = ${r} m. Adotando π ≈ 3, qual é a <b>ÁREA</b> da praça?`,
+    expr:`A = π · ${sq('R')} ≈ 3 · ${sq(r)}`,hint1:`Área do círculo: A = π · ${sq('R')}, com π ≈ 3. Só o <b>raio</b> é elevado ao quadrado!`,hint2:`${sq(r)} = ${r} · ${r} = ${r*r}. Agora: 3 · ${r*r}.`,
+    steps:[`A = π · ${sq('R')}`,`A ≈ 3 · ${sq(r)} = 3 · ${r*r}`,`A ≈ <b>${ans} m²</b>`],
+    errs:[{v:6*r,msg:`Você calculou o <b>comprimento</b> (2 · π · R). A área é π · ${sq('R')}.`},{v:9*r*r,msg:`Você elevou (3 · R) ao quadrado. Só o <b>R</b> é elevado.`},{v:12*r*r,msg:'Você usou o <b>diâmetro</b>. Na fórmula vai o <b>raio</b>.'},{v:r*r,msg:'Faltou multiplicar por π ≈ 3.'}],
+    svg:svgCircle(`R = ${r} m`)}},
+  comp_circ(){const r=rnd(3,15),ans=6*r;return{unit:'m',ans,
+    story:`Um atleta dá uma volta completa em uma pista circular de raio R = ${r} m. Usando π ≈ 3, qual é o <b>COMPRIMENTO</b> de uma volta?`,
+    expr:`C = 2 · π · R ≈ 2 · 3 · ${r}`,hint1:'O comprimento da circunferência (o contorno) é C = 2 · π · R, com π ≈ 3.',hint2:`2 · 3 = 6, então C = 6 · ${r}.`,
+    steps:[`C = 2 · π · R`,`C ≈ 2 · 3 · ${r} = 6 · ${r}`,`C ≈ <b>${ans} m</b>`],
+    errs:[{v:3*r*r,msg:`Você calculou a <b>área</b>. A volta na pista é o <b>contorno</b>.`},{v:3*r,msg:'Faltou o <b>2</b>: C = 2 · π · R.'},{v:12*r,msg:'Você usou o <b>diâmetro</b> no lugar do raio.'}],
+    svg:svgCircle(`R = ${r} m`)}},
+  diam_area(){const r=rnd(2,10),D=2*r,ans=3*r*r;return{unit:'m²',ans,
+    story:`Um tapete redondo tem <b>diâmetro</b> D = ${D} m. Usando π ≈ 3, qual é a <b>ÁREA</b> do tapete?`,
+    expr:`R = ${frac(D,2)} &nbsp;⇒&nbsp; A ≈ 3 · ${sq('R')}`,hint1:`O raio é a <b>metade</b> do diâmetro: R = D ÷ 2. Depois use A = π · ${sq('R')}.`,hint2:`R = ${D} ÷ 2 = ${r} m. A ≈ 3 · ${sq(r)} = 3 · ${r*r}.`,
+    steps:[`R = ${frac(D,2)} = ${r} m`,`A ≈ 3 · ${sq(r)} = 3 · ${r*r}`,`A ≈ <b>${ans} m²</b>`],
+    errs:[{v:3*D*D,msg:'Você usou o <b>diâmetro</b>. Primeiro divida por 2 para achar o raio.'},{v:6*r,msg:'Você calculou o <b>comprimento</b>, não a área.'},{v:r*r,msg:'Faltou multiplicar por π ≈ 3.'}],
+    svg:svgCircle(`D = ${D} m`,0,'',true)}},
+  roda(){const R=pick([20,25,30,35,40]),n=rnd(2,10),ans=6*R*n;return{unit:'cm',ans,
+    story:`A roda de uma bicicleta tem raio de ${R} cm. Quantos centímetros a bicicleta anda quando a roda dá <b>${n} voltas</b> completas? (Use π ≈ 3.)`,
+    expr:`${n} · 2 · 3 · ${R}`,hint1:'Em 1 volta, a roda anda o seu contorno: C = 2 · π · R. Depois multiplique pelo número de voltas.',hint2:`1 volta: C ≈ 6 · ${R} = ${6*R} cm. Agora: ${n} · ${6*R}.`,
+    steps:[`1 volta: C ≈ 2 · 3 · ${R} = ${6*R} cm`,`${n} voltas: ${n} · ${6*R}`,`Distância = <b>${ans} cm</b>`],
+    errs:[{v:6*R,msg:'Essa é a distância de <b>1 volta</b>. Multiplique pelo número de voltas.'},{v:3*R*n,msg:'Faltou o 2 da fórmula C = 2 · π · R.'},{v:6*R+n,msg:'Você somou as voltas. Precisa <b>multiplicar</b>.'}],
+    svg:svgCircle(`R = ${R} cm`)}},
+  semi(){const r=pick([2,4,6,8,10]),ans=3*r*r/2;return{unit:'m²',ans,
+    story:`Uma janela tem formato de <b>semicírculo</b> (meio círculo) de raio ${r} m. Usando π ≈ 3, qual é a sua <b>ÁREA</b>?`,
+    expr:`A = ${frac(`3 · ${sq(r)}`,'2')}`,hint1:'O semicírculo é a <b>metade</b> do círculo: calcule a área do círculo e divida por 2.',hint2:`Círculo inteiro: 3 · ${sq(r)} = ${3*r*r} m². Agora divida por 2.`,
+    steps:[`Círculo inteiro: 3 · ${sq(r)} = ${3*r*r} m²`,`Metade: ${frac(3*r*r,'2')}`,`A = <b>${ans} m²</b>`],
+    errs:[{v:3*r*r,msg:'Essa é a área do círculo <b>inteiro</b>. O semicírculo é a metade.'},{v:3*r,msg:'Você usou o comprimento (2 · π · R) e dividiu por 2.'},{v:r*r/2,msg:'Faltou multiplicar por π ≈ 3.'}],
+    svg:svgCircle(`R = ${r} m`,180,' ')}},
+  setor_circ(){const r=pick([4,6,8,10]),deg=pick([60,90,120,180]),div=360/deg,full=3*r*r,ans=full/div;return{unit:'m²',ans,
+    story:`Um aspersor gira ${deg}° e molha um <b>setor circular</b> (uma "fatia" do círculo) de raio R = ${r} m. Adotando π ≈ 3, qual é a <b>ÁREA</b> molhada?`,
+    expr:`A = ${frac(`${deg}°`,'360°')} · 3 · ${sq(r)}`,hint1:`A volta inteira tem 360°. Como ${deg}° é ${frac(1,div)} da volta, o setor é ${frac(1,div)} do círculo.`,hint2:`Círculo inteiro: 3 · ${sq(r)} = ${full} m². Agora divida por ${div}.`,
+    steps:[`Círculo inteiro: 3 · ${sq(r)} = ${full} m²`,`${frac(`${deg}°`,'360°')} = ${frac(1,div)} da volta`,`A = ${frac(full,div)} = <b>${ans} m²</b>`],
+    errs:[{v:full,msg:`Essa é a área do <b>círculo inteiro</b>! O aspersor molha só uma fatia de ${deg}°.`},{v:6*r/div,msg:'Você usou o <b>comprimento</b> em vez da área.'},{v:r*r/div,msg:'Faltou multiplicar por π ≈ 3.'}],
+    svg:svgCircle(`R = ${r} m`,deg)}},
+
+  /* ---- Polígonos e figuras compostas ---- */
+  poligono_perim(){const P=pick(POLYS),L=rnd(4,18),ans=P.n*L;return{unit:'cm',ans,
+    story:`${P.ctx} tem a forma de um <b>${P.nome}</b> com lado L = ${L} cm. Qual é o <b>PERÍMETRO</b> da figura?`,
+    expr:`P = ${P.n} · ${L}`,hint1:'"Regular" quer dizer que <b>todos os lados são iguais</b>. Conte quantos lados a figura tem.',hint2:`São ${P.n} lados de ${L} cm: P = ${P.n} · ${L}.`,
+    steps:[`P = n · L (n = número de lados)`,`P = ${P.n} · ${L}`,`P = <b>${ans} cm</b>`],
+    errs:[{v:(P.n-1)*L,msg:`Você contou <b>um lado a menos</b>. Essa figura tem ${P.n} lados.`},{v:(P.n+1)*L,msg:`Você contou <b>um lado a mais</b>. Essa figura tem ${P.n} lados.`},{v:P.n+L,msg:`São ${P.n} lados de ${L} cm: <b>multiplique</b>.`}],
+    svg:svgPolygon(P.n,`L = ${L} cm`,`${P.n} lados iguais`)}},
+  poly_lado(){const P=pick(POLYS),L=rnd(3,15),per=P.n*L;return{unit:'cm',ans:L,
+    story:`Um <b>${P.nome}</b> tem PERÍMETRO de ${per} cm. Quanto mede <b>cada lado</b>?`,
+    expr:`L = ${frac(per,P.n)}`,hint1:`O perímetro é a soma de ${P.n} lados iguais. Para achar um lado, <b>divida</b> o perímetro por ${P.n}.`,hint2:`L = ${per} ÷ ${P.n}. Pense: ${P.n} vezes quanto dá ${per}?`,
+    steps:[`P = n · L`,`${per} = ${P.n} · L`,`L = ${frac(per,P.n)} = <b>${L} cm</b>`],
+    errs:[{v:per-P.n,msg:'Você subtraiu. Para desfazer a multiplicação, <b>divida</b>.'},{v:per*P.n,msg:'Você multiplicou. Para achar o lado, <b>divida</b>.'},{v:P.n,msg:'Esse é o número de lados, não a medida do lado.'}],
+    svg:svgPolygon(P.n,'L = ?',`P = ${per} cm`)}},
+  recorte_area(){const B=rnd(8,14),H=rnd(6,10),c=rnd(2,4),ans=B*H-c*c;return{unit:'m²',ans,
+    story:`De uma chapa retangular de ${B} m por ${H} m, foi recortado um canto quadrado de lado ${c} m. Qual é a <b>ÁREA</b> que sobrou?`,
+    expr:`A = ${B} · ${H} − ${sq(c)}`,hint1:'Calcule a área da chapa inteira e <b>tire</b> a área do quadradinho recortado.',hint2:`Chapa inteira: ${B} · ${H} = ${B*H}. Recorte: ${sq(c)} = ${c*c}. Agora: ${B*H} − ${c*c}.`,
+    steps:[`Chapa inteira: ${B} · ${H} = ${B*H} m²`,`Recorte: ${sq(c)} = ${c} · ${c} = ${c*c} m²`,`A = ${B*H} − ${c*c} = <b>${ans} m²</b>`],
+    errs:[{v:B*H,msg:'Você esqueceu de <b>tirar o recorte</b>.'},{v:B*H+c*c,msg:'Você <b>somou</b> o recorte. Como ele foi retirado, <b>subtraia</b>.'},{v:B*H-2*c,msg:`Cuidado: ${sq(c)} é ${c} · ${c}, e <b>não</b> 2 · ${c}.`},{v:B*H-4*c,msg:`Você tirou o <b>perímetro</b> do quadradinho. Tire a <b>área</b>: ${sq(c)}.`}],
+    svg:svgRect(B,H,`${B} m`,`${H} m`,c,`${c} m`)}},
+  figura_L(){const a1=rnd(6,12),b1=rnd(3,6),a2=rnd(2,a1-3),b2=rnd(2,6),ans=a1*b1+a2*b2;return{unit:'m²',ans,
+    story:`Uma sala em forma de <b>L</b> foi dividida em dois retângulos: um de ${a1} m por ${b1} m e outro de ${a2} m por ${b2} m. Qual é a <b>ÁREA</b> total?`,
+    expr:`A = ${a1} · ${b1} + ${a2} · ${b2}`,hint1:'Calcule a área de <b>cada retângulo</b> separado e depois <b>some</b>.',hint2:`Retângulo 1: ${a1} · ${b1} = ${a1*b1}. Retângulo 2: ${a2} · ${b2} = ${a2*b2}. Agora some.`,
+    steps:[`Retângulo 1: ${a1} · ${b1} = ${a1*b1} m²`,`Retângulo 2: ${a2} · ${b2} = ${a2*b2} m²`,`A = ${a1*b1} + ${a2*b2} = <b>${ans} m²</b>`],
+    errs:[{v:a1*b1,msg:'Faltou somar a área do <b>segundo retângulo</b>.'},{v:(a1+a2)*(b1+b2),msg:'Não junte as medidas: calcule cada retângulo separado e depois some.'},{v:a1+b1+a2+b2,msg:'Você somou as medidas. Em cada retângulo, <b>multiplique</b> base por altura.'}],
+    svg:svgL(a1,b1,a2,b2)}},
+  escala_area(){const a0=rnd(10,30),k=pick([2,3]),ans=a0*k*k;return{unit:'cm²',ans,
+    story:`Uma foto retangular tem área de ${a0} cm². Ela foi ampliada e <b>cada lado</b> ficou ${k} vezes maior. Qual é a <b>NOVA ÁREA</b>?`,
+    expr:`A<sub>nova</sub> = ${sq(k)} · ${a0}`,hint1:`Quando os lados ficam k vezes maiores, a área fica ${sq('k')} vezes maior. Exemplo: um quadrado de lado 1 que vira lado 2 passa de área 1 para área 4!`,hint2:`${sq(k)} = ${k} · ${k} = ${k*k}. Agora: ${k*k} · ${a0}.`,
+    steps:[`A<sub>nova</sub> = ${sq('k')} · A`,`A<sub>nova</sub> = ${sq(k)} · ${a0} = ${k*k} · ${a0}`,`A<sub>nova</sub> = <b>${ans} cm²</b>`],
+    errs:[{v:a0*k,msg:`Você multiplicou só por k. A área aumenta ${sq(k)} = ${k*k} vezes!`},{v:a0*2*k,msg:`Cuidado: ${sq('k')} é k · k, e <b>não</b> 2 · k.`},{v:a0+k*k,msg:`Você <b>somou</b>. Precisa <b>multiplicar</b>: ${sq(k)} · ${a0}.`}],
+    svg:svgScale(k)}}
+};
+const TRIPLES=[[3,4,5],[6,8,10],[5,12,13],[9,12,15],[8,15,17],[12,16,20]];
+const POLYS=[{n:5,nome:'PENTÁGONO REGULAR',ctx:'Uma placa decorativa'},{n:6,nome:'HEXÁGONO REGULAR',ctx:'Um favo de mel decorativo'},{n:8,nome:'OCTÓGONO REGULAR',ctx:'Uma placa de PARE'}];
+
+/* Monta 4 alternativas: correta + até 3 erros comuns + complementos */
+function finishQ(q){
+  const seen=new Set([q.ans]),errs=[];
+  for(const e of shuffle(q.errs)){
+    if(errs.length>=3)break;
+    if(Number.isInteger(e.v)&&e.v>0&&!seen.has(e.v)){seen.add(e.v);errs.push(e)}
+  }
+  const opts=errs.map(e=>e.v);
+  for(const g of shuffle([q.ans+1,q.ans-1,q.ans+2,q.ans-2,q.ans+4,q.ans-4,q.ans+10,q.ans-10,q.ans*2])){
+    if(opts.length>=3)break;
+    if(Number.isInteger(g)&&g>0&&!seen.has(g)){seen.add(g);opts.push(g)}
+  }
+  const msgs=new Map(errs.map(e=>[e.v,e.msg]));
+  q.kind='calc';
+  q.choices=[q.ans,...opts].sort((a,b)=>a-b).map(v=>({html:`${v} ${q.unit}`,correct:v===q.ans,msg:msgs.get(v)||'',v}));
+  q.exprAsk=`<span>${q.expr}</span><span>=</span><span class="q">?</span>`;
+  q.exprDone=`<span>${q.expr}</span><span>=</span><span class="done">${q.ans} ${q.unit}</span>`;
+  return q;
+}
+
+/* ===================== Regras das moedas (ligadas ao tema) ===================== */
+const SQ_LIST=[4,9,16,25,36,49,64,81,100];
+const SHAPE_NAMES={quadrado:'Quadrado',retangulo:'Retângulo',losango:'Losango',trapezio:'Trapézio',paralelogramo:'Paralelogramo',triangulo:'Triângulo',circulo:'Círculo',pentagono:'Pentágono',hexagono:'Hexágono'};
+const QUAD4=['quadrado','retangulo','losango','trapezio','paralelogramo'],NOT4=['triangulo','circulo','pentagono','hexagono'];
+function shapePts(k,x,y,s){
+  const P=pts=>pts.map(([a,b])=>[x+a*s,y+b*s]);
+  switch(k){
+    case 'quadrado':return P([[-.75,-.75],[.75,-.75],[.75,.75],[-.75,.75]]);
+    case 'retangulo':return P([[-1,-.6],[1,-.6],[1,.6],[-1,.6]]);
+    case 'losango':return P([[0,-1],[.8,0],[0,1],[-.8,0]]);
+    case 'trapezio':return P([[-1,.6],[1,.6],[.5,-.6],[-.5,-.6]]);
+    case 'paralelogramo':return P([[-1,.6],[.5,.6],[1,-.6],[-.5,-.6]]);
+    case 'triangulo':return P([[-1,.7],[1,.7],[0,-.9]]);
+    case 'pentagono':case 'hexagono':{const n=k==='pentagono'?5:6,r=[];for(let i=0;i<n;i++){const t=-Math.PI/2+2*Math.PI*i/n;r.push([x+Math.cos(t)*s*.95,y+Math.sin(t)*s*.95])}return r}
+    default:return null;
+  }
+}
+function svgMini(k){
+  const p=shapePts(k,20,20,14);
+  const sh=p?`<polygon points="${p.map(([a,b])=>rd(a)+','+rd(b)).join(' ')}"/>`:`<circle cx="20" cy="20" r="12"/>`;
+  return `<svg viewBox="0 0 40 40" width="34" height="34" fill="#fff" stroke="#1d2552" stroke-width="2.5" stroke-linejoin="round">${sh}</svg>`;
+}
+const RULES={
+  quad:{short:'QUADRADOS PERFEITOS',name:'quadrado perfeito',
+    ok:n=>SQ_LIST.includes(n)||n===1,gen:()=>pick(SQ_LIST),
+    explain:`<b>Quadrado perfeito</b> é um número vezes ele mesmo: 3 · 3 = 9. Ele é a <b>área de um quadrado</b> de lado inteiro (A = ${sq('L')}).`,
+    yes:[4,9,16,25],no:[8,12,20,30]},
+  m3:{short:'MÚLTIPLOS DE 3',name:'múltiplo de 3',ok:n=>n%3===0,gen:()=>3*rnd(1,33),
+    explain:'O <b>triângulo equilátero</b> tem 3 lados iguais: P = 3 · L. Por isso esse perímetro sempre é <b>múltiplo de 3</b> (tabuada do 3).',
+    yes:[6,9,15,21],no:[7,10,16,22]},
+  m4:{short:'MÚLTIPLOS DE 4',name:'múltiplo de 4',ok:n=>n%4===0,gen:()=>4*rnd(1,24),
+    explain:'O <b>losango</b> tem 4 lados iguais: P = 4 · L. Por isso esse perímetro sempre é <b>múltiplo de 4</b> (tabuada do 4).',
+    yes:[8,12,20,28],no:[6,10,18,22]},
+  m6:{short:'MÚLTIPLOS DE 6',name:'múltiplo de 6',ok:n=>n%6===0,gen:()=>6*rnd(1,16),
+    explain:'Com π ≈ 3, o comprimento da circunferência é C = 2 · π · R ≈ 6 · R. Por isso ele sempre é <b>múltiplo de 6</b> (tabuada do 6).',
+    yes:[12,18,30,42],no:[8,15,20,27]},
+  m5:{short:'MÚLTIPLOS DE 5',name:'múltiplo de 5',ok:n=>n%5===0,gen:()=>5*rnd(1,19),
+    explain:'O <b>pentágono regular</b> tem 5 lados iguais: P = 5 · L. Por isso esse perímetro sempre é <b>múltiplo de 5</b> (termina em 0 ou 5).',
+    yes:[10,15,25,40],no:[12,18,22,33]},
+  quadri:{short:'QUADRILÁTEROS (4 lados)',name:'quadrilátero',shape:true,
+    ok:k=>QUAD4.includes(k),gen:()=>pick(QUAD4),genBad:()=>pick(NOT4),
+    badMsg:k=>`✗ ${SHAPE_NAMES[k]} não tem 4 lados`,
+    explain:'<b>Quadrilátero</b> é toda figura com <b>4 lados</b>: quadrado, retângulo, losango, trapézio e paralelogramo. Conte os lados de cada moeda!',
+    yes:['quadrado','losango','trapezio','paralelogramo'],no:['triangulo','circulo','pentagono','hexagono']}
+};
+/*@@QGEN_END*/
+
+/* ===================== Cenários (cada tema tem o seu) ===================== */
+const THEMES={
+  cidade:{nome:'Cidade Ensolarada',emoji:'🏙️',sky:['#3ab8ff','#9ee8ff','#d9fbff'],hill:'#5fd35a',deco:'cidade',
+    ground:'#7a4a22',top:'#4fd14a',tick:'#fff59d',gText:'#fff3c4',plat:'#ff4fa3',platStroke:'#5a1a3a',platTick:'#5a1a3a',
+    brick:'#ff8c1a',brickSym:'#fff200',gate:'rgba(255,79,163,.85)',coin:'#ffd600',enemy:'#7c4dff',enemyType:'blob',
+    formula:'rgba(255,255,255,.4)',music:'cidade',ui:{page:'#dff6ff',grid:'#b9e6ff',ink:'#13306b',soft:'#2e5aa8'}},
+  deserto:{nome:'Deserto das Pirâmides',emoji:'🏜️',sky:['#ff3e8a','#ff8a3d','#ffd56b'],hill:'#f2a541',deco:'deserto',
+    ground:'#d9822b',top:'#ffd27a',tick:'#7a3b0c',gText:'#5a2a06',plat:'#00b3a6',platStroke:'#0b3b38',platTick:'#0b3b38',
+    brick:'#c0392b',brickSym:'#ffe066',gate:'rgba(0,179,166,.85)',coin:'#ffe066',enemy:'#3d1a78',enemyType:'blob',
+    formula:'rgba(120,20,60,.18)',music:'deserto',ui:{page:'#fff0dc',grid:'#ffd9a8',ink:'#6b2203',soft:'#a8460f'}},
+  selva:{nome:'Floresta Tropical',emoji:'🌴',sky:['#00b894','#55efc4','#d4ff7a'],hill:'#13a65a',deco:'selva',
+    ground:'#5b3a1e',top:'#7cff4f',tick:'#d4ff7a',gText:'#e9ffd0',plat:'#ffb300',platStroke:'#3a2200',platTick:'#3a2200',
+    brick:'#ff3d7f',brickSym:'#fff',gate:'rgba(255,61,127,.85)',coin:'#ffe14d',enemy:'#ff5722',enemyType:'blob',
+    formula:'rgba(0,80,40,.16)',music:'selva',ui:{page:'#e4ffe9',grid:'#b8f5c6',ink:'#0b4d2a',soft:'#1a7a45'}},
+  mar:{nome:'Fundo do Mar',emoji:'🐠',sky:['#48e5ff','#0aa1dd','#035096'],hill:'#0a6c8f',deco:'mar',
+    ground:'#f4d58d',top:'#ffe9a8',tick:'#c48a2c',gText:'#7a4b12',plat:'#ff6f91',platStroke:'#5a0f2a',platTick:'#5a0f2a',
+    brick:'#ff9f1c',brickSym:'#fff',gate:'rgba(255,111,145,.85)',coin:'#ffd23f',enemy:'#ff4d4d',enemyType:'crab',
+    formula:'rgba(255,255,255,.18)',music:'mar',ui:{page:'#d8f6ff',grid:'#a8e6f7',ink:'#063a63',soft:'#0b6aa0'}},
+  espaco:{nome:'Galáxia Neon',emoji:'🚀',sky:['#14002e','#4b0f8a','#ff3cac'],hill:'#5b1fa8',deco:'espaco',
+    ground:'#1a0638',top:'#00f5d4',tick:'#00f5d4',gText:'#b9fff4',plat:'#00f5d4',platStroke:'#1a0638',platTick:'#1a0638',
+    brick:'#ff3cac',brickSym:'#fff',gate:'rgba(0,245,212,.8)',coin:'#ffe14d',enemy:'#b8ff00',enemyType:'ufo',
+    formula:'rgba(255,255,255,.16)',music:'espaco',ui:{page:'#f2e6ff',grid:'#dcc4ff',ink:'#3a0b6b',soft:'#6a2fb0'}},
+  doce:{nome:'Reino dos Doces',emoji:'🍭',sky:['#ff7cd4','#ffb3e6','#fff3b0'],hill:'#ff6fb5',deco:'doce',stripes:true,
+    ground:'#ff4f9a',top:'#ffffff',tick:'#fff3b0',gText:'#fff',plat:'#7ae7ff',platStroke:'#5a1a5a',platTick:'#5a1a5a',
+    brick:'#a55eea',brickSym:'#fff200',gate:'rgba(165,94,234,.85)',coin:'#ffe14d',enemy:'#ff7a00',enemyType:'blob',
+    formula:'rgba(140,20,110,.16)',music:'doce',ui:{page:'#ffe6f6',grid:'#ffc2e6',ink:'#6b0b4d',soft:'#b0247f'}},
+  castelo:{nome:'Castelo Sombrio',emoji:'🦇',dark:true,sky:['#05010f','#1a0630','#3a0a2a'],hill:'#12051f',deco:'castelo',
+    ground:'#1c1430',top:'#ff5e1a',tick:'#ff5e1a',gText:'#ffb08a',plat:'#4b3b6b',platStroke:'#b388ff',platTick:'#b388ff',
+    brick:'#5e2a84',brickSym:'#ff5e1a',gate:'rgba(255,40,80,.75)',coin:'#ffd23f',enemy:'#9d4edd',enemyType:'bat',fast:true,
+    formula:'rgba(179,136,255,.16)',music:'castelo',ui:{page:'#0d0619',grid:'#1e1036',ink:'#f3eaff',soft:'#c4b1f0'}}
+};
+const DEFAULT_UI={page:'#e9f2fb',grid:'#c9dcf0',ink:'#1d2552',soft:'#4a5590'};
+
+/* ===================== Temas de estudo ===================== */
+const TOPICS={
+  quadret:{nome:'Quadrado e Retângulo',desc:'Área, perímetro e lado',sym:'□',rule:'quad',theme:'cidade',figs:['quadrado','retangulo']},
+  triangulos:{nome:'Triângulos',desc:'Perímetro, área e Pitágoras',sym:'△',rule:'m3',theme:'deserto',figs:['triangulo']},
+  quadesp:{nome:'Paralelogramo, Trapézio e Losango',desc:'Área e perímetro',sym:'◇',rule:'m4',theme:'selva',figs:['paralelogramo','trapezio','losango']},
+  circulo:{nome:'Círculo e Circunferência',desc:'Área, comprimento, setor (π ≈ 3)',sym:'◯',rule:'m6',theme:'mar',figs:['circulo','setor']},
+  poligonos:{nome:'Polígonos e Figuras Compostas',desc:'Pentágono, hexágono, figuras em L',sym:'⬡',rule:'m5',theme:'espaco',figs:['poligono','hexagono']},
+  formulas:{nome:'Desafio das Fórmulas',desc:'Decore as fórmulas de todas as figuras',sym:'🧠',rule:'quadri',theme:'doce',figs:ALL_FIGS},
+  misturado:{nome:'Simulado ENEM',desc:'Tudo misturado · mais difícil',sym:'★',rule:null,theme:'castelo',figs:ALL_FIGS}
+};
+
+/* ===================== Músicas originais (uma por cenário) ===================== */
+const MUSIC={
+  cidade:{tempo:150,lead:'square',bass:'triangle',lv:.022,bv:.035,bassM:[48,45,41,43],
+    mel:[[76,79,84,79,76,79,81,79],[69,72,76,72,69,72,74,76],[77,81,84,81,77,76,74,72],[74,79,83,79,74,71,74,0]]},
+  deserto:{tempo:165,lead:'square',bass:'triangle',lv:.02,bv:.04,bassM:[40,41,40,38],
+    mel:[[76,77,80,77,76,0,76,77],[80,81,80,77,76,0,74,76],[76,77,80,81,83,81,80,77],[76,74,72,74,76,0,0,0]]},
+  selva:{tempo:140,lead:'square',bass:'triangle',lv:.022,bv:.035,bassM:[43,40,36,38],
+    mel:[[79,0,83,86,83,0,79,81],[83,0,79,76,79,0,81,83],[86,88,86,83,81,79,81,0],[79,81,83,86,83,81,79,0]]},
+  mar:{tempo:200,lead:'triangle',bass:'sine',lv:.06,bv:.05,bassM:[41,43,38,36],
+    mel:[[77,81,84,0,83,0,81,0],[79,83,86,0,84,0,83,0],[74,77,81,0,79,0,77,0],[72,76,79,0,77,76,74,0]]},
+  espaco:{tempo:120,lead:'sawtooth',bass:'square',lv:.014,bv:.016,bassM:[45,41,48,43],
+    mel:[[81,84,88,93,88,84,81,84],[77,81,84,89,84,81,77,81],[84,88,91,96,91,88,84,88],[79,83,86,91,86,83,79,83]]},
+  doce:{tempo:130,lead:'square',bass:'triangle',lv:.02,bv:.03,bassM:[48,53,55,48],
+    mel:[[84,0,84,86,88,0,84,0],[89,0,88,86,84,0,79,0],[86,0,86,88,86,84,83,0],[84,88,91,88,84,0,0,0]]},
+  /* Música SOMBRIA: escala menor harmônica, lenta, com baixo grave */
+  castelo:{tempo:240,lead:'triangle',bass:'sawtooth',lv:.06,bv:.022,bassM:[38,34,33,38],drone:true,
+    mel:[[74,0,77,0,73,0,74,0],[70,0,74,0,77,0,76,0],[69,0,73,0,76,0,73,70],[74,77,74,73,74,0,0,0]]}
+};
+const mfreq=m=>440*Math.pow(2,(m-69)/12);
+
+/* ---------- TABELA DE PONTOS (o professor pode mudar estes valores) ---------- */
+const PTS={
+  gate:[100,50,20,5],   // portão: 1ª tentativa, 2ª, 3ª, 4ª
+  speedMax:30,          // bônus rapidez: até +30 se acertar de 1ª em poucos segundos (perde 1 ponto por segundo)
+  noConsult:20,         // bônus por acertar SEM abrir o formulário
+  streak:25,            // sequência: +25, +50, +75 por portões seguidos acertados de 1ª
+  coinGood:10, coinBad:-10,
+  brick:15, enemy:20, hurt:-15,
+  life:50,              // cada vida que sobrar no final
+  perfectCoins:50,      // nenhuma moeda errada (pegando pelo menos metade das certas)
+  allGoodCoins:50,      // pegou TODAS as moedas certas
+  timeMax:120           // bônus de tempo: perde 1 ponto a cada 3 segundos de jogo
+};
+
+/* ---------- Ranking ---------- */
+const RANK_KEY='aventura_pi_em_ranking_v2';
+let studentName='Estudante';
+function getRanking(){try{return JSON.parse(localStorage.getItem(RANK_KEY)||'[]')}catch(e){return []}}
+function saveScoreToRanking(entry){
+  const list=getRanking();list.push(entry);
+  list.sort((a,b)=>b.score-a.score||b.firstRate-a.firstRate||a.timeSec-b.timeSec);
+  try{localStorage.setItem(RANK_KEY,JSON.stringify(list.slice(0,30)))}catch(e){}
+}
+function clearRanking(){try{localStorage.removeItem(RANK_KEY)}catch(e){}}
+
+/* ---------- Tela cheia ---------- */
+function isFullscreenActive(){return !!(document.fullscreenElement||document.webkitFullscreenElement||gameRoot.classList.contains('ios-fullscreen'))}
+function updateFsButtonUI(){
+  const isFs=isFullscreenActive();
+  $('fsBtn').textContent=isFs?'⛶ Sair Tela Cheia':'⛶ Tela Cheia';
+  const mBtn=$('menuFsBtn');if(mBtn)mBtn.textContent=isFs?'⛶ Sair da Tela Cheia':'⛶ Ativar Tela Cheia';
+  window.scrollTo(0,0);
+}
+function toggleFullscreen(e){
+  if(e&&e.currentTarget&&e.currentTarget.blur)e.currentTarget.blur();
+  const fallback=()=>{gameRoot.classList.add('ios-fullscreen');updateFsButtonUI()};
+  if(!isFullscreenActive()){
+    if(gameRoot.requestFullscreen){gameRoot.requestFullscreen().then(updateFsButtonUI).catch(fallback)}
+    else if(gameRoot.webkitRequestFullscreen){try{gameRoot.webkitRequestFullscreen();updateFsButtonUI()}catch(err){fallback()}}
+    else fallback();
+  }else{
+    gameRoot.classList.remove('ios-fullscreen');
+    if(document.exitFullscreen&&document.fullscreenElement){document.exitFullscreen().then(updateFsButtonUI).catch(updateFsButtonUI)}
+    else if(document.webkitExitFullscreen&&document.webkitFullscreenElement){try{document.webkitExitFullscreen()}catch(err){}updateFsButtonUI()}
+    else updateFsButtonUI();
+  }
+}
+$('fsBtn').onclick=toggleFullscreen;
+document.addEventListener('fullscreenchange',updateFsButtonUI);
+document.addEventListener('webkitfullscreenchange',updateFsButtonUI);
+
+/* ---------- Áudio ---------- */
+let ac=null,muted=false,bgmEnabled=true,bgmTimer=null,bgmStep=0,bgmDuckUntil=0,curMusic=MUSIC.cidade;
+function ensureAudio(){
+  try{
+    if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(A)ac=new A()}
+    if(ac&&ac.state==='suspended')ac.resume();
+  }catch(e){}
+}
+/* iPhone/iPad só liberam o som dentro de um toque: criamos o áudio e tocamos um som mudo no 1º toque */
+function unlockAudio(){
+  ensureAudio();
+  try{
+    if(ac){const b=ac.createBuffer(1,1,22050),src=ac.createBufferSource();src.buffer=b;src.connect(ac.destination);src.start(0)}
+  }catch(e){}
+  if(ac&&ac.state==='running')['touchstart','touchend','pointerdown','click','keydown'].forEach(ev=>window.removeEventListener(ev,unlockAudio,true));
+}
+['touchstart','touchend','pointerdown','click','keydown'].forEach(ev=>window.addEventListener(ev,unlockAudio,true));
+/* Ao voltar para o jogo (trocar de app no celular), reativa o som */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ac&&ac.state==='suspended'){try{ac.resume()}catch(e){}}});
+function tone(f,d=.12,type='square',f2=null,v=.08,delay=0){
+  if(muted||!f)return;
+  try{
+    ensureAudio();if(!ac)return;
+    const t0=ac.currentTime+delay,o=ac.createOscillator(),g=ac.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t0);
+    if(f2)o.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t0+d);
+    g.gain.setValueAtTime(.001,t0);g.gain.linearRampToValueAtTime(v,t0+.01);g.gain.exponentialRampToValueAtTime(.0008,t0+d);
+    o.connect(g).connect(ac.destination);o.start(t0);o.stop(t0+d+.01);
+  }catch(e){}
+}
+function powerNote(f,d=.16,v=.16,delay=0,slideTo=null){
+  if(muted||!f)return;
+  try{
+    ensureAudio();if(!ac)return;
+    const t0=ac.currentTime+delay,o1=ac.createOscillator(),o2=ac.createOscillator(),flt=ac.createBiquadFilter(),g=ac.createGain();
+    o1.type='square';o2.type='sawtooth';
+    o1.frequency.setValueAtTime(f,t0);o2.frequency.setValueAtTime(f*.5,t0);
+    if(slideTo){o1.frequency.exponentialRampToValueAtTime(slideTo,t0+d);o2.frequency.exponentialRampToValueAtTime(slideTo*.5,t0+d)}
+    flt.type='lowpass';flt.frequency.setValueAtTime(3400,t0);
+    g.gain.setValueAtTime(.001,t0);g.gain.linearRampToValueAtTime(v,t0+.008);g.gain.setValueAtTime(v*.85,t0+d*.55);g.gain.exponentialRampToValueAtTime(.001,t0+d);
+    o1.connect(flt);o2.connect(flt);flt.connect(g).connect(ac.destination);
+    o1.start(t0);o2.start(t0);o1.stop(t0+d+.015);o2.stop(t0+d+.015);
+  }catch(e){}
+}
+function noiseBurst(d=.14,v=.12,delay=0,freq=950){
+  if(muted)return;
+  try{
+    ensureAudio();if(!ac)return;
+    const t0=ac.currentTime+delay,n=Math.floor(ac.sampleRate*d),buf=ac.createBuffer(1,n,ac.sampleRate),data=buf.getChannelData(0);
+    for(let i=0;i<n;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/n,1.6);
+    const src=ac.createBufferSource();src.buffer=buf;
+    const flt=ac.createBiquadFilter();flt.type='bandpass';flt.frequency.setValueAtTime(freq,t0);
+    const g=ac.createGain();g.gain.setValueAtTime(v,t0);g.gain.exponentialRampToValueAtTime(.001,t0+d);
+    src.connect(flt).connect(g).connect(ac.destination);src.start(t0);
+  }catch(e){}
+}
+function startBgm(){
+  if(bgmTimer)return;
+  const tick=()=>{
+    const M=curMusic;
+    if(bgmEnabled&&!muted&&(state==='play'||state==='mission')&&performance.now()>bgmDuckUntil){
+      const bar=Math.floor(bgmStep/8)%4,i=bgmStep%8,mel=M.mel[bar][i],sec=M.tempo/1000;
+      if(mel)tone(mfreq(mel),sec*.95,M.lead,null,M.lv);
+      if(i%2===0){const root=M.bassM[bar];tone(mfreq(i%4===0?root:root+7),sec*1.9,M.bass,null,M.bv)}
+      if(M.drone&&i===0)tone(mfreq(M.bassM[bar]-12),sec*7.5,'sine',null,.05);
+      bgmStep=(bgmStep+1)%32;
+    }
+    bgmTimer=setTimeout(tick,curMusic.tempo);
+  };
+  tick();
+}
+const sfx={
+  jump:()=>tone(330,.15,'square',660,.06),
+  coin:()=>{tone(988,.08,'square',null,.08);tone(1319,.18,'square',null,.08,.07)},
+  bad:()=>tone(220,.25,'sawtooth',110,.08),
+  breakObstacle:()=>{
+    bgmDuckUntil=performance.now()+420;noiseBurst(.14,.16,0,1200);
+    [523.25,659.25,783.99,1046.5,1318.51].forEach((f,i)=>powerNote(f,.095,.15,i*.045,f*1.06));
+  },
+  right:()=>{
+    bgmDuckUntil=performance.now()+950;noiseBurst(.08,.12,0,1600);
+    powerNote(523.25,.11,.18,0);powerNote(659.25,.11,.18,.08);powerNote(783.99,.11,.19,.16);powerNote(1046.5,.11,.2,.24);
+    powerNote(1318.51,.38,.22,.34);tone(1046.5,.38,'square',null,.14,.34);tone(783.99,.38,'triangle',null,.14,.34);
+  },
+  gateBreak:()=>{
+    bgmDuckUntil=performance.now()+1100;noiseBurst(.22,.2,0,900);noiseBurst(.16,.16,.28,1500);
+    [[523.25,.09,0,.19],[659.25,.09,.07,.19],[783.99,.09,.14,.2],[1046.5,.14,.21,.22],[783.99,.09,.36,.19],[1046.5,.12,.45,.21],[1318.51,.12,.57,.22],[1567.98,.42,.69,.24]].forEach(([f,d,t,v])=>powerNote(f,d,v,t));
+    tone(1046.5,.42,'square',null,.14,.69);tone(783.99,.42,'sawtooth',null,.12,.69);
+  },
+  hurt:()=>tone(440,.35,'triangle',110,.11),
+  wrong:()=>{bgmDuckUntil=performance.now()+500;powerNote(220,.18,.15,0,180);powerNote(155,.28,.16,.17,120)},
+  win:()=>{bgmDuckUntil=performance.now()+1600;[523.25,659.25,783.99,659.25,783.99,1046.5,1318.51,1567.98].forEach((f,i)=>powerNote(f,.18,.2,i*.11))}
+};
+$('mute').onclick=e=>{e.currentTarget.blur();muted=!muted;$('mute').textContent=muted?'🔇 Mudo':'🔊 Som'};
+$('bgmBtn').onclick=e=>{e.currentTarget.blur();ensureAudio();bgmEnabled=!bgmEnabled;$('bgmBtn').textContent=bgmEnabled?'🎵 Música: ON':'🎵 Música: OFF';startBgm()};
+
+/* ---------- Aplicar cenário ---------- */
+let theme=THEMES.cidade,skyGrad=null;
+function setPageUI(ui){
+  const r=document.documentElement.style;
+  r.setProperty('--page',ui.page);r.setProperty('--page-grid',ui.grid);r.setProperty('--page-ink',ui.ink);r.setProperty('--page-soft',ui.soft);
+}
+function applyTheme(key){
+  theme=THEMES[key];
+  const g=ctx.createLinearGradient(0,0,0,H);
+  theme.sky.forEach((c,i)=>g.addColorStop(i/(theme.sky.length-1),c));
+  skyGrad=g;
+  setPageUI(theme.ui);
+  document.body.classList.toggle('dark',!!theme.dark);
+  $('sceneTag').textContent=`${theme.emoji} ${theme.nome}`;
+  if(curMusic!==MUSIC[theme.music]){curMusic=MUSIC[theme.music];bgmStep=0}
+}
+
+/* ---------- Formulário (estudar e treinar para decorar) ---------- */
+function formulaHtml(){
+  const cards=Object.entries(FIG).map(([k,F])=>{
+    const lines=[];
+    if(F.area)lines.push(F.area.f);
+    if(F.perim)lines.push(F.perim.f);
+    const mn=(F.area||F.perim).mnem;
+    return [icon(ICONS[k]),F.nome+(k==='circulo'?' e circunferência':''),lines.join('<br>'),mn];
+  });
+  cards.push([icon(ICONS.pitagoras),'Pitágoras',`${sq('a')} = ${sq('b')} + ${sq('c')}`,'a = hipotenusa (o maior lado, oposto ao ângulo reto)']);
+  cards.push([icon(ICONS.ampliacao),'Ampliação',`A<sub>nova</sub> = ${sq('k')} · A`,'Lados × k → área × k².']);
+  return `<div class="form-grid">${cards.map(([ic,t,f,mn])=>`<div class="fcard">${ic}<span class="ft">${t}</span><span class="ff">${f}</span><span class="mn">🧠 ${mn}</span></div>`).join('')}</div>`;
+}
+
+/* ---------- Mundo ---------- */
+const grounds=[[0,900],[1010,1700],[1830,2620],[2730,3420],[3540,WORLD]].map(([a,b])=>({x:a,y:GROUND,w:b-a,h:120}));
+const PLAT_BASE=[[340,370,140],[560,295,120],[1150,365,160],[1360,285,130],[1950,370,140],[2160,295,140],[2390,365,120],[2860,355,160],[3060,280,140],[3660,360,140],[3900,290,130]];
+const BRICK_SPOTS=[[240,350],[276,350],[480,275],[1090,350],[1290,265],[1520,350],[1900,350],[2100,275],[2320,350],[2800,345],[3000,265],[3220,350],[3600,350],[3820,275]];
+const COIN_SPOTS=[[200,420],[260,420],[410,320],[620,245],[700,420],[1100,420],[1230,315],[1420,235],[1560,420],[1900,420],[2010,320],[2230,245],[2450,315],[2800,420],[2940,305],[3130,230],[3600,420],[3730,310],[3960,240],[4000,420]];
+
+let plats=[],gates,coins,enemies,bricks,player,parts,floats,camX,state,topic,rule,score,lives,stats,checkpoint,startTime,lastSub=null;
+let keys={left:0,right:0,jump:0},jumpHeld=false;
+
+function makeCoinValue(good){
+  if(good)return rule.gen();
+  if(rule.genBad)return rule.genBad();
+  for(let i=0;i<200;i++){const n=rnd(2,99);if(!rule.ok(n))return n}
+  return 7;
+}
+function reset(t){
+  topic=t;
+  const T=TOPICS[t];
+  applyTheme(T.theme);
+  rule=RULES[T.rule||pick(['quad','m3','m4','m6','m5','quadri'])];
+  const ti=Object.keys(TOPICS).indexOf(t);
+  /* Cada cenário muda a altura das plataformas (sempre alcançáveis) */
+  plats=PLAT_BASE.map(([x,y,w],i)=>({x,y:y+(((i*7+ti*13)%5)-2)*10,w,h:26}));
+  gates=[820,1620,2560,3340].map(x=>({x,y:0,w:44,h:GROUND,open:0,lift:0,tries:0,consulted:false}));
+  coins=COIN_SPOTS.map(([x,y])=>{const good=Math.random()<.62;return{x,y,n:makeCoinValue(good),good,taken:0,bob:Math.random()*6}});
+  bricks=BRICK_SPOTS.map(([x,y])=>({x,y,w:34,h:34,broken:0,isBrick:1}));
+  const sp=theme.fast?1.9:1.35;
+  enemies=[[1250,1050,1580],[2050,1860,2500],[3000,2760,3290],[3800,3560,4100],...(theme.fast?[[600,420,800]]:[])].map(([x,a,b])=>({x,y:GROUND-30,w:38,h:30,vx:-sp,a,b,alive:1,t:Math.random()*50}));
+  player={x:80,y:380,w:34,h:44,vx:0,vy:0,on:0,face:1,inv:0,coy:0,step:0};
+  parts=[];floats=[];camX=0;score=0;lives=3;checkpoint=80;startTime=performance.now();lastSub=null;
+  stats={first:0,tries:0,good:0,bad:0,stomp:0,bricks:0,hurts:0,gatePts:0,speedPts:0,consultPts:0,streakPts:0,streak:0,clicks:0};
+  $('rule').textContent='Pegue só: '+rule.short;
+  $('hudPlayer').textContent=studentName;
+  hud();
+}
+function hud(){
+  $('hearts').textContent='❤'.repeat(Math.max(lives,0))+'♡'.repeat(3-Math.max(lives,0));
+  $('score').textContent=score;$('gates').textContent=gates.filter(g=>g.open).length+'/4';
+}
+const hit=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+function solids(){return grounds.concat(plats,gates.filter(g=>!g.open),bricks.filter(b=>!b.broken))}
+function floatTxt(x,y,txt,col){floats.push({x,y,txt,col,t:70})}
+function burst(x,y,col,n=16){for(let i=0;i<n;i++)parts.push({x,y,vx:(Math.random()-.5)*8,vy:-Math.random()*8-1,col,t:45,sz:6})}
+function breakBrickParticles(x,y){const cols=[theme.brick,'#ffc93c',theme.brickSym,'#ff6b4a'];for(let i=0;i<20;i++)parts.push({x:x+17,y:y+17,vx:(Math.random()-.5)*10,vy:-Math.random()*9-2,col:pick(cols),t:50,sz:9})}
+
+/* ---------- Atualização ---------- */
+function update(dt){
+  const p=player,dir=(keys.right?1:0)-(keys.left?1:0);
+  p.vx+=((dir*4.5)-p.vx)*Math.min(1,.25*dt);
+  if(dir)p.face=dir;
+  p.coy=p.on?6:Math.max(0,p.coy-dt);
+  if(keys.jump&&!jumpHeld&&p.coy>0){p.vy=-13.4;p.coy=0;sfx.jump()}
+  if(!keys.jump&&p.vy<-5)p.vy=-5;
+  jumpHeld=keys.jump;
+  p.vy=Math.min(p.vy+.62*dt,14);
+
+  const S=solids(),px=p.x;
+  p.x=Math.max(0,Math.min(WORLD-p.w,p.x+p.vx*dt));
+  for(const s of S)if(hit(p,s)){
+    if(px+p.w<=s.x+.5){p.x=s.x-p.w;p.vx=0}
+    else if(px>=s.x+s.w-.5){p.x=s.x+s.w;p.vx=0}
+  }
+  const py=p.y;
+  p.y+=p.vy*dt;p.on=0;
+  for(const s of S)if(hit(p,s)){
+    const fromAbove=py+p.h<=s.y+.5,fromBelow=py>=s.y+s.h-.5;
+    if(fromAbove||(!fromBelow&&p.y+p.h/2<s.y+s.h/2)){p.y=s.y-p.h;p.on=1;p.vy=0}
+    else{
+      p.y=s.y+s.h;p.vy=1.5;
+      if(s.isBrick&&!s.broken){
+        s.broken=1;score+=PTS.brick;stats.bricks++;sfx.breakObstacle();
+        breakBrickParticles(s.x,s.y);floatTxt(s.x+17,s.y,`+${PTS.brick} BLOCO!`,'#ff6b4a');hud();
+      }
+    }
+  }
+  if(Math.abs(p.vx)>.5&&p.on)p.step+=dt*.25;
+  if(p.inv>0)p.inv-=dt;
+
+  for(const g of gates){
+    if(g.open){g.lift=Math.min(1,g.lift+.035*dt);continue}
+    if(p.x+p.w>=g.x-3&&p.x<g.x&&state==='play'){askGate(g);return}
+  }
+  for(const c of coins){
+    if(c.taken)continue;
+    if(Math.abs(p.x+p.w/2-c.x)<30&&Math.abs(p.y+p.h/2-c.y)<34){
+      c.taken=1;
+      if(c.good){score+=PTS.coinGood;stats.good++;sfx.coin();floatTxt(c.x,c.y,`+${PTS.coinGood} ✓`,'#2fbf8f');burst(c.x,c.y,'#ffc93c')}
+      else{score=Math.max(0,score+PTS.coinBad);stats.bad++;sfx.bad();floatTxt(c.x,c.y-10,(rule.badMsg?rule.badMsg(c.n):`✗ ${c.n} não é ${rule.name}`)+` (${PTS.coinBad})`,'#e8384f');burst(c.x,c.y,'#e8384f',8)}
+      hud();
+    }
+  }
+  for(const e of enemies){
+    if(!e.alive)continue;
+    e.x+=e.vx*dt;e.t+=dt;if(e.x<e.a||e.x+e.w>e.b)e.vx*=-1;
+    if(theme.enemyType==='bat')e.y=GROUND-58+Math.sin(e.t/14)*14;
+    else if(theme.enemyType==='ufo')e.y=GROUND-36+Math.sin(e.t/10)*5;
+    else e.y=GROUND-30;
+    if(hit(p,e)){
+      if(p.vy>0&&p.y+p.h-e.y<22){
+        e.alive=0;p.vy=-9.5;score+=PTS.enemy;stats.stomp++;sfx.breakObstacle();
+        burst(e.x+19,e.y+15,theme.enemy,20);floatTxt(e.x,e.y,`+${PTS.enemy} INIMIGO!`,'#7a4cff');hud();
+      }else if(p.inv<=0)hurt();
+    }
+  }
+  if(p.y>H+60)hurt(true);
+  if(p.x>4150&&state==='play'){win();return}
+  const target=Math.max(0,Math.min(WORLD-W,p.x-W*.35));camX+=(target-camX)*Math.min(1,.15*dt);
+  for(const q of parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=.35*dt;q.t-=dt}parts=parts.filter(q=>q.t>0);
+  for(const f of floats){f.y-=.6*dt;f.t-=dt}floats=floats.filter(f=>f.t>0);
+}
+function hurt(fell){
+  lives--;stats.hurts++;score=Math.max(0,score+PTS.hurt);sfx.hurt();
+  floatTxt(player.x+17,player.y-20,`${PTS.hurt} pontos`,'#e8384f');hud();
+  if(lives<=0){gameOver();return}
+  const p=player;p.inv=90;
+  if(fell){p.x=checkpoint;p.y=360;p.vx=0;p.vy=0}else{p.vy=-8;p.vx=-p.face*6}
+}
+
+/* ===================== Desenho dos cenários ===================== */
+const hsh=i=>{const x=Math.sin(i*127.1+11.7)*43758.5453;return x-Math.floor(x)};
+const wrap=(x,span)=>((x%span)+span)%span;
+function poly(pts,fill,stroke,lw){ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2;ctx.stroke()}}
+function circle(x,y,r,fill,stroke,lw){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||2;ctx.stroke()}}
+function cloud(x,y,c='rgba(255,255,255,.92)'){circle(x,y,22,c);circle(x+24,y-10,28,c);circle(x+52,y,22,c);ctx.fillStyle=c;ctx.fillRect(x,y,52,22)}
+
+const DECO={
+  cidade(t,cx){
+    ctx.save();ctx.translate(820-cx*.02,95);ctx.rotate(t/4000);ctx.fillStyle='rgba(255,236,80,.6)';
+    for(let i=0;i<12;i++){ctx.fillRect(-4,-92,8,28);ctx.rotate(Math.PI/6)}ctx.restore();
+    circle(820-cx*.02,95,48,'#ffe94d','#ffb300',4);
+    for(let i=0;i<5;i++)cloud(wrap(i*260-cx*.08+t*.01,W+300)-150,60+(i%3)*45);
+    const cols=['#ff4fa3','#ffb300','#7c4dff','#00c9a7','#ff6a3d','#2ec4ff'];
+    for(let i=0;i<14;i++){
+      const x=wrap(i*95-cx*.3,1330)-120,w=70+hsh(i)*20,ht=110+hsh(i+7)*150,y=400-ht;
+      ctx.fillStyle=cols[i%6];ctx.fillRect(x,y,w,ht+80);
+      ctx.fillStyle='rgba(255,255,255,.75)';
+      for(let wy=y+12;wy<390;wy+=22)for(let wx=x+10;wx<x+w-14;wx+=20)ctx.fillRect(wx,wy,10,12);
+    }
+  },
+  deserto(t,cx){
+    circle(480-cx*.02,330,130,'rgba(255,241,168,.85)');circle(480-cx*.02,330,150,null,'rgba(255,241,168,.4)',6);
+    for(let i=0;i<6;i++){
+      const x=wrap(i*250-cx*.12,1500)-200,s=150+hsh(i)*90;
+      poly([[x,390],[x+s,390],[x+s/2,390-s*.72]],'#e07a34');
+      poly([[x+s/2,390-s*.72],[x+s,390],[x+s*.62,390]],'#b9581f');
+    }
+    for(let i=0;i<5;i++){
+      const x=wrap(i*330-cx*.35,1650)-100,s=90+hsh(i+3)*50;
+      poly([[x,420],[x+s,420],[x+s/2,420-s*.75]],'#cf6a2a');
+    }
+    for(let i=0;i<6;i++){
+      const x=wrap(i*280-cx*.5,1680)-60;ctx.fillStyle='#2f9e44';
+      drawRoundRect(ctx,x,385,14,60,7);ctx.fill();drawRoundRect(ctx,x-14,400,10,26,5);ctx.fill();drawRoundRect(ctx,x+18,392,10,24,5);ctx.fill();
+    }
+    ctx.strokeStyle='rgba(60,20,40,.6)';ctx.lineWidth=3;
+    for(let i=0;i<3;i++){const x=wrap(i*300+t*.05-cx*.1,W+200)-100,y=90+i*30+Math.sin(t/300+i)*6;ctx.beginPath();ctx.moveTo(x-10,y);ctx.quadraticCurveTo(x-5,y-7,x,y);ctx.quadraticCurveTo(x+5,y-7,x+10,y);ctx.stroke()}
+  },
+  selva(t,cx){
+    for(let i=0;i<6;i++){
+      const x=wrap(i*250-cx*.1,1500)-150,w=230,h=120+hsh(i)*70;
+      poly([[x,400],[x+w,400],[x+w*.7,400-h],[x+w*.3,400-h]],'#0e9f7e');
+    }
+    const kc=['#ff3d7f','#ffd60a','#3a86ff','#ff7b00'];
+    for(let i=0;i<4;i++){
+      const x=wrap(i*330-cx*.18,1320)-80,y=90+Math.sin(t/700+i)*15+(i%2)*60;
+      ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,y+18);ctx.quadraticCurveTo(x-20,y+90,x+10,y+170);ctx.stroke();
+      poly([[x,y-18],[x+13,y],[x,y+18],[x-13,y]],kc[i],'#1d2552',2);
+    }
+    for(let i=0;i<10;i++){
+      const x=wrap(i*140-cx*.4,1400)-80;
+      poly([[x+12,445],[x+36,445],[x+30,360],[x+18,360]],'#7a4a1e');
+      circle(x+24,330,38,'#1fbf4f');circle(x+2,352,26,'#14a83f');circle(x+46,352,26,'#14a83f');
+      circle(x+14,318,9,'#ff3d7f');
+    }
+  },
+  mar(t,cx){
+    for(let i=0;i<5;i++){const x=wrap(i*230-cx*.05,1150)-100;poly([[x,0],[x+60,0],[x+170,H],[x+70,H]],'rgba(255,255,255,.08)')}
+    for(let i=0;i<4;i++){
+      const dir=i%2?1:-1,x=wrap(i*300+t*.05*dir-cx*.25,W+200)-100,y=110+i*55;
+      ctx.save();ctx.translate(x,y);ctx.scale(dir,1);
+      ctx.fillStyle=['#ffd166','#ff8fab','#06d6a0','#ffffff'][i];ctx.beginPath();ctx.ellipse(0,0,18,10,0,0,Math.PI*2);ctx.fill();
+      poly([[-16,0],[-28,-9],[-28,9]],ctx.fillStyle);circle(8,-2,2.5,'#1d2552');ctx.restore();
+    }
+    ctx.lineCap='round';
+    for(let i=0;i<16;i++){
+      const x=wrap(i*100-cx*.45,1600)-60,h=80+hsh(i)*70;
+      ctx.strokeStyle=i%3?'#14b86a':'#0f9d58';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x,450);
+      for(let k=1;k<=6;k++)ctx.lineTo(x+Math.sin(t/500+i+k)*8,450-h*k/6);ctx.stroke();
+    }
+    ctx.lineCap='butt';
+    for(let i=0;i<26;i++){
+      const x=wrap(i*83-cx*.2,W+40)-20+Math.sin(t/600+i)*6,y=H-wrap(t*.05+i*67,H+60),r=4+(i%4)*3;
+      circle(x,y,r,'rgba(255,255,255,.15)','rgba(255,255,255,.75)',2);
+    }
+  },
+  espaco(t,cx){
+    for(let i=0;i<90;i++){
+      const x=wrap(hsh(i)*2000-cx*.05,W),y=hsh(i+99)*H*.85,s=1+(i%3);
+      ctx.globalAlpha=.35+.65*Math.abs(Math.sin(t/600+i));ctx.fillStyle='#fff';ctx.fillRect(x,y,s,s);
+    }
+    ctx.globalAlpha=1;
+    circle(wrap(200-cx*.04,W+300)-150,140,90,'rgba(255,60,172,.12)');circle(wrap(650-cx*.04,W+300)-150,230,120,'rgba(0,245,212,.08)');
+    const px=wrap(720-cx*.06,W+400)-200;
+    circle(px,130,58,'#ffb703');ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(px-56,115,112,8);ctx.fillRect(px-50,140,100,6);
+    ctx.strokeStyle='#8ecae6';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(px,130,95,20,-.3,0,Math.PI*2);ctx.stroke();
+    circle(wrap(330-cx*.08,W+200)-100,80,20,'#00f5d4');
+    const hc=['#00f5d4','#ff3cac','#fff200'];
+    for(let i=0;i<8;i++){
+      const x=wrap(i*200-cx*.3,1600)-80,y=320+Math.sin(t/900+i)*12-(i%3)*45,r=18,pts=[];
+      for(let k=0;k<6;k++){const a=Math.PI/3*k+t/2000;pts.push([x+Math.cos(a)*r,y+Math.sin(a)*r])}
+      poly(pts,null,hc[i%3],3);
+    }
+  },
+  doce(t,cx){
+    for(let i=0;i<5;i++)cloud(wrap(i*270-cx*.08+t*.008,W+300)-150,55+(i%3)*40,'rgba(255,255,255,.85)');
+    const lc=['#ff3d7f','#7ae7ff','#a55eea','#ffb300','#00c9a7'];
+    for(let i=0;i<10;i++){
+      const x=wrap(i*150-cx*.38,1500)-80,y=320-(i%3)*30;
+      ctx.fillStyle='#fff';ctx.fillRect(x-3,y,6,470-y);
+      circle(x,y,28,lc[i%5],'#5a1a5a',3);
+      ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=4;
+      ctx.beginPath();ctx.arc(x,y,18,t/600+i,t/600+i+Math.PI*1.4);ctx.stroke();ctx.beginPath();ctx.arc(x,y,8,t/600+i+2,t/600+i+2+Math.PI*1.2);ctx.stroke();
+    }
+    for(let i=0;i<6;i++){
+      const x=wrap(i*240-cx*.15,1440)-60,y=110+Math.sin(t/700+i)*10+(i%2)*50,c=lc[(i+2)%5];
+      ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(x,y,16,11,0,0,Math.PI*2);ctx.fill();
+      poly([[x-15,y],[x-27,y-9],[x-27,y+9]],c);poly([[x+15,y],[x+27,y-9],[x+27,y+9]],c);
+    }
+  },
+  castelo(t,cx){
+    for(let i=0;i<60;i++){const x=wrap(hsh(i)*1800-cx*.03,W),y=hsh(i+50)*H*.6;ctx.globalAlpha=.2+.4*Math.abs(Math.sin(t/900+i));ctx.fillStyle='#fff';ctx.fillRect(x,y,2,2)}
+    ctx.globalAlpha=1;
+    const mx=760-cx*.03;
+    circle(mx,105,85,'rgba(255,240,200,.06)');circle(mx,105,66,'rgba(255,240,200,.1)');circle(mx,105,48,'#f1e9c9');
+    circle(mx-14,96,9,'#d8cfae');circle(mx+12,118,6,'#d8cfae');
+    const x0=wrap(300-cx*.12,W+700)-300,C='#0b0518';
+    ctx.fillStyle=C;ctx.fillRect(x0,250,380,220);
+    for(let k=0;k<10;k++)ctx.fillRect(x0+k*40,236,24,16);
+    [[x0-30,180,70],[x0+150,140,80],[x0+340,165,70]].forEach(([tx,ty,tw])=>{
+      ctx.fillStyle=C;ctx.fillRect(tx,ty,tw,470-ty);poly([[tx-10,ty],[tx+tw+10,ty],[tx+tw/2,ty-70]],C);
+    });
+    const fl=.6+.4*Math.sin(t/120);
+    ctx.fillStyle=`rgba(255,159,28,${fl})`;
+    [[x0-8,220],[x0+18,260],[x0+178,190],[x0+178,250],[x0+362,210],[x0+90,300],[x0+270,300]].forEach(([wx,wy])=>{drawRoundRect(ctx,wx,wy,12,18,[6,6,0,0]);ctx.fill()});
+    for(let i=0;i<6;i++){
+      const bx=wrap(i*240+t*.06-cx*.2,W+200)-100,by=80+i*32+Math.sin(t/300+i)*12,f=Math.sin(t/90+i)*7;
+      ctx.fillStyle='rgba(0,0,0,.85)';ctx.beginPath();ctx.ellipse(bx,by,6,5,0,0,Math.PI*2);ctx.fill();
+      poly([[bx-4,by],[bx-20,by-6-f],[bx-14,by+4]],'rgba(0,0,0,.85)');poly([[bx+4,by],[bx+20,by-6-f],[bx+14,by+4]],'rgba(0,0,0,.85)');
+    }
+    const fog=ctx.createLinearGradient(0,330,0,470);fog.addColorStop(0,'rgba(255,40,60,0)');fog.addColorStop(1,'rgba(255,40,60,.28)');
+    ctx.fillStyle=fog;ctx.fillRect(0,330,W,140);
+    if(t%7000<110){ctx.fillStyle='rgba(220,200,255,.18)';ctx.fillRect(0,0,W,H)}
+  }
+};
+
+function drawCanvasFraction(num,den,x,y){
+  ctx.save();ctx.font='800 22px "Baloo 2",sans-serif';ctx.textAlign='center';
+  const w=Math.max(ctx.measureText(num).width,ctx.measureText(den).width)+10;
+  ctx.fillText(num,x,y-8);ctx.fillRect(x-w/2,y-3,w,3);ctx.fillText(den,x,y+21);ctx.restore();
+}
+function drawEnemy(e){
+  const c=theme.enemy,cx=e.x+19,type=theme.enemyType;
+  ctx.lineWidth=3;ctx.strokeStyle='#1d2552';
+  if(type==='crab'){
+    const y=e.y+8;
+    ctx.strokeStyle=c;ctx.lineWidth=3;for(let k=-1;k<=1;k+=2)for(let j=0;j<3;j++){ctx.beginPath();ctx.moveTo(cx+k*10,y+12);ctx.lineTo(cx+k*(18+j*4),y+20+Math.sin(e.t/4+j)*2);ctx.stroke()}
+    ctx.strokeStyle='#1d2552';ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(cx,y+10,18,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    const cl=Math.sin(e.t/5)*3;circle(e.x-2,y+cl,7,c,'#1d2552',2.5);circle(e.x+40,y-cl,7,c,'#1d2552',2.5);
+    circle(cx-6,y-6,4,'#fff','#1d2552',2);circle(cx+6,y-6,4,'#fff','#1d2552',2);circle(cx-6,y-6,1.6,'#1d2552');circle(cx+6,y-6,1.6,'#1d2552');
+  }else if(type==='bat'){
+    const cy=e.y+15,f=Math.sin(e.t/3)*9;
+    poly([[cx-6,cy],[cx-30,cy-10-f],[cx-22,cy+2],[cx-28,cy+8-f*.3]],c,'#0b0518',2);
+    poly([[cx+6,cy],[cx+30,cy-10-f],[cx+22,cy+2],[cx+28,cy+8-f*.3]],c,'#0b0518',2);
+    circle(cx,cy,12,c,'#0b0518',2.5);poly([[cx-9,cy-8],[cx-5,cy-18],[cx-2,cy-9]],c);poly([[cx+9,cy-8],[cx+5,cy-18],[cx+2,cy-9]],c);
+    circle(cx-4,cy-2,2.6,'#ff3b3b');circle(cx+4,cy-2,2.6,'#ff3b3b');
+  }else if(type==='ufo'){
+    const y=e.y+10;
+    ctx.fillStyle='rgba(180,255,255,.75)';ctx.beginPath();ctx.ellipse(cx,y,11,10,0,Math.PI,0);ctx.fill();ctx.stroke();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(cx,y+4,22,8,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    for(let k=-1;k<=1;k++)circle(cx+k*11,y+5,2.5,Math.floor(e.t/10+k)%2?'#ff3cac':'#fff200');
+  }else{
+    const sq2=Math.sin(e.t/6)*2;
+    ctx.fillStyle=c;drawRoundRect(ctx,e.x,e.y+sq2,e.w,e.h-sq2,[14,14,4,4]);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='800 18px "Baloo 2",sans-serif';ctx.textAlign='center';ctx.fillText('✗',cx,e.y+22);
+  }
+}
+function drawCoin(c,y){
+  ctx.fillStyle=theme.coin;ctx.strokeStyle='#1d2552';ctx.lineWidth=3;
+  if(theme.dark){ctx.shadowColor='rgba(255,210,63,.8)';ctx.shadowBlur=12}
+  ctx.beginPath();ctx.arc(c.x,y,19,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+  if(rule.shape){
+    const p=shapePts(c.n,c.x,y,11);ctx.lineWidth=2.5;
+    if(p)poly(p,'#fff','#1d2552',2.5);else circle(c.x,y,10,'#fff','#1d2552',2.5);
+  }else{
+    ctx.fillStyle='#1d2552';ctx.font=`800 ${c.n>99?14:17}px "Baloo 2",sans-serif`;ctx.textAlign='center';ctx.fillText(c.n,c.x,y+6);
+  }
+}
+function draw(){
+  const T=theme,now=performance.now();
+  ctx.fillStyle=skyGrad||'#e9f2fb';ctx.fillRect(0,0,W,H);
+  DECO[T.deco](now,camX);
+  ctx.fillStyle=T.hill;ctx.beginPath();ctx.moveTo(0,H);
+  for(let x=0;x<=W;x+=8){const wx=x+camX*.25;ctx.lineTo(x,380+Math.sin(wx/140)*30+Math.sin(wx/57)*10)}ctx.lineTo(W,H);ctx.fill();
+
+  ctx.font='800 32px "Baloo 2",sans-serif';ctx.fillStyle=T.formula;ctx.textAlign='left';
+  ['A = b·h','A = π·R²','P = 4·L','a² = b² + c²','C = 2·π·R','FRAC'].forEach((s,i)=>{
+    const x=wrap(i*300-camX*.15,W+340)-170,y=60+(i%3)*55;
+    if(s==='FRAC')drawCanvasFraction('(B + b)·h','2',x+45,y-10);else ctx.fillText(s,x,y);
+  });
+
+  ctx.save();ctx.translate(-Math.round(camX),0);
+  for(const g of grounds){
+    ctx.fillStyle=T.ground;ctx.fillRect(g.x,g.y,g.w,g.h);
+    if(T.stripes){ctx.save();ctx.beginPath();ctx.rect(g.x,g.y,g.w,g.h);ctx.clip();ctx.fillStyle='rgba(255,255,255,.28)';for(let x=g.x-120;x<g.x+g.w;x+=40)poly([[x,g.y+120],[x+20,g.y+120],[x+140,g.y],[x+120,g.y]],'rgba(255,255,255,.28)');ctx.restore()}
+    ctx.fillStyle=T.top;ctx.fillRect(g.x,g.y,g.w,8);
+    ctx.font='700 13px Nunito,sans-serif';ctx.textAlign='center';
+    for(let x=Math.ceil(g.x/50)*50;x<=g.x+g.w;x+=50){
+      const big=x%100===0;ctx.fillStyle=T.tick;ctx.fillRect(x-1,g.y+8,2,big?14:7);
+      if(big){ctx.fillStyle=T.gText;ctx.fillText((x/100)+' m',x,g.y+38)}
+    }
+  }
+  for(const p of plats){
+    if(T.dark){ctx.shadowColor='#b388ff';ctx.shadowBlur=10}
+    ctx.fillStyle=T.plat;ctx.fillRect(p.x,p.y,p.w,p.h);ctx.shadowBlur=0;
+    ctx.fillStyle=T.platTick;for(let x=p.x+10;x<p.x+p.w;x+=10)ctx.fillRect(x,p.y,2,x%50<10?10:5);
+    ctx.strokeStyle=T.platStroke;ctx.lineWidth=3;ctx.strokeRect(p.x+1.5,p.y+1.5,p.w-3,p.h-3);
+  }
+  for(const b of bricks){
+    if(b.broken)continue;
+    ctx.fillStyle=T.brick;ctx.fillRect(b.x,b.y,b.w,b.h);
+    ctx.strokeStyle=T.dark?'#b388ff':'#1d2552';ctx.lineWidth=3;ctx.strokeRect(b.x+1.5,b.y+1.5,b.w-3,b.h-3);
+    ctx.fillStyle=T.brickSym;ctx.font='800 16px "Baloo 2",sans-serif';ctx.textAlign='center';ctx.fillText(TOPICS[topic].sym==='🧠'?'?':TOPICS[topic].sym,b.x+b.w/2,b.y+23);
+  }
+  for(const g of gates){
+    const hgt=g.h*(1-g.lift);if(hgt<2)continue;
+    ctx.fillStyle=T.gate;ctx.fillRect(g.x,0,g.w,hgt);
+    ctx.fillStyle='rgba(255,255,255,.35)';for(let y=(now/20)%30;y<hgt;y+=30)ctx.fillRect(g.x,y,g.w,6);
+    if(!g.open){
+      ctx.fillStyle='#ffc93c';ctx.strokeStyle='#1d2552';ctx.lineWidth=3;
+      drawRoundRect(ctx,g.x-14,GROUND-140,72,60,10);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#1d2552';ctx.font='800 28px "Baloo 2",sans-serif';ctx.textAlign='center';ctx.fillText(TOPICS[topic].sym,g.x+22,GROUND-100);
+    }
+  }
+  for(const c of coins){if(!c.taken)drawCoin(c,c.y+Math.sin(now/300+c.bob)*4)}
+  for(const e of enemies)if(e.alive)drawEnemy(e);
+  ctx.fillStyle=T.dark?'#e9e4ff':'#1d2552';ctx.fillRect(4180,250,8,220);
+  ctx.fillStyle='#2fbf8f';ctx.beginPath();ctx.moveTo(4188,255);ctx.lineTo(4260,280);ctx.lineTo(4188,305);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='800 22px "Baloo 2",sans-serif';ctx.textAlign='center';ctx.fillText('=',4212,288);
+  drawPi();
+  for(const q of parts){ctx.fillStyle=q.col;ctx.globalAlpha=Math.max(0,q.t/45);ctx.fillRect(q.x,q.y,q.sz||6,q.sz||6)}ctx.globalAlpha=1;
+  for(const f of floats){ctx.globalAlpha=Math.min(1,f.t/20);ctx.font='800 18px Nunito,sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#fff';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y)}ctx.globalAlpha=1;
+  ctx.restore();
+}
+function drawPi(){
+  const p=player;if(p.inv>0&&Math.floor(p.inv/5)%2)return;
+  const x=p.x,y=p.y,leg=Math.sin(p.step)*5*(p.on?1:0);
+  if(theme.dark){ctx.shadowColor='rgba(255,107,74,.9)';ctx.shadowBlur=14}
+  ctx.strokeStyle='#1d2552';ctx.lineWidth=3;
+  ctx.fillStyle='#1d2552';ctx.fillRect(x+7,y+36+Math.max(0,leg),8,8);ctx.fillRect(x+19,y+36+Math.max(0,-leg),8,8);
+  ctx.beginPath();ctx.moveTo(x+17,y+4);ctx.lineTo(x+17-p.face*4,y-8);ctx.stroke();
+  ctx.fillStyle='#ffc93c';ctx.beginPath();ctx.arc(x+17-p.face*4,y-10,5,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#ff6b4a';drawRoundRect(ctx,x,y+2,p.w,36,10);ctx.fill();ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#e9f2fb';drawRoundRect(ctx,x+5+p.face*3,y+8,24,12,5);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#1d2552';ctx.fillRect(x+12+p.face*5,y+11,4,6);ctx.fillRect(x+20+p.face*5,y+11,4,6);
+  ctx.font='800 14px "Baloo 2",sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText('π',x+17,y+35);
+}
+
+/* ---------- Ranking ---------- */
+function renderRankingTable(highlightId=null){
+  const list=getRanking().slice(0,10);
+  if(!list.length)return `<div class="rank-box"><div class="rank-empty">Ainda não há vitórias salvas neste aparelho. Seja o primeiro!</div></div>`;
+  return `<div class="rank-box"><table class="rank-table">
+    <thead><tr><th>#</th><th>Aluno(a)</th><th>Tema</th><th>Pontos</th><th>1ª tent.</th></tr></thead>
+    <tbody>${list.map((r,i)=>`<tr class="${r.id===highlightId?'me':''}">
+      <td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}º`}</td>
+      <td>${esc(r.name)}</td><td>${esc(r.topic)}</td>
+      <td><b>${+r.score||0}</b></td><td>${+r.first||0}/4</td></tr>`).join('')}</tbody></table></div>`;
+}
+const RANK_NOTE=`<p class="tip">💾 As pontuações ficam salvas <b>somente neste computador/celular</b>. Para um ranking da turma inteira, usem todos o mesmo aparelho (ex.: o computador do projetor).</p>`;
+
+/* ---------- Telas ---------- */
+/* Toda janela ganha um botão ✕. onClose diz o que acontece ao fechar (também pela tecla Esc). */
+let closeHandler=null;
+function show(html,onClose){
+  panel.innerHTML=`<button class="xbtn" type="button" id="xBtn" aria-label="Fechar janela" title="Fechar (Esc)">✕</button>`+html;
+  ov.hidden=false;panel.scrollTop=0;
+  closeHandler=onClose||hideAndPlay;
+  $('xBtn').onclick=()=>{tone(520,.06);const f=closeHandler;f()};
+}
+function hide(){ov.hidden=true;closeHandler=null;clearInterval(quizTimer)}
+function hideAndPlay(){hide();state='play'}
+const sceneGrad=th=>`linear-gradient(160deg,${th.sky.join(',')})`;
+
+let hasPlayed=false,menuResume=false;
+function menu(){
+  /* Se o menu foi aberto no meio do jogo, o ✕ volta para o jogo; senão, começa o mundo atual */
+  if(state!=='menu')menuResume=hasPlayed&&(state==='play'||state==='pause');
+  const resumable=menuResume;
+  state='menu';
+  setPageUI(DEFAULT_UI);document.body.classList.remove('dark');
+  const isFs=isFullscreenActive();
+  show(`<span class="eyebrow">ENSINO MÉDIO · GEOMETRIA PLANA</span>
+  <h2>Identifique-se e escolha o seu mundo!</h2>
+  <div class="student-form" style="grid-template-columns:1fr">
+    <div class="field"><label for="inName">Nome do(a) aluno(a)</label>
+      <input id="inName" type="text" maxlength="28" placeholder="Digite seu nome..." value="${studentName==='Estudante'?'':esc(studentName)}"></div>
+  </div>
+  <div class="legend">
+    <div><b>P</b> = Perímetro<br>É o <b>contorno</b>: a soma de todos os lados. Unidade: m, cm.</div>
+    <div><b>A</b> = Área<br>É o <b>espaço de dentro</b> da figura. Unidade: m², cm².</div>
+  </div>
+  <p>Cada tema é um <b>mundo diferente</b>, com cenário, inimigos e música próprios. No <b>1º portão</b> você lembra a fórmula; nos outros, aplica a fórmula num cálculo!</p>
+  <div class="topics">${Object.entries(TOPICS).map(([k,t])=>{const th=THEMES[t.theme];
+    return `<button class="topic ${th.dark?'darkbtn':''}" type="button" data-t="${k}" style="background:${sceneGrad(th)}"><span class="sym">${t.sym}</span>
+      <span class="lbl">${t.nome}<small>${t.desc}</small><span class="scene">${th.emoji} ${th.nome}${th.dark?' · modo sombrio':''}</span></span></button>`}).join('')}</div>
+  <div class="btn-row" style="margin-top:4px">
+    <button class="btn-s form-btn" type="button" id="menuFormBtn">📋 Estudar fórmulas</button>
+    <button class="btn-s" type="button" id="menuRankBtn">🏆 Ver ranking</button>
+    <button class="btn-s fs-btn" type="button" id="menuFsBtn">${isFs?'⛶ Sair da Tela Cheia':'⛶ Ativar Tela Cheia'}</button>
+  </div>`,()=>{
+    ensureAudio();
+    const nmIn=$('inName');
+    if(nmIn)studentName=(nmIn.value||'').trim()||studentName;
+    $('hudPlayer').textContent=studentName;
+    if(resumable){applyTheme(TOPICS[topic].theme);hideAndPlay()}
+    else{reset(topic);mission()}
+  });
+  $('menuFsBtn').onclick=toggleFullscreen;
+  $('menuRankBtn').onclick=showRankingModal;
+  $('menuFormBtn').onclick=showFormulaModal;
+  panel.querySelectorAll('.topic').forEach(b=>b.onclick=()=>{
+    ensureAudio();
+    studentName=($('inName').value||'').trim()||'Estudante';
+    reset(b.dataset.t);tone(660,.1);
+    mission();
+  });
+}
+$('menuBtn').onclick=e=>{e.currentTarget.blur();if(state!=='quiz')menu()};
+
+function mission(){
+  state='mission';startBgm();
+  const th=theme,T=TOPICS[topic];
+  const coinsHtml=(arr,cls)=>arr.map(n=>`<span class="coin-ex ${cls}">${rule.shape?svgMini(n):n}</span>`).join('');
+  show(`<span class="eyebrow">MISSÃO · ${T.nome.toUpperCase()}</span>
+  <div class="scene-box" style="background:${sceneGrad(th)}">${th.emoji} Bem-vindo(a) ao mundo: ${th.nome}!${th.dark?'<br>🌙 Cuidado: aqui é mais difícil, os morcegos são rápidos!':''}</div>
+  <h2>Pegue só moedas com ${rule.short}!</h2>
+  <div class="mission">${rule.explain}
+    <div class="coin-row"><span class="coin-lbl">Pode pegar:</span>${coinsHtml(rule.yes,'yes')}</div>
+    <div class="coin-row"><span class="coin-lbl">Evite:</span>${coinsHtml(rule.no,'no')}</div>
+  </div>
+  <p class="tip">🎯 Portão: <b>${PTS.gate.join(' → ')}</b> pontos (1ª, 2ª, 3ª, 4ª tentativa) + ⚡ rapidez + 📋 sem consulta + 🔥 sequência<br>
+  🪙 Moeda certa ${PTS.coinGood>0?'+':''}${PTS.coinGood} · ❌ errada ${PTS.coinBad} · 🧱 bloco +${PTS.brick} · 👾 inimigo +${PTS.enemy} · 💔 dano ${PTS.hurt} · ❤ cada vida no final +${PTS.life}</p>
+  <div class="btn-row"><button class="big" type="button" id="goBtn">Começar ▶</button></div>`,()=>{hideAndPlay();hasPlayed=true;startBgm()});
+  const go=$('goBtn');go.focus({preventScroll:true});
+  go.onclick=()=>{hideAndPlay();hasPlayed=true;startBgm()};
+}
+
+function pauseModal(html,onReady){
+  const prev=state;
+  if(prev==='play')state='pause';
+  const back=()=>{if(prev==='menu')menu();else{hide();state=prev}};
+  show(html,back);
+  if(onReady)onReady(back);
+}
+function showFormulaModal(e){
+  if(e&&e.currentTarget&&e.currentTarget.blur)e.currentTarget.blur();
+  if(state==='quiz'||state==='mission')return;
+  pauseModal(`<span class="eyebrow">FORMULÁRIO</span><h2>📋 Fórmulas de Área e Perímetro</h2>
+    <p class="tip">🧠 <b>Modo treino:</b> esconda as fórmulas, tente lembrar de cada uma e toque no cartão para conferir!</p>
+    <div class="btn-row"><button class="btn-s form-btn" type="button" id="trainBtn">🙈 Esconder fórmulas (treinar)</button></div>
+    <div id="fgrid">${formulaHtml()}</div>
+    <div class="btn-row"><button class="big" type="button" id="closeForm">Voltar</button></div>`,
+    back=>{
+      $('closeForm').onclick=back;
+      const grid=panel.querySelector('#fgrid .form-grid');
+      $('trainBtn').onclick=ev=>{
+        const on=grid.classList.toggle('train');
+        grid.querySelectorAll('.fcard').forEach(c=>c.classList.remove('show'));
+        ev.currentTarget.textContent=on?'👀 Mostrar todas as fórmulas':'🙈 Esconder fórmulas (treinar)';
+      };
+      grid.querySelectorAll('.fcard').forEach(c=>c.onclick=()=>{if(grid.classList.contains('train')){c.classList.toggle('show');tone(880,.08)}});
+    });
+}
+$('formBtn').onclick=showFormulaModal;
+
+function showRankingModal(e){
+  if(e&&e.currentTarget&&e.currentTarget.blur)e.currentTarget.blur();
+  if(state==='quiz'||state==='mission')return;
+  pauseModal(`<span class="eyebrow">PLACAR DE LÍDERES</span><h2>🏆 Ranking deste aparelho</h2>${renderRankingTable()}${RANK_NOTE}
+    <div class="btn-row"><button class="big" type="button" id="closeRankBtn">Voltar</button>
+    <button class="big sec" type="button" id="clearRankBtn">🗑 Limpar ranking</button></div>`,
+    back=>{
+      $('closeRankBtn').onclick=back;
+      let armed=false;
+      $('clearRankBtn').onclick=ev=>{
+        const b=ev.currentTarget;
+        if(!armed){armed=true;b.textContent='⚠ Clique de novo para apagar tudo';b.className='big danger';return}
+        clearRanking();
+        panel.querySelector('.rank-box').outerHTML=renderRankingTable();
+        b.textContent='✓ Ranking apagado';b.className='big sec';b.disabled=true;
+      };
+    });
+}
+$('rankBtn').onclick=showRankingModal;
+
+let quizTimer=null;
+const gateWorth=t=>PTS.gate[Math.min(t,PTS.gate.length-1)];
+function renderQuiz(q,box,g,onRight){
+  const t0=performance.now();
+  box.innerHTML=`
+  <div class="worth" aria-live="polite"><span class="hot">🎯 Acertando agora: <b id="wPts">${gateWorth(g.tries)}</b> pts</span><span id="wSpd">⚡ Rapidez: <b>+${PTS.speedMax}</b></span><span id="wCon">📋 Sem consulta: <b>+${PTS.noConsult}</b></span></div>
+  <div class="pts-ladder" id="ladder">${PTS.gate.map((v,i)=>`<i class="${i<g.tries?'gone':i===Math.min(g.tries,PTS.gate.length-1)?'now':''}">${i+1}ª: ${v}</i>`).join('')}</div>`;
+  box.innerHTML+=`
+  <div class="quiz-layout"><div class="story"><span class="qtype ${q.mem?'mem':''}">${q.mem?'🧠 MEMORIZE A FÓRMULA':'🧮 CALCULE'}</span><br>📐 ${q.story}</div><div class="fig-box">${q.svg}</div></div>
+  <div class="expr">${q.exprAsk}</div>
+  <div class="opts ${q.kind==='formula'?'formula':''}">${q.choices.map((c,i)=>`<button class="opt" type="button" data-i="${i}">${c.html}</button>`).join('')}</div>
+  <div class="fbx" aria-live="polite"></div>
+  ${q.kind==='formula'?'':`<details class="form-help"><summary>📋 Esqueceu a fórmula? Toque aqui para consultar</summary>${formulaHtml()}</details>`}`;
+  const fbx=box.querySelector('.fbx');
+  const speedNow=()=>g.tries===0?Math.max(0,Math.round(PTS.speedMax-(performance.now()-t0)/1000)):0;
+  const refresh=()=>{
+    const ws=$('wSpd'),wc=$('wCon'),wp=$('wPts');if(!ws)return;
+    const sp=speedNow();ws.innerHTML=`⚡ Rapidez: <b>+${sp}</b>`;ws.classList.toggle('off',sp===0);
+    wc.classList.toggle('off',g.consulted);wp.textContent=gateWorth(g.tries);
+    $('ladder').innerHTML=PTS.gate.map((v,i)=>`<i class="${i<g.tries?'gone':i===Math.min(g.tries,PTS.gate.length-1)?'now':''}">${i+1}ª: ${v}</i>`).join('');
+  };
+  clearInterval(quizTimer);quizTimer=setInterval(refresh,250);refresh();
+  const det=box.querySelector('details');
+  if(det)det.addEventListener('toggle',()=>{if(det.open){g.consulted=true;refresh()}});
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const c=q.choices[+b.dataset.i];stats.clicks++;
+    if(c.correct){
+      const info={tries:g.tries+1,base:gateWorth(g.tries),speed:speedNow(),consult:g.consulted?0:PTS.noConsult};
+      clearInterval(quizTimer);
+      b.classList.add('ok');box.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+      box.querySelector('.expr').innerHTML=q.exprDone;
+      if(det)det.open=false;
+      sfx.right();onRight(info,fbx);
+    }else{
+      const lost=gateWorth(g.tries)-gateWorth(g.tries+1);
+      g.tries++;b.classList.add('no');b.disabled=true;sfx.wrong();refresh();
+      const lvl=g.tries===1?1:2;
+      fbx.innerHTML=`<div class="fb hint"><span class="err">✗ Essa não é a resposta certa (−${lost} pontos possíveis). ${c.msg}</span>💡 <b>Dica ${lvl}:</b> ${lvl===1?q.hint1:q.hint2}</div>`;
+    }
+  });
+}
+
+/* Portão 1 = fórmula (decorar); portões 2 a 4 = cálculo (aplicar) */
+function gateQ(n){
+  const T=TOPICS[topic];
+  if(topic==='formulas')return formulaQ(ALL_FIGS);
+  if(topic==='misturado')return Math.random()<.3?formulaQ(ALL_FIGS):makeQ(pick(CALC_TOPICS),lastSub);
+  if(n===1)return formulaQ(T.figs);
+  return makeQ(topic,lastSub);
+}
+function askGate(g){
+  state='quiz';keys.left=keys.right=keys.jump=0;player.vx=0;
+  const n=gates.indexOf(g)+1,q=gateQ(n);lastSub=q.sub;
+  let solved=false;
+  const openGate=()=>{
+    g.open=1;checkpoint=g.x+30;sfx.gateBreak();
+    breakBrickParticles(g.x+10,GROUND-110);burst(g.x+22,GROUND-110,'#7a4cff',28);
+    hud();hideAndPlay();
+  };
+  /* Fechar com ✕: se já acertou, abre o portão; se não, o Pi recua e pode tentar de novo depois */
+  const closeQuiz=()=>{
+    if(solved){openGate();return}
+    player.x=Math.max(0,g.x-player.w-70);player.vx=0;player.vy=0;
+    floatTxt(g.x-40,GROUND-170,'Volte quando quiser! 🔒','#7a4cff');
+    hideAndPlay();
+  };
+  show(`<span class="eyebrow">PORTÃO ${n} DE 4 · ${TOPICS[topic].nome.toUpperCase()}</span>
+  <h2>${q.mem?'Lembre a fórmula para abrir o portão!':'Calcule para quebrar a barreira do portão!'}</h2>
+  <div id="qbox" style="display:flex;flex-direction:column;gap:10px"></div>`,closeQuiz);
+  renderQuiz(q,$('qbox'),g,(info,fb)=>{
+    solved=true;
+    const first=info.tries===1;
+    stats.tries++;
+    if(first){stats.first++;stats.streak++}else stats.streak=0;
+    const streak=first&&stats.streak>=2?PTS.streak*(stats.streak-1):0;
+    stats.gatePts+=info.base;stats.speedPts+=info.speed;stats.consultPts+=info.consult;stats.streakPts+=streak;
+    const total=info.base+info.speed+info.consult+streak;score+=total;hud();
+    const parts=[`🎯 Acerto na ${info.tries}ª tentativa: +${info.base}`];
+    if(info.speed)parts.push(`⚡ Rapidez: +${info.speed}`);
+    if(info.consult)parts.push(`📋 Sem consultar fórmulas: +${info.consult}`);
+    if(streak)parts.push(`🔥 Sequência de ${stats.streak} portões de 1ª: +${streak}`);
+    fb.innerHTML=`<div class="fb good">${first?'🌟 Excelente, acertou de primeira!':'👏 Muito bem, você chegou lá!'} <b>+${total} pontos</b>
+      <br><small>${parts.join(' · ')}</small>
+      <br><b>${q.mem?'Revise e memorize:':'Resolução passo a passo:'}</b><ol class="steps">${q.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div>`;
+    const btn=document.createElement('button');btn.className='big';btn.type='button';btn.textContent='Abrir Portão ▶';
+    btn.onclick=openGate;
+    const row=document.createElement('div');row.className='btn-row';row.appendChild(btn);
+    panel.appendChild(row);btn.focus({preventScroll:true});
+    row.scrollIntoView({block:'nearest',behavior:'smooth'});
+  });
+}
+
+function statsHtml(){
+  return `<div class="stats">
+    <div><strong>${score}</strong>pontos</div>
+    <div><strong>${stats.first}/4</strong>portões de 1ª</div>
+    <div><strong>${stats.bricks}</strong>blocos quebrados</div>
+    <div><strong>${stats.good}✓ ${stats.bad}✗</strong>moedas</div></div>`;
+}
+/* Bônus do final (só para quem vence o mundo) */
+function finalBonus(){
+  const timeSec=Math.round((performance.now()-startTime)/1000);
+  const totalGood=coins.filter(c=>c.good).length;
+  return {timeSec,
+    lives:lives*PTS.life,
+    perfect:stats.bad===0&&stats.good>=Math.ceil(totalGood/2)?PTS.perfectCoins:0, // precisa ter pego pelo menos metade das moedas certas
+    allGood:stats.good===totalGood?PTS.allGoodCoins:0,
+    time:Math.max(0,PTS.timeMax-Math.floor(timeSec/3)),totalGood};
+}
+/* Extrato: mostra de onde veio cada ponto */
+function extratoHtml(fb){
+  const L=[];
+  const add=(label,detail,v)=>L.push(`<tr class="${v<0?'neg':v>0?'pos':''}"><td>${label} <small>${detail}</small></td><td>${v>0?'+':''}${v}</td></tr>`);
+  add('🎯 Portões','('+stats.first+' de 1ª tentativa, de '+stats.tries+')',stats.gatePts);
+  add('⚡ Rapidez nas respostas','',stats.speedPts);
+  add('📋 Sem consultar fórmulas','',stats.consultPts);
+  add('🔥 Sequências de acertos','',stats.streakPts);
+  add('🪙 Moedas certas',`(${stats.good} × ${PTS.coinGood})`,stats.good*PTS.coinGood);
+  add('❌ Moedas erradas',`(${stats.bad} × ${PTS.coinBad})`,stats.bad*PTS.coinBad);
+  add('🧱 Blocos quebrados',`(${stats.bricks} × ${PTS.brick})`,stats.bricks*PTS.brick);
+  add('👾 Inimigos derrotados',`(${stats.stomp} × ${PTS.enemy})`,stats.stomp*PTS.enemy);
+  add('💔 Danos sofridos',`(${stats.hurts} × ${PTS.hurt})`,stats.hurts*PTS.hurt);
+  if(fb){
+    add('❤ Vidas que sobraram',`(${lives} × ${PTS.life})`,fb.lives);
+    add('✨ Nenhuma moeda errada','(e pegou pelo menos metade das certas)',fb.perfect);
+    add('💰 Pegou todas as moedas certas',`(${stats.good} de ${fb.totalGood})`,fb.allGood);
+    add('⏱ Bônus de tempo',`(${Math.floor(fb.timeSec/60)} min ${fb.timeSec%60} s)`,fb.time);
+  }
+  L.push(`<tr class="total"><td>TOTAL</td><td>${score} pontos</td></tr>`);
+  return `<table class="extrato"><tbody>${L.join('')}</tbody></table>
+  <p class="tip">ℹ️ Os pontos nunca ficam negativos: se o total chega a zero, as perdas param de descontar.</p>`;
+}
+function recordCurrentRun(){
+  const entry={id:Date.now()+'_'+Math.random(),name:studentName,topic:TOPICS[topic].nome,score,
+    first:stats.first,firstRate:stats.tries?stats.first/stats.tries:0,timeSec:Math.round((performance.now()-startTime)/1000)};
+  saveScoreToRanking(entry);return entry.id;
+}
+function nextTopicKey(){const ks=Object.keys(TOPICS);return ks[(ks.indexOf(topic)+1)%ks.length]}
+function win(){
+  state='win';sfx.win();
+  const fb=finalBonus();score+=fb.lives+fb.perfect+fb.allGood+fb.time;hud();
+  const rate=stats.tries?stats.first/stats.tries:0,st=rate>=.99?3:rate>=.5?2:1;
+  if(window.GAMIFICA)GAMIFICA.enviar(stats.first,gates.length,score);
+  const runId=recordCurrentRun(),nm=esc(studentName),nk=nextTopicKey(),nT=TOPICS[nk],nTh=THEMES[nT.theme];
+  show(`<span class="eyebrow">MUNDO CONCLUÍDO · ${nm.toUpperCase()}</span>
+  <h2>Parabéns, ${nm}! Você venceu o mundo ${theme.nome}!</h2>
+  <div class="stars">${'★'.repeat(st)}${'☆'.repeat(3-st)}</div>
+  ${statsHtml()}
+  <h3>🧾 De onde vieram os seus pontos</h3>${extratoHtml(fb)}
+  <h3>🏆 Ranking deste aparelho</h3>${renderRankingTable(runId)}
+  <div class="btn-row"><button class="big" type="button" id="nextW">Próximo mundo: ${nTh.emoji} ${nTh.nome} ▶</button></div>
+  <div class="btn-row"><button class="big sec" type="button" id="sameAgain">Jogar de novo</button>
+  <button class="big sec" type="button" id="again">Trocar aluno / tema</button></div>`,menu);
+  $('nextW').onclick=()=>{reset(nk);mission()};
+  $('again').onclick=menu;
+  $('sameAgain').onclick=()=>{reset(topic);mission()};
+}
+function gameOver(){
+  state='over';
+  if(window.GAMIFICA)GAMIFICA.enviar(stats.first,gates.length,score);
+  const nm=esc(studentName);
+  show(`<span class="eyebrow">FIM DE JOGO · ${nm.toUpperCase()}</span>
+  <h2>Os inimigos venceram desta vez!</h2>
+  ${statsHtml()}
+  <h3>🧾 Seus pontos nesta partida</h3>${extratoHtml(null)}
+  <p class="tip">💡 Só os mundos concluídos entram no ranking. Tente de novo: cada portão tem dicas e o formulário para consultar!</p>
+  <h3>🏆 Ranking deste aparelho</h3>${renderRankingTable()}
+  <div class="btn-row"><button class="big" type="button" id="again">Tentar de novo (${nm})</button>
+  <button class="big sec" type="button" id="changeStudent">Trocar aluno / tema</button></div>`,menu);
+  $('again').onclick=()=>{reset(topic);hide();state='play'};
+  $('changeStudent').onclick=menu;
+}
+
+/* ---------- Controles ---------- */
+const map={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',Space:'jump'};
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&!ov.hidden&&closeHandler){e.preventDefault();const f=closeHandler;f();return}
+  const tag=(document.activeElement&&document.activeElement.tagName)||'';
+  if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;
+  if(e.code==='KeyF'&&state==='play'){e.preventDefault();toggleFullscreen();return}
+  if(e.code==='ArrowUp'){if(state==='play')e.preventDefault();return}
+  const k=(e.code==='Space'||e.key===' ')?'jump':map[e.code];
+  if(k&&state==='play'){
+    if(document.activeElement&&document.activeElement.blur&&document.activeElement!==document.body)document.activeElement.blur();
+    keys[k]=1;e.preventDefault();
+  }
+},{passive:false});
+addEventListener('keyup',e=>{const k=(e.code==='Space'||e.key===' ')?'jump':map[e.code];if(k)keys[k]=0});
+document.querySelectorAll('.tbtn').forEach(b=>{
+  const k=b.dataset.k,active=new Set();
+  const on=e=>{e.preventDefault();ensureAudio();if(e.pointerId!==undefined)active.add(e.pointerId);keys[k]=1;b.classList.add('on')};
+  const off=e=>{if(e&&e.pointerId!==undefined)active.delete(e.pointerId);else active.clear();if(!active.size){keys[k]=0;b.classList.remove('on')}};
+  if(window.PointerEvent){
+    b.addEventListener('pointerdown',on,{passive:false});
+    ['pointerup','pointercancel','pointerleave'].forEach(t=>b.addEventListener(t,off));
+  }else{
+    b.addEventListener('touchstart',e=>{e.preventDefault();ensureAudio();keys[k]=1;b.classList.add('on')},{passive:false});
+    ['touchend','touchcancel'].forEach(t=>b.addEventListener(t,e=>{e.preventDefault();keys[k]=0;b.classList.remove('on')},{passive:false}));
+  }
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+});
+window.addEventListener('blur',()=>{keys.left=keys.right=keys.jump=0});
+
+/* ---------- Laço principal ---------- */
+let last=performance.now();
+function loop(t){
+  const dt=Math.min((t-last)/16.667,2.5);last=t;
+  if(state==='play')update(dt);
+  draw();requestAnimationFrame(loop);
+}
+reset('quadret');menu();requestAnimationFrame(loop);
+})();
+</script>
+<script>
+/* Portal da turma: envio da nota ao professor */
+GAMIFICA.preencherNome('#inName', 28);
+</script>
+</body>
+</html>

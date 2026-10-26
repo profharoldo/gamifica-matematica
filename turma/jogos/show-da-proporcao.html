@@ -1,0 +1,1233 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script src="ponte-portal.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Show da Proporção</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Palco de TV: pergunta no centro, escada de prêmios à direita (no celular vira uma faixa). Tema único escuro, de propósito. */
+:root{
+  color-scheme: dark;
+  --stage:#0a1238; --stage2:#14226a; --panel:#17287a; --panel2:#1d3290; --line:#3249b0;
+  --gold:#ffc93c; --gold-ink:#2e1f00; --ink:#f2f4ff; --muted:#b3bfee;
+  --ok:#2ed47a; --bad:#ff5468; --sky:#58c6ff;
+  --display:'Bungee', 'Arial Black', Impact, sans-serif;
+  --body:'Nunito', 'Segoe UI', system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  margin:0; font-family:var(--body); color:var(--ink); font-size:17px; line-height:1.45;
+  background: radial-gradient(1200px 600px at 50% -10%, var(--stage2), transparent 70%), var(--stage);
+  padding-inline:16px; padding-block:16px 32px;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+.wrap{max-width:1100px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.logo{font-family:var(--display);font-size:clamp(18px,3.4vw,26px);letter-spacing:.02em;line-height:1}
+.logo b{color:var(--gold);font-weight:400}
+.top{flex-wrap:wrap}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap}
+.iconbtn{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:8px 12px;font-weight:800;font-size:15px;transition:opacity .15s}
+.iconbtn[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+.iconbtn.fs{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:2px solid var(--gold);border-radius:14px;padding:10px 16px;font-weight:800;z-index:40;max-width:calc(100% - 32px);text-align:center}
+.listen{background:var(--panel);border:2px solid var(--sky);color:var(--sky);border-radius:999px;padding:4px 12px;font-weight:900;font-size:14px;white-space:nowrap}
+.host{display:inline-block;margin-bottom:10px;font-weight:900;color:var(--gold);font-size:clamp(18px,2.6vw,22px);min-height:1.4em}
+
+/* Animação do apresentador */
+@keyframes pulseMic{0%{transform:scale(1)}50%{transform:scale(1.2);color:var(--ink)}100%{transform:scale(1)}}
+.host .mic{display:inline-block}
+.host.speaking .mic{animation:pulseMic .5s infinite}
+
+@media (max-width:560px){.lbl{display:none}}
+
+/* fração no formato de livro */
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .15em;line-height:1.15;font-size:.92em}
+.fr>span{padding:0 .25em}
+.fr>span:first-child{border-bottom:2px solid currentColor}
+
+/* ---------- INÍCIO ---------- */
+.start{display:grid;gap:20px;max-width:760px;margin:0 auto;text-align:center;padding-top:8px}
+.marquee{font-family:var(--display);font-size:clamp(40px,10vw,84px);line-height:.95;color:var(--gold);
+  text-shadow:0 4px 0 #b77d00,0 10px 30px rgba(255,201,60,.35);text-wrap:balance}
+.marquee small{display:block;font-size:.38em;color:var(--ink);text-shadow:none;margin-bottom:8px;letter-spacing:.08em}
+.sub{color:var(--muted);font-weight:700;font-size:18px;margin:0}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;text-align:left}
+.rule{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:14px 16px}
+.rule h3{margin:0 0 4px;font-size:16px;color:var(--gold)}
+.rule p{margin:0;font-size:15px;color:var(--muted)}
+.big{font-family:var(--display);font-size:22px;background:var(--gold);color:var(--gold-ink);border:0;border-radius:18px;
+  padding:16px 30px;box-shadow:0 6px 0 #b77d00;transition:transform .1s; margin-top:10px}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 #b77d00}
+.toggle{display:inline-flex;align-items:center;gap:10px;justify-content:center;font-weight:700;color:var(--muted);flex-wrap:wrap}
+.tsel{font:inherit;font-weight:800;color:var(--ink);background:var(--panel);border:2px solid var(--gold);border-radius:12px;padding:8px 12px}
+.teacher{background:rgba(88,198,255,.1);border:2px dashed var(--sky);border-radius:16px;padding:14px 16px;text-align:left;font-size:15px}
+.teacher b{color:var(--sky)}
+.teacher ul{margin:6px 0 0;padding-left:20px}
+
+/* Nome do Jogador */
+.name-input-group { background: var(--panel); border: 2px solid var(--gold); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.name-input-group label { font-size: 18px; font-weight: 800; color: var(--gold); }
+.name-input-group input { font: inherit; font-weight: 800; color: var(--ink); background: var(--stage); border: 2px solid var(--line); border-radius: 12px; padding: 12px; text-align: center; width: 100%; max-width: 300px; }
+.name-input-group input:focus { outline: none; border-color: var(--sky); }
+
+/* ---------- JOGO ---------- */
+.game{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:20px;align-items:start}
+.strip{display:none;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:800;font-size:14px}
+.chip.gold{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.tag{font-weight:900;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--sky)}
+
+/* Cronômetro Visual */
+.timer-wrap{display:flex;align-items:center;gap:10px;flex:1;max-width:200px;justify-content:flex-end}
+.timer{font-family:var(--display);font-size:22px;min-width:64px;text-align:center;background:var(--panel);border:3px solid var(--gold);
+  border-radius:999px;padding:2px 12px;font-variant-numeric:tabular-nums}
+.timer.low{border-color:var(--bad);color:var(--bad);animation:pulse .6s infinite alternate}
+.tbar-bg{flex:1;height:12px;background:var(--stage);border:2px solid var(--line);border-radius:6px;overflow:hidden;min-width:60px}
+.tbar-fill{height:100%;background:var(--ok);width:100%;transition:width 1s linear, background-color .3s}
+.tbar-fill.low{background:var(--bad)}
+
+.qbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:3px solid var(--gold);border-radius:22px;
+  padding:22px 22px;font-size:clamp(19px,2.6vw,25px);font-weight:800;line-height:1.35;text-wrap:pretty;min-height:120px;
+  display:flex;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.hint{margin-top:12px;background:rgba(88,198,255,.12);border:2px solid var(--sky);border-radius:16px;padding:10px 14px;font-weight:700}
+.hint b{color:var(--sky)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:3px solid var(--line);border-radius:18px;
+  padding:12px 14px;font-weight:800;font-size:clamp(17px,2.2vw,21px);min-height:68px;transition:transform .12s,border-color .12s,background .12s}
+.opt:hover:not(:disabled){transform:translateY(-2px);border-color:var(--sky)}
+.opt .l{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--stage);border:2px solid var(--gold);
+  font-family:var(--display);color:var(--gold);font-size:18px}
+.opt.sel{border-color:var(--gold);background:#3a3a8a}
+.opt.wait{animation:blink .35s infinite alternate}
+.opt.right{background:var(--ok);border-color:var(--ok);color:#03250f}
+.opt.right .l{background:#03250f;border-color:#03250f}
+.opt.wrong{background:var(--bad);border-color:var(--bad);color:#2b0007}
+.opt.wrong .l{background:#2b0007;border-color:#2b0007}
+
+/* Melhoria no visual das eliminadas */
+.opt.gone{opacity:.45;pointer-events:none;background:#0d1645;border-color:#14226a;text-decoration:line-through;color:#5c6b9c}
+.opt.gone .l{background:#0d1645;border-color:#14226a;color:#5c6b9c;text-decoration:line-through}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.confirm{font-family:var(--display);font-size:18px;background:var(--gold);color:var(--gold-ink);border:0;border-radius:14px;padding:12px 22px;box-shadow:0 5px 0 #b77d00}
+.confirm:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.stop{background:transparent;border:2px solid var(--muted);border-radius:14px;padding:10px 16px;font-weight:800;color:var(--muted)}
+.stopask{display:inline-flex;gap:8px;align-items:center;font-weight:800}
+.stopask button{border-radius:12px;padding:8px 14px;border:0;font-weight:900}
+.yes{background:var(--gold);color:var(--gold-ink)} .no{background:var(--panel);border:2px solid var(--line)!important}
+.helps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}
+.help{background:var(--stage);border:2px solid var(--line);border-radius:16px;padding:10px 6px;text-align:center;font-weight:800;font-size:14px;line-height:1.2}
+.help .ic{display:block;font-size:24px;margin-bottom:4px}
+.help small{display:block;color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
+.help:hover:not(:disabled){border-color:var(--gold)}
+.help:disabled{opacity:.3;cursor:not-allowed}
+
+.ladder{background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:10px;display:flex;flex-direction:column-reverse;gap:3px;position:sticky;top:12px}
+.rung{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;border-radius:10px;font-weight:800;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rung span:first-child{opacity:.7}
+.rung.done{color:var(--ok)}
+.rung.now{background:var(--gold);color:var(--gold-ink)}
+.rung.now span:first-child{opacity:1}
+.rung.top{font-family:var(--display);font-weight:400;font-size:15px}
+.rung.sep{border-top:2px dashed var(--line);margin-top:4px;padding-top:7px}
+
+/* Botão moblie para ver prêmios */
+
+.btn-mobile-ladder{display:none; width:100%; margin-top:12px; background:var(--panel); border:2px solid var(--gold); color:var(--gold); border-radius:12px; padding:10px; font-weight:900; text-align:center;}
+
+/* Painel Final do Vencedor */
+.winner-panel { background:var(--panel); border:3px solid var(--gold); border-radius:24px; padding:24px; margin-bottom:18px; position:relative; overflow:hidden; }
+.winner-panel h2 { font-family:var(--display); font-size:clamp(24px, 5vw, 36px); color:var(--ink); margin:10px 0 0; }
+.winner-panel p { color:var(--muted); font-weight:800; margin:10px 0 0; font-size:18px; }
+.winner-panel .prize-value { font-family:var(--display); font-size:clamp(36px,8vw,64px); color:var(--gold); line-height:1; text-shadow:0 4px 0 #b77d00; margin-top:8px; }
+.m-icon { font-size:64px; line-height:1; animation: bounce 2s infinite; display:inline-block; }
+.winner-panel.millionaire { background: linear-gradient(135deg, #4a3600, #111111); border-color: #ffd700; box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); }
+.winner-panel.millionaire .m-icon { font-size: 80px; animation: party 0.5s infinite alternate; }
+
+@keyframes bounce { 0%, 100% {transform:translateY(0)} 50% {transform:translateY(-10px)} }
+@keyframes party { 0% {transform:scale(1) rotate(-10deg)} 100% {transform:scale(1.2) rotate(10deg)} }
+
+
+/* ---------- MODAIS ---------- */
+.veil{position:fixed;inset:0;background:rgba(4,8,30,.78);display:grid;place-items:center;padding:16px;z-index:20;overflow-y:auto}
+.sheet{width:min(640px,100%);background:var(--panel);border:3px solid var(--gold);border-radius:24px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pop .25s ease-out;max-height:calc(100vh - 32px);overflow-y:auto}
+.sheet h2{font-family:var(--display);font-weight:400;font-size:clamp(24px,5vw,34px);margin:0 0 6px;line-height:1.05}
+.sheet h2.okc{color:var(--ok)} .sheet h2.badc{color:var(--bad)} .sheet h2.gc{color:var(--gold)}
+.lead{margin:0 0 14px;font-weight:700;color:var(--muted)}
+.lead b{color:var(--ink)}
+.expl{background:var(--stage);border-radius:16px;padding:14px 16px;display:grid;gap:12px}
+.expl h4{margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--sky)}
+.rtwrap{overflow-x:auto}
+.rt{border-collapse:separate;border-spacing:0;margin:0 auto;font-weight:800;font-size:19px;font-variant-numeric:tabular-nums}
+.rt th{font-size:14px;color:var(--muted);padding:4px 18px;border-bottom:2px solid var(--line)}
+.rt td{text-align:center;padding:6px 18px}
+.rt td.x{color:var(--gold)}
+.rt tfoot td{font-size:28px;line-height:1;padding-top:2px}
+.rt tfoot td.up{color:var(--bad)} .rt tfoot td.down{color:var(--ok)}
+.kind{text-align:center;font-weight:800;font-size:14px}
+.kind.dir{color:var(--ok)} .kind.inv{color:var(--bad)}
+.steps{margin:0;padding-left:24px;display:grid;gap:8px;font-weight:700}
+.steps li::marker{color:var(--gold);font-weight:900}
+.sheet .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+.vote{display:grid;gap:10px;margin-top:8px}
+.vrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.vrow .l{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--gold);color:var(--gold);font-family:var(--display)}
+.bar{height:34px;background:var(--stage);border-radius:10px;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--sky),var(--gold));width:0;transition:width .3s}
+.bar span{position:absolute;inset:0;display:flex;align-items:center;padding-left:10px;font-weight:900;font-size:14px}
+.pm{display:flex;gap:6px}
+.pm button{width:40px;height:36px;border-radius:10px;border:2px solid var(--line);background:var(--panel2);font-weight:900;font-size:20px}
+
+/* ---------- FIM E RANKING ---------- */
+.end{max-width:720px;margin:0 auto;text-align:center;display:grid;gap:18px}
+.prize{font-family:var(--display);font-size:clamp(40px,10vw,76px);color:var(--gold);line-height:1;text-shadow:0 4px 0 #b77d00}
+.stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.stat{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:10px 18px;font-weight:800}
+.stat b{display:block;font-family:var(--display);font-weight:400;font-size:28px;color:var(--sky)}
+.challenge{text-align:left;background:var(--panel);border:3px dashed var(--gold);border-radius:20px;padding:18px 20px}
+.challenge h3{margin:0 0 8px;font-family:var(--display);font-weight:400;color:var(--gold);font-size:20px}
+.challenge ol{margin:0;padding-left:22px;display:grid;gap:8px;font-weight:700}
+.gab{margin-top:12px;background:var(--stage);border-radius:14px;padding:12px 14px;font-weight:700}
+.linkbtn{background:none;border:0;color:var(--sky);font-weight:900;text-decoration:underline;padding:6px 0;margin-top:8px}
+
+.ranking-box { background: var(--panel2); border: 2px solid var(--gold); border-radius: 16px; padding: 20px; text-align: left; }
+.ranking-box h3 { font-family: var(--display); color: var(--gold); text-align: center; margin: 0 0 16px; font-size: 24px; }
+.ranking-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.rank-item { display: flex; justify-content: space-between; align-items: center; background: var(--stage); padding: 10px 16px; border-radius: 12px; font-weight: 800; }
+.rank-item.me { background: var(--ok); color: #03250f; }
+.rank-pos { width: 30px; font-family: var(--display); font-size: 18px; color: var(--gold); }
+.rank-item.me .rank-pos { color: #03250f; }
+.rank-name { flex: 1; margin-left: 10px; }
+.rank-prize { color: var(--sky); font-variant-numeric: tabular-nums; }
+.rank-item.me .rank-prize { color: #03250f; }
+.btn-clear { background: transparent; border: 1px solid var(--bad); color: var(--bad); padding: 6px 12px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: block; width: 100%; text-align: center; }
+
+.confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:30;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@keyframes blink{from{background:var(--panel)}to{background:#6a5a10}}
+@keyframes pulse{to{transform:scale(1.08)}}
+@keyframes pop{from{transform:scale(.92);opacity:0}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .3s 2}
+
+@media (max-width:820px){
+  .game{grid-template-columns:1fr}
+  .ladder{display:none}
+  .ladder.show-mobile{display:flex; position:static; margin-top:16px;}
+  .btn-mobile-ladder{display:block}
+  .strip{display:flex}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .opts{grid-template-columns:1fr}
+  .helps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .qbox{padding:18px 16px;min-height:96px}
+  .rt td,.rt th{padding-inline:10px}
+  .timer-wrap{flex-basis:100%; justify-content:flex-start}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+/* ---------- IMPRESSÃO DO RELATÓRIO ---------- */
+@media print {
+  body { background: white !important; color: black !important; padding: 0; margin: 0; }
+  .wrap, #modal, .toast { display: none !important; }
+  #print-area { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 40px; font-family: sans-serif; color: #000; }
+  #print-area h1 { color: #000; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+  #print-area h3 { color: #000; margin-top: 30px; }
+  #print-area p, #print-area li { font-size: 16pt; line-height: 1.6; }
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo">Show da <b>Proporção</b></div>
+    <div class="ctrls">
+      <button class="iconbtn" id="bMusic" aria-pressed="true" title="Música de fundo">🎵<span class="lbl"> Música</span></button>
+      <button class="iconbtn" id="bVoice" aria-pressed="true" title="Voz do apresentador">🎤<span class="lbl"> Voz</span></button>
+      <button class="iconbtn" id="bSfx" aria-pressed="true" title="Efeitos sonoros">🔊<span class="lbl"> Efeitos</span></button>
+      <button class="iconbtn fs" id="bFull" title="Tela cheia">⛶<span class="lbl" id="fsLbl"> Tela cheia</span></button>
+    </div>
+  </div>
+  <div class="toast" id="toast" hidden></div>
+  <main id="app"></main>
+</div>
+<div id="modal"></div>
+
+<script>
+// Mantendo a lógica no escopo protegido (IIFE)
+(function(){
+
+const f = (a,b) => `<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+
+/* ===================== GERADOR DE PERGUNTAS ===================== */
+const N=v=>Number(v).toLocaleString('pt-BR');
+const reais=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick1=arr=>arr[Math.floor(Math.random()*arr.length)];
+const range=(a,b,s=1)=>{const r=[];for(let v=a;v<=b;v+=s)r.push(v);return r};
+const pl=(n,s,p)=>n===1?s:p;
+
+/* ---- situações diretamente proporcionais (b = u · a) ---- */
+const DIR=[
+ {id:'cadernos',A:'Cadernos',B:'Preço (R$)',u:range(4,15),max:30,fb:reais,rel:'Mais cadernos → pago mais',
+  q:(a1,b1,a2)=>`${a1===1?'Um caderno custa':a1+' cadernos custam'} ${reais(b1)}. Quanto custam ${a2} cadernos iguais?`},
+ {id:'ovos',A:'Bolos',B:'Ovos',u:[2,3,4],max:12,fb:v=>N(v)+' ovos',rel:'Mais bolos → mais ovos',
+  q:(a1,b1,a2)=>`Para fazer ${a1===1?'1 bolo':a1+' bolos'}, Ana usa ${b1} ovos. Quantos ovos ela precisa para fazer ${a2} bolos?`},
+ {id:'carro',A:'Tempo (h)',B:'Distância (km)',u:[40,50,60,70,80,90],max:12,fb:v=>N(v)+' km',rel:'Mais tempo andando → mais quilômetros',
+  q:(a1,b1,a2)=>`Um carro anda ${N(b1)} km em ${a1===1?'1 hora':a1+' horas'}. Mantendo a mesma velocidade, quantos quilômetros ele anda em ${a2} horas?`},
+ {id:'picole',A:'Picolés',B:'Preço (R$)',u:range(2,6),max:30,fb:reais,rel:'Mais picolés → pago mais',
+  q:(a1,b1,a2)=>`${a1===1?'Um picolé custa':a1+' picolés custam'} ${reais(b1)}. Quanto custam ${a2} picolés?`},
+ {id:'tomate',A:'Tomate (kg)',B:'Preço (R$)',u:range(4,9),max:15,fb:reais,rel:'Mais quilos → pago mais',
+  q:(a1,b1,a2)=>`Na feira, ${a1} kg de tomate ${a1===1?'custa':'custam'} ${reais(b1)}. Quanto custam ${a2} kg?`},
+ {id:'torneira',A:'Tempo (min)',B:'Água (L)',u:range(2,12),max:30,fb:v=>N(v)+' litros',rel:'Mais tempo aberta → mais água',
+  q:(a1,b1,a2)=>`Uma torneira despeja ${b1} litros de água em ${a1===1?'1 minuto':a1+' minutos'}. Quantos litros ela despeja em ${a2} minutos?`},
+ {id:'mapa',A:'Mapa (cm)',B:'Real (km)',u:[5,10,20,25,50],max:30,fb:v=>N(v)+' km',rel:'Mais centímetros no mapa → mais quilômetros reais',
+  q:(a1,b1,a2)=>`Em um mapa, ${a1===1?'1 cm representa':a1+' cm representam'} ${N(b1)} km. Duas cidades estão a ${a2} cm de distância no mapa. Qual é a distância real?`},
+ {id:'suco',A:'Concentrado (copos)',B:'Água (copos)',u:[2,3,4,5],max:12,fb:v=>N(v)+' copos',rel:'Mais concentrado → mais água',
+  q:(a1,b1,a2)=>`Um suco é feito com ${a1===1?'1 copo':a1+' copos'} de concentrado para ${b1} copos de água. Com ${a2} copos de concentrado, quantos copos de água são necessários?`},
+ {id:'gasolina',A:'Gasolina (L)',B:'Distância (km)',u:range(8,15),max:40,fb:v=>N(v)+' km',rel:'Mais gasolina → anda mais',
+  q:(a1,b1,a2)=>`Um carro percorre ${N(b1)} km com ${a1===1?'1 litro':a1+' litros'} de gasolina. Quantos quilômetros ele percorre com ${a2} litros?`},
+ {id:'farinha',A:'Pessoas',B:'Farinha (g)',u:[50,75,100,120,150],max:30,fb:v=>N(v)+' g',rel:'Mais pessoas → mais farinha',
+  q:(a1,b1,a2)=>`Uma receita de pão para ${a1===1?'1 pessoa':a1+' pessoas'} usa ${N(b1)} g de farinha. Quanta farinha é necessária para ${a2} pessoas?`},
+ {id:'impressora',A:'Tempo (min)',B:'Páginas',u:range(10,40,5),max:30,fb:v=>N(v)+' páginas',rel:'Mais tempo → mais páginas',
+  q:(a1,b1,a2)=>`Uma impressora imprime ${N(b1)} páginas em ${a1===1?'1 minuto':a1+' minutos'}. Quantas páginas ela imprime em ${a2} minutos?`},
+ {id:'salario',A:'Horas',B:'Pagamento (R$)',u:range(10,30,5),max:40,fb:reais,rel:'Mais horas trabalhadas → recebe mais',
+  q:(a1,b1,a2)=>`Lucas recebe ${reais(b1)} por ${a1===1?'1 hora':a1+' horas'} de trabalho. Quanto ele recebe trabalhando ${a2} horas, ganhando o mesmo valor por hora?`},
+ {id:'passagem',A:'Passagens',B:'Preço (R$)',u:[4,5,6],max:30,fb:reais,rel:'Mais passagens → pago mais',
+  q:(a1,b1,a2)=>`${a1===1?'Uma passagem de ônibus custa':a1+' passagens de ônibus custam'} ${reais(b1)}. Quanto custam ${a2} passagens?`},
+ {id:'coracao',A:'Tempo (min)',B:'Batidas',u:[60,65,70,75,80],max:20,fb:v=>N(v)+' batidas',rel:'Mais tempo → mais batidas',
+  q:(a1,b1,a2)=>`O coração de uma pessoa em repouso bate ${N(b1)} vezes em ${a1===1?'1 minuto':a1+' minutos'}. No mesmo ritmo, quantas vezes ele bate em ${a2} minutos?`},
+ {id:'digitar',A:'Tempo (min)',B:'Palavras',u:range(20,45,5),max:30,fb:v=>N(v)+' palavras',rel:'Mais tempo digitando → mais palavras',
+  q:(a1,b1,a2)=>`Júlia digita ${N(b1)} palavras em ${a1===1?'1 minuto':a1+' minutos'}. No mesmo ritmo, quantas palavras ela digita em ${a2} minutos?`},
+ {id:'fabrica',A:'Tempo (h)',B:'Parafusos',u:range(50,200,25),max:24,fb:v=>N(v)+' parafusos',rel:'Mais horas → mais parafusos',
+  q:(a1,b1,a2)=>`Uma máquina fabrica ${N(b1)} parafusos em ${a1===1?'1 hora':a1+' horas'}. Quantos parafusos ela fabrica em ${a2} horas?`},
+ {id:'tinta',A:'Tinta (L)',B:'Parede (m²)',u:range(5,12),max:30,fb:v=>N(v)+' m²',rel:'Mais tinta → pinta mais parede',
+  q:(a1,b1,a2)=>`Com ${a1===1?'1 litro':a1+' litros'} de tinta é possível pintar ${b1} m² de parede. Quantos m² dá para pintar com ${a2} litros?`},
+ {id:'tijolos',A:'Muro (m)',B:'Tijolos',u:range(20,60,5),max:30,fb:v=>N(v)+' tijolos',rel:'Mais metros de muro → mais tijolos',
+  q:(a1,b1,a2)=>`Para construir ${a1===1?'1 metro':a1+' metros'} de muro são usados ${N(b1)} tijolos. Quantos tijolos são usados em ${a2} metros desse muro?`},
+ {id:'churrasco',A:'Pessoas',B:'Carne (g)',u:[300,400,500],max:30,fb:v=>N(v)+' g',rel:'Mais pessoas → mais carne',
+  q:(a1,b1,a2)=>`Para um churrasco com ${a1===1?'1 pessoa':a1+' pessoas'} são necessários ${N(b1)} g de carne. Quantos gramas são necessários para ${a2} pessoas?`},
+ {id:'bombons',A:'Caixas',B:'Bombons',u:range(6,24,2),max:30,fb:v=>N(v)+' bombons',rel:'Mais caixas → mais bombons',
+  q:(a1,b1,a2)=>`${a1===1?'Uma caixa tem':a1+' caixas iguais têm'} ${b1} bombons${a1===1?'':' no total'}. Quantos bombons há em ${a2} caixas iguais?`},
+ {id:'cinema',A:'Ingressos',B:'Preço (R$)',u:range(15,30,5),max:30,fb:reais,rel:'Mais ingressos → pago mais',
+  q:(a1,b1,a2)=>`${a1===1?'Um ingresso de cinema custa':a1+' ingressos de cinema custam'} ${reais(b1)}. Quanto custam ${a2} ingressos?`},
+ {id:'bicicleta',A:'Voltas da roda',B:'Distância (m)',u:[2,3],max:40,fb:v=>N(v)+' metros',rel:'Mais voltas → mais metros',
+  q:(a1,b1,a2)=>`A roda de uma bicicleta dá ${a1===1?'1 volta':a1+' voltas'} e percorre ${b1} metros. Quantos metros ela percorre dando ${a2} voltas?`},
+ {id:'leite',A:'Vacas',B:'Leite (L)',u:range(10,25,5),max:30,fb:v=>N(v)+' litros',rel:'Mais vacas → mais leite',
+  q:(a1,b1,a2)=>`Em um sítio, ${a1===1?'1 vaca produz':a1+' vacas produzem'} ${N(b1)} litros de leite por dia. Quantos litros ${a2} vacas iguais produzem por dia?`}
+];
+
+/* ---- situações inversamente proporcionais (a · b = constante) ---- */
+const INV=[
+ {id:'pintores',A:'Pintores',B:'Dias',av:range(2,10),bv:range(4,30),bmax:60,fb:v=>N(v)+' dias',rel:['Mais pintores → menos dias','Menos pintores → mais dias'],
+  q:(a1,b1,a2)=>`${a1} pintores pintam uma casa em ${b1} dias. Em quantos dias ${a2} pintores, no mesmo ritmo, pintam a mesma casa?`},
+ {id:'velocidade',A:'Velocidade (km/h)',B:'Tempo (h)',av:[40,50,60,70,80,90,100,120],bv:range(1,10),bmax:12,fb:v=>N(v)+' '+pl(v,'hora','horas'),rel:['Mais velocidade → menos tempo','Menos velocidade → mais tempo'],
+  q:(a1,b1,a2)=>`A ${a1} km/h, uma viagem dura ${b1} ${pl(b1,'hora','horas')}. Quanto tempo dura a mesma viagem a ${a2} km/h?`},
+ {id:'torneiras',A:'Torneiras',B:'Tempo (h)',av:range(2,12),bv:range(2,24),bmax:48,fb:v=>N(v)+' '+pl(v,'hora','horas'),rel:['Mais torneiras → menos tempo','Menos torneiras → mais tempo'],
+  q:(a1,b1,a2)=>`${a1} torneiras iguais enchem um tanque em ${b1} horas. Em quanto tempo ${a2} torneiras enchem o mesmo tanque?`},
+ {id:'maquinas',A:'Máquinas',B:'Tempo (h)',av:range(2,12),bv:range(2,24),bmax:48,fb:v=>N(v)+' '+pl(v,'hora','horas'),rel:['Mais máquinas → menos tempo','Menos máquinas → mais tempo'],
+  q:(a1,b1,a2)=>`${a1} máquinas iguais produzem um lote de peças em ${b1} horas. Quantas horas ${a2} dessas máquinas levam para produzir o mesmo lote?`},
+ {id:'operarios',A:'Operários',B:'Dias',av:range(2,30),bv:range(5,60),bmax:90,fb:v=>N(v)+' dias',rel:['Mais operários → menos dias','Menos operários → mais dias'],
+  q:(a1,b1,a2)=>`${a1} operários constroem uma casa em ${b1} dias. Em quantos dias ${a2} operários, no mesmo ritmo, constroem uma casa igual?`},
+ {id:'racao',A:'Cachorros',B:'Dias',av:range(2,12),bv:range(5,60),bmax:90,fb:v=>N(v)+' dias',rel:['Mais cachorros → a ração dura menos','Menos cachorros → a ração dura mais'],
+  q:(a1,b1,a2)=>`Um saco de ração alimenta ${a1} cachorros durante ${b1} dias. Para ${a2} cachorros, a mesma ração dura quantos dias?`},
+ {id:'conta',A:'Amigos',B:'Cada um paga (R$)',av:range(2,12),bv:range(10,60),bmax:120,fb:reais,rel:['Mais amigos → cada um paga menos','Menos amigos → cada um paga mais'],
+  q:(a1,b1,a2)=>`${a1} amigos dividiram igualmente a conta de uma pizzaria, e cada um pagou ${reais(b1)}. Se fossem ${a2} amigos dividindo a mesma conta, quanto cada um pagaria?`},
+ {id:'acampamento',A:'Pessoas',B:'Dias',av:range(2,20),bv:range(3,30),bmax:60,fb:v=>N(v)+' dias',rel:['Mais pessoas → a comida dura menos','Menos pessoas → a comida dura mais'],
+  q:(a1,b1,a2)=>`A comida de um acampamento dá para ${a1} pessoas durante ${b1} dias. Para ${a2} pessoas, a mesma comida dura quantos dias?`},
+ {id:'copos',A:'Copo (mL)',B:'Copos',av:[100,150,200,250,300,400,500],bv:range(2,20),bmax:40,fb:v=>N(v)+' copos',rel:['Copo maior → menos copos','Copo menor → mais copos'],
+  q:(a1,b1,a2)=>`Para encher uma jarra, são necessários ${b1} copos de ${a1} mL. Quantos copos de ${a2} mL são necessários para encher a mesma jarra?`},
+ {id:'bombas',A:'Bombas',B:'Tempo (h)',av:range(2,8),bv:range(2,24),bmax:48,fb:v=>N(v)+' '+pl(v,'hora','horas'),rel:['Mais bombas → menos tempo','Menos bombas → mais tempo'],
+  q:(a1,b1,a2)=>`${a1} bombas d'água iguais esvaziam uma piscina em ${b1} horas. Quantas horas ${a2} bombas levam para esvaziar a mesma piscina?`},
+ {id:'costureiras',A:'Costureiras',B:'Dias',av:range(2,12),bv:range(3,30),bmax:60,fb:v=>N(v)+' dias',rel:['Mais costureiras → menos dias','Menos costureiras → mais dias'],
+  q:(a1,b1,a2)=>`${a1} costureiras fazem um lote de uniformes em ${b1} dias. Em quantos dias ${a2} costureiras, no mesmo ritmo, fazem o mesmo lote?`},
+ {id:'onibus',A:'Ônibus',B:'Alunos por ônibus',av:range(2,8),bv:range(20,50),bmax:60,fb:v=>N(v)+' alunos',rel:['Mais ônibus → menos alunos em cada um','Menos ônibus → mais alunos em cada um'],
+  q:(a1,b1,a2)=>`Para levar todos os alunos de uma escola a um passeio, foram usados ${a1} ônibus com ${b1} alunos em cada um. Se fossem usados ${a2} ônibus, quantos alunos iriam em cada um?`},
+ {id:'caminhao',A:'Carga (t)',B:'Viagens',av:range(2,12),bv:range(3,30),bmax:60,fb:v=>N(v)+' viagens',rel:['Caminhão maior → menos viagens','Caminhão menor → mais viagens'],
+  q:(a1,b1,a2)=>`Um caminhão que carrega ${a1} toneladas precisa fazer ${b1} viagens para levar toda a areia de uma obra. Quantas viagens faria um caminhão que carrega ${a2} toneladas?`},
+ {id:'limpeza',A:'Funcionários',B:'Tempo (min)',av:range(2,10),bv:range(20,120,10),bmax:240,fb:v=>N(v)+' minutos',rel:['Mais funcionários → menos tempo','Menos funcionários → mais tempo'],
+  q:(a1,b1,a2)=>`${a1} funcionários limpam uma escola em ${b1} minutos. Em quantos minutos ${a2} funcionários, no mesmo ritmo, limpam a mesma escola?`},
+ {id:'chocolate',A:'Pessoas',B:'Quadradinhos por pessoa',av:range(2,12),bv:range(2,12),bmax:24,fb:v=>N(v)+' quadradinhos',rel:['Mais pessoas → menos quadradinhos para cada uma','Menos pessoas → mais quadradinhos para cada uma'],
+  q:(a1,b1,a2)=>`Uma barra de chocolate dividida igualmente entre ${a1} pessoas dá ${b1} quadradinhos para cada uma. Se a mesma barra fosse dividida entre ${a2} pessoas, quantos quadradinhos cada uma receberia?`}
+];
+
+/* ---- "direta, inversa ou não proporcional?" ---- */
+const CLS=[
+ {a:'a quantidade de pães comprados',b:'o valor pago',t:'D',lv:1,w:'Comprando o dobro de pães, você paga o dobro.'},
+ {a:'o número de cadernos comprados',b:'o valor total da compra',t:'D',lv:1,w:'O dobro de cadernos custa o dobro.'},
+ {a:'o tempo que uma torneira fica aberta',b:'a quantidade de água que sai',t:'D',lv:1,w:'Com o dobro do tempo aberta, sai o dobro de água.'},
+ {a:'a quantidade de litros de gasolina colocados no tanque',b:'o valor pago no posto',t:'D',lv:1,w:'O dobro de litros custa o dobro.'},
+ {a:'o número de convidados de uma festa',b:'a quantidade de salgados necessária',t:'D',lv:1,w:'Com o dobro de convidados, precisa do dobro de salgados.'},
+ {a:'o número de voltas dadas em uma pista',b:'a distância corrida',t:'D',lv:1,w:'O dobro de voltas é o dobro da distância.'},
+ {a:'o número de ingressos comprados',b:'o valor pago',t:'D',lv:1,w:'O dobro de ingressos custa o dobro.'},
+ {a:'a quantidade de quilos de arroz comprados',b:'o preço pago',t:'D',lv:1,w:'O dobro de quilos custa o dobro.'},
+ {a:'as horas trabalhadas por quem recebe por hora',b:'o pagamento recebido',t:'D',lv:2,w:'Trabalhando o dobro de horas, recebe o dobro.'},
+ {a:'a distância medida em um mapa',b:'a distância real',t:'D',lv:2,w:'O dobro no mapa representa o dobro na realidade.'},
+ {a:'o tempo de viagem de um carro com velocidade constante',b:'a distância percorrida',t:'D',lv:2,w:'Na mesma velocidade, viajando o dobro do tempo, anda-se o dobro.'},
+ {a:'a quantidade de ingredientes de uma receita',b:'o número de bolos feitos',t:'D',lv:2,w:'Com o dobro de ingredientes, faz-se o dobro de bolos.'},
+ {a:'o número de páginas a imprimir',b:'o tempo de impressão',t:'D',lv:2,w:'Para imprimir o dobro de páginas, gasta-se o dobro do tempo.'},
+ {a:'a medida do lado de um quadrado',b:'o seu perímetro',t:'D',lv:3,w:'Perímetro = 4 × lado. Se o lado dobra, o perímetro também dobra.'},
+ {a:'o número de pintores trabalhando no mesmo ritmo',b:'os dias para pintar uma casa',t:'I',lv:1,w:'Com o dobro de pintores, a casa fica pronta na metade do tempo.'},
+ {a:'o número de torneiras abertas',b:'o tempo para encher um tanque',t:'I',lv:1,w:'O dobro de torneiras enche o tanque na metade do tempo.'},
+ {a:'o número de amigos dividindo uma conta',b:'o valor que cada um paga',t:'I',lv:1,w:'Com o dobro de amigos, cada um paga a metade.'},
+ {a:'o número de pessoas dividindo uma pizza',b:'as fatias que cada uma come',t:'I',lv:1,w:'Com o dobro de pessoas, cada uma come a metade das fatias.'},
+ {a:'o número de operários de uma obra',b:'os dias para terminar a obra',t:'I',lv:1,w:'Com o dobro de operários, a obra termina na metade do tempo.'},
+ {a:'a velocidade de um carro',b:'o tempo para fazer uma viagem',t:'I',lv:2,w:'Indo duas vezes mais rápido, chega na metade do tempo.'},
+ {a:'o número de máquinas iguais em uma fábrica',b:'o tempo para produzir um lote',t:'I',lv:2,w:'O dobro de máquinas produz o lote na metade do tempo.'},
+ {a:'o número de cachorros',b:'os dias que um saco de ração dura',t:'I',lv:2,w:'O dobro de cachorros come a ração na metade do tempo.'},
+ {a:'o tamanho do copo',b:'quantos copos são necessários para encher uma jarra',t:'I',lv:2,w:'Com copos duas vezes maiores, precisa da metade dos copos.'},
+ {a:'o número de ônibus usados para levar uma turma',b:'o número de alunos em cada ônibus',t:'I',lv:2,w:'Com o dobro de ônibus, vão metade dos alunos em cada um.'},
+ {a:'a quantidade de pessoas em um acampamento',b:'os dias que a comida dura',t:'I',lv:2,w:'Com o dobro de pessoas, a comida acaba na metade do tempo.'},
+ {a:'o número de partes iguais em que se divide uma barra de chocolate',b:'o tamanho de cada parte',t:'I',lv:2,w:'Dividindo em o dobro de partes, cada parte fica com a metade do tamanho.'},
+ {a:'a velocidade de digitação de uma pessoa',b:'o tempo para digitar um texto',t:'I',lv:3,w:'Digitando duas vezes mais rápido, termina na metade do tempo.'},
+ {a:'a idade de uma pessoa',b:'a sua altura',t:'N',lv:1,w:'Uma pessoa de 40 anos não tem o dobro da altura de uma de 20 anos. Não existe regra fixa.'},
+ {a:'o dia do mês',b:'a temperatura do dia',t:'N',lv:1,w:'A temperatura não depende do número do dia.'},
+ {a:'o número do sapato de um aluno',b:'a sua nota em Matemática',t:'N',lv:1,w:'Uma coisa não tem nada a ver com a outra.'},
+ {a:'a idade de uma mãe',b:'a idade do seu filho',t:'N',lv:2,w:'Se o filho tem 10 anos e a mãe 30, daqui a 10 anos ele terá 20 e ela 40. A idade dele dobrou, a dela não. O que fica igual é a <b>diferença</b> entre as idades.'},
+ {a:'o número de músicos tocando juntos',b:'a duração de uma música',t:'N',lv:2,w:'Se 1 músico toca uma música em 4 minutos, 2 músicos juntos também levam 4 minutos!'},
+ {a:'o número de jogadores em campo',b:'a duração de uma partida de futebol',t:'N',lv:2,w:'A partida dura 90 minutos, não importa quantos jogadores primeiramente estão em campo.'},
+ {a:'o número de pessoas assistindo a um filme',b:'a duração do filme',t:'N',lv:2,w:'O filme dura o mesmo tempo com 1 ou com 100 pessoas na sala.'},
+ {a:'a medida do lado de um quadrado',b:'a sua área',t:'N',lv:3,w:'Lado 1 → área 1. Lado 2 → área 4. O lado dobrou, mas a área ficou 4 vezes maior. Então <b>não</b> é diretamente proporcional.'},
+ {a:'os quilômetros rodados em um táxi que cobra bandeirada',b:'o valor da corrida',t:'N',lv:3,w:'A bandeirada é um valor fixo cobrado logo no começo. Por isso, rodando o dobro, o valor não chega a dobrar.'},
+ {a:'o número de ovos de uma receita',b:'o tempo que o bolo fica no forno',t:'N',lv:3,w:'Um bolo com o dobro de ovos não precisa ficar o dobro do tempo no forno. Não existe regra fixa.'}
+];
+
+/* ---- utilidades ---- */
+function distract(correct,cands){
+  const out=[];
+  for(const v of cands.concat([correct*2,Math.round(correct/2),correct+10,correct+1,correct+2,correct-1,correct+3]))
+    if(Number.isInteger(v)&&v>0&&v!==correct&&!out.includes(v)){out.push(v);if(out.length===3)break}
+  return out;
+}
+function pickCtx(list,pre){const free=list.filter(c=>!S.used.has(pre+c.id));return pick1(free.length?free:list)}
+
+/* ---- regra de três direta ---- */
+function genDirect(tier){
+  for(let t=0;t<80;t++){
+    const c=pickCtx(DIR,'d'), u=pick1(c.u); let a1,a2;
+    if(tier<=1){a1=1;a2=rnd(2,5)}
+    else if(tier===2){if(Math.random()<.5){a1=1;a2=rnd(3,9)}else{a1=rnd(2,4);a2=a1*2}}
+    else if(tier===3){a1=rnd(2,5);a2=a1*rnd(2,4)}
+    else if(tier===4){a1=rnd(2,6);do{a2=rnd(a1+1,12)}while(a2%a1===0)}
+    else if(tier===5){a1=rnd(3,9);do{a2=rnd(a1+2,20)}while(a2%a1===0)}
+    else{a1=rnd(4,12);do{a2=rnd(a1+3,30)}while(a2%a1===0)}
+    if(a2>c.max) continue;
+    S.used.add('d'+c.id);
+    const b1=u*a1, b2=u*a2;
+    const wrong=distract(b2,[b1+(a2-a1),a1*b1/a2,b2+u,b1*a2,b2-u,b2+b1]);
+    const p=[`${c.rel}. As grandezas são <b>diretamente proporcionais</b>.`,
+      `Monte a proporção: ${f(a1,a2)} = ${f(N(b1),'x')}`];
+    if(a1===1) p.push(`Multiplique cruzado: 1 · x = ${a2} · ${N(b1)} → <b>x = ${N(b2)}</b>`);
+    else p.push(`Multiplique cruzado: ${a1} · x = ${a2} · ${N(b1)} → ${a1} · x = ${N(a2*b1)}`,`x = ${f(N(a2*b1),a1)} → <b>x = ${N(b2)}</b>`);
+    if(a1>1) p.push(`Outro jeito: se ${a1} → ${N(b1)}, então 1 → ${N(u)}. Logo, ${a2} → ${a2} · ${N(u)} = ${N(b2)}.`);
+    p.push(`Resposta: <b>${c.fb(b2)}</b>.`);
+    return {t:c.q(a1,b1,a2),o:[c.fb(b2),...wrong.map(c.fb)],c:0,tipo:'Regra de três',
+      dica:a1===1?`Se 1 vale ${N(b1)}, quanto valem ${a2}? Multiplique ${N(b1)} por ${a2}.`:`Descubra primeiro quanto vale 1: ${N(b1)} ÷ ${a1}.`,
+      tab:{a:c.A,b:c.B,r:[[N(a1),N(b1)],[N(a2),'x']]},p};
+  }
+  return null;
+}
+
+/* ---- regra de três inversa ---- */
+function genInverse(tier){
+  for(let t=0;t<600;t++){
+    const c=pickCtx(INV,'i'), a1=pick1(c.av), b1=pick1(c.bv), a2=pick1(c.av);
+    if(a1===a2) continue;
+    const P=a1*b1; if(P%a2) continue;
+    const b2=P/a2; if(b2<1||b2>c.bmax||b2===b1) continue;
+    const dbl=(a2===2*a1||a1===2*a2), mult=(a2%a1===0||a1%a2===0);
+    const strict=t<450;
+    if(strict){
+      if(tier<=4&&!dbl) continue;
+      if(tier===5&&!(a2>a1&&!dbl)) continue;
+      if(tier>=6&&mult) continue;
+    }
+    S.used.add('i'+c.id);
+    const up=a2>a1, rel=c.rel[up?0:1], dir=b1*a2/a1;
+    const wrong=distract(b2,[dir,b1+(a2-a1),b1-(a2-a1),b1,b2+1,b2*2]);
+    const p=[`${rel}. As grandezas são <b>inversamente proporcionais</b>.`,
+      `Na inversa, <b>invertemos</b> uma das razões: ${f(N(a1),N(a2))} = ${f('x',N(b1))}`,
+      `Multiplique cruzado: ${N(a2)} · x = ${N(a1)} · ${N(b1)} → ${N(a2)} · x = ${N(P)}`,
+      `x = ${f(N(P),N(a2))} → <b>x = ${N(b2)}</b>`,
+      `Resposta: <b>${c.fb(b2)}</b>.`];
+    if(Number.isInteger(dir)&&dir>0) p.push(`⚠️ Erro comum: fazer como se fosse direta e responder ${c.fb(dir)}.`);
+    return {t:c.q(a1,b1,a2),o:[c.fb(b2),...wrong.map(c.fb)],c:0,tipo:'Regra de três',
+      dica:`Cuidado! ${rel}. A resposta tem que ser ${b2<b1?'MENOR':'MAIOR'} que ${N(b1)}. Comece fazendo ${N(a1)} × ${N(b1)}.`,
+      tab:{a:c.A,b:c.B,r:[[N(a1),N(b1)],[N(a2),'x']],inv:true},p};
+  }
+  return null;
+}
+
+/* ---- classificar grandezas ---- */
+const CLS_TXT={D:'Diretamente proporcionais',I:'Inversamente proporcionais',N:'Não são proporcionais'};
+const CLS_END={D:'Uma dobra e a outra também dobra: são grandezas <b>diretamente proporcionais</b>.',
+  I:'Uma dobra e a outra cai pela metade: são grandezas <b>inversamente proporcionais</b>.',
+  N:'Não seguem a regra da direta nem da inversa: <b>não são proporcionais</b>.'};
+function genClass(tier,styleB){
+  const lvOk=tier<=3?[1,2].slice(0,tier<=2?1:2):tier===4?[2]:tier===5?[2,3]:[3,2];
+  let pool=CLS.map((x,k)=>({...x,k})).filter(x=>!S.used.has('c'+x.k)&&lvOk.includes(x.lv)&&(!styleB||x.t!=='N'));
+  if(tier>=6){const hard=pool.filter(x=>x.lv===3);if(hard.length)pool=hard}
+  if(!pool.length) return null;
+  const it=pick1(pool); S.used.add('c'+it.k);
+  const dob=/^(os|as) /.test(it.a)?'dobrarem':'dobrar';
+  if(styleB){
+    const o=it.t==='D'?['Também dobra','Cai pela metade']:['Cai pela metade','Também dobra'];
+    return {t:`Se ${it.a} ${dob}, o que acontece com ${it.b}?`,o:[...o,'Continua igual','Aumenta só 2 unidades'],c:0,tipo:'Direta ou inversa?',
+      dica:'Imagine a situação de verdade. Com o dobro da primeira coisa, a segunda aumenta ou diminui?',
+      p:[it.w,CLS_END[it.t]]};
+  }
+  const others=['D','I','N'].filter(k=>k!==it.t).map(k=>CLS_TXT[k]);
+  return {t:`Que tipo de relação existe entre <b>${it.a}</b> e <b>${it.b}</b>?`,o:[CLS_TXT[it.t],...others,'Não dá para saber'],c:0,tipo:'Direta ou inversa?',
+    dica:'Faça o teste do dobro: se a primeira grandeza dobrar, a segunda dobra, cai pela metade ou nenhum dos dois?',
+    p:[`Teste do dobro: se ${it.a} ${dob}, o que acontece com ${it.b}?`,it.w,CLS_END[it.t]]};
+}
+
+/* ---- razão ---- */
+const RAZ=[
+ {lead:'Em uma sala de aula há',p1:'meninos',s1:'menino',p2:'meninas',s2:'menina'},
+ {lead:'Em um abrigo de animais há',p1:'gatos',s1:'gato',p2:'cachorros',s2:'cachorro'},
+ {lead:'Em uma caixa há',p1:'bolas azuis',s1:'bola azul',p2:'bolas vermelhas',s2:'bola vermelha'},
+ {lead:'Em um estacionamento há',p1:'motos',s1:'moto',p2:'carros',s2:'carro'},
+ {lead:'Em um restaurante há',p1:'mesas',s1:'mesa',p2:'cadeiras',s2:'cadeira'},
+ {lead:'Em um aquário há',p1:'peixes amarelos',s1:'peixe amarelo',p2:'peixes laranja',s2:'peixe laranja'}
+];
+function genRazao(tier){
+  const c=pick1(RAZ), a=rnd(2,tier<=1?5:9), k=rnd(2,tier<=1?3:5), b=a*k;
+  return {t:`${c.lead} ${a} ${c.p1} e ${b} ${c.p2}. Qual frase está correta?`,
+    o:[`Para cada 1 ${c.s1} há ${k} ${c.p2}`,`Para cada ${k} ${c.p1} há 1 ${c.s2}`,`Para cada 1 ${c.s1} há ${k+1} ${c.p2}`,`Há o mesmo número de ${c.p1} e ${c.p2}`],c:0,tipo:'Razão',
+    dica:`Tente separar em grupos iguais, com 1 ${c.s1} em cada grupo.`,
+    p:[`A razão entre ${c.p1} e ${c.p2} é ${f(a,b)}.`,`Simplificando (dividindo os dois por ${a}): ${f(a,b)} = ${f(1,k)}`,`Ou seja: <b>para cada 1 ${c.s1} há ${k} ${c.p2}</b>.`]};
+}
+
+/* ---- proporção: achar o x ---- */
+function genProp(){
+  const [p,q]=pick1([[1,2],[2,3],[3,4],[2,5],[3,5],[1,3],[4,5],[1,4]]);
+  let m=rnd(2,6),n; do{n=rnd(2,7)}while(n===m);
+  const P1=p*m,Q1=q*m,P2=p*n,Q2=q*n;
+  if(Math.random()<.5){ // x embaixo
+    return {t:`Na proporção ${f(P1,'x')} = ${f(P2,Q2)}, qual é o valor de x?`,o:[Q1,...distract(Q1,[P1+(Q2-P2),Q2,Q1+p])].map(String),c:0,tipo:'Proporção',
+      dica:'Multiplique em X (cruzado): o de cima de uma fração com o de baixo da outra.',
+      p:[`Multiplique cruzado: ${P2} · x = ${P1} · ${Q2}`,`${P2} · x = ${P1*Q2}`,`x = ${f(P1*Q2,P2)} → <b>x = ${Q1}</b>`,`Confira: ${f(P1,Q1)} e ${f(P2,Q2)} simplificadas dão ${f(p,q)}. ✔`]};
+  }
+  return {t:`Na proporção ${f('x',Q1)} = ${f(P2,Q2)}, qual é o valor de x?`,o:[P1,...distract(P1,[Q1-(Q2-P2),P2,P1+1])].map(String),c:0,tipo:'Proporção',
+    dica:'Multiplique em X (cruzado): o de cima de uma fração com o de baixo da outra.',
+    p:[`Multiplique cruzado: ${Q2} · x = ${P2} · ${Q1}`,`${Q2} · x = ${P2*Q1}`,`x = ${f(P2*Q1,Q2)} → <b>x = ${P1}</b>`,`Confira: ${f(P1,Q1)} e ${f(P2,Q2)} simplificadas dão ${f(p,q)}. ✔`]};
+}
+
+/* ---- porcentagem com regra de três ---- */
+const PCT=[
+ {q:(V,p)=>`Uma bicicleta custa ${reais(V)}. Quanto é ${p}% desse valor?`,fb:reais},
+ {q:(V,p)=>`Uma loja deu ${p}% de desconto em uma TV de ${reais(V)}. De quanto foi o desconto?`,fb:reais},
+ {q:(V,p)=>`Em uma escola com ${N(V)} alunos, ${p}% vão de ônibus. Quantos alunos vão de ônibus?`,fb:v=>N(v)+' alunos'},
+ {q:(V,p)=>`Um tênis custa ${reais(V)} e vai ter um aumento de ${p}%. De quanto será o aumento?`,fb:reais},
+ {q:(V,p)=>`Em uma pesquisa com ${N(V)} pessoas, ${p}% disseram que preferem futebol. Quantas pessoas preferem futebol?`,fb:v=>N(v)+' pessoas'}
+];
+function genPct(tier){
+  const p=pick1(tier<=4?[10,50,25]:tier===5?[20,15,30,5]:[15,35,75,12,40,60]);
+  const Vs=[40,60,80,100,120,150,200,240,250,300,360,400,500,600,800,1000,1200].filter(V=>V*p%100===0);
+  const V=pick1(Vs), ans=V*p/100, c=pick1(PCT);
+  const p2=['O valor inteiro corresponde a 100%. Menos porcentagem → menos valor: <b>diretamente proporcionais</b>.',
+    `${f(N(V),'x')} = ${f(100,p)}`,`100 · x = ${N(V)} · ${p} → 100 · x = ${N(V*p)}`,`x = ${f(N(V*p),100)} → <b>x = ${N(ans)}</b>`];
+  if(V%10===0) p2.push(`Atalho: 10% de ${N(V)} é ${N(V/10)} (é só dividir por 10).`);
+  p2.push(`Resposta: <b>${c.fb(ans)}</b>.`);
+  return {t:c.q(V,p),o:[ans,...distract(ans,[p,V*p/10,V-ans,ans*2,ans+p])].map(c.fb),c:0,tipo:'Porcentagem',
+    dica:`100% é o valor inteiro (${N(V)}). Comece descobrindo 10%: ${N(V)} ÷ 10.`,
+    tab:{a:'Valor',b:'Porcentagem (%)',r:[[N(V),'100'],['x',String(p)]]},p:p2};
+}
+
+const GEN={dir:genDirect,inv:genInverse,classA:t=>genClass(t,false),classB:t=>genClass(t,true),razao:genRazao,prop:genProp,pct:genPct};
+const TIER=[1,1,2,2,3,3,3,4,4,4,5,5,5,6,6,7];
+const LVL={1:'Muito fácil',2:'Fácil',3:'Fácil',4:'Médio',5:'Difícil',6:'Muito difícil',7:'Milhão'};
+const MIX={
+ 1:[['dir',5],['classB',4],['razao',2]],
+ 2:[['dir',4],['classB',2],['classA',3],['razao',2]],
+ 3:[['dir',4],['classA',3],['prop',2],['razao',1]],
+ 4:[['dir',3],['inv',4],['classA',3],['pct',2]],
+ 5:[['inv',4],['dir',2],['pct',2],['prop',1],['classA',2]],
+ 6:[['inv',4],['dir',2],['classA',2],['pct',2]],
+ 7:[['inv',3],['dir',2]]};
+function weighted(list){let tot=list.reduce((s,x)=>s+x[1],0),r=Math.random()*tot;for(const [k,w] of list){if((r-=w)<0)return k}return list[0][0]}
+
+const PR=[1000,2000,3000,4000,5000,10000,20000,30000,40000,50000,100000,200000,300000,400000,500000,1000000];
+const LET=['A','B','C','D'];
+const money=n=> n>=1000000 ? '1 MILHÃO' : 'R$ '+(n>=1000 && n%1000===0 ? (n/1000)+' mil' : n.toLocaleString('pt-BR'));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const app=document.getElementById('app'), modal=document.getElementById('modal');
+
+let S, timerId=null, sound=true, musicOn=true, voiceOn=true, actx=null;
+
+/* Sistema de Ranking (Local Storage) */
+function getRanking() {
+  try { return JSON.parse(localStorage.getItem('showPropRanking')) || []; }
+  catch(e) { return []; }
+}
+function saveRanking(name, won) {
+  let r = getRanking();
+  r.push({ name: name || 'Anônimo', won: won, date: new Date().toISOString() });
+  r.sort((a,b) => b.won - a.won);
+  r = r.slice(0, 10); // Mantém os top 10
+  localStorage.setItem('showPropRanking', JSON.stringify(r));
+  return r;
+}
+function clearRanking() {
+  localStorage.removeItem('showPropRanking');
+}
+
+function ensureAudio(){
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume()}catch(e){}
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,3000)}
+
+/* ---------- música de fundo (gerada no navegador) ---------- */
+const M={gain:null,timer:null,step:0,next:0,base:.055};
+const CHORDS=[[48,60,64,67],[45,57,60,64],[41,57,60,65],[43,55,59,62]]; // Dó, Lá menor, Fá, Sol
+const midi=n=>440*Math.pow(2,(n-69)/12);
+function mNote(freq,t,dur,type,vol){
+  const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g).connect(M.gain);o.start(t);o.stop(t+dur+.05);
+}
+function startMusic(){
+  if(!actx||!musicOn||M.timer) return;
+  if(!M.gain){M.gain=actx.createGain();M.gain.connect(actx.destination)}
+  M.gain.gain.setValueAtTime(M.base,actx.currentTime);
+  M.next=actx.currentTime+.1;
+  const spb=60/124/2; 
+  M.timer=setInterval(()=>{
+    while(M.next<actx.currentTime+.25){
+      const s=M.step%32, ch=CHORDS[Math.floor(s/8)], k=s%8, t=M.next;
+      if(k%2===0) mNote(midi(ch[0]-12+(k===4?7:0)),t,spb*1.6,'triangle',.9);         
+      mNote(midi(ch[1+(k%3)]+12),t,spb*.8,'square',.22);                               
+      if(k===2||k===6) mNote(2000+Math.random()*400,t,.04,'square',.12);               
+      M.step++;M.next+=spb;
+    }
+  },60);
+}
+function stopMusic(){clearInterval(M.timer);M.timer=null}
+function duck(on){if(M.gain&&actx)M.gain.gain.setTargetAtTime(on?M.base*.3:M.base,actx.currentTime,.15)}
+
+/* ---------- voz do apresentador ---------- */
+let VOICE=null;
+function pickVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const vs=speechSynthesis.getVoices().filter(v=>/^pt/i.test(v.lang));
+  const br=vs.filter(v=>/BR/i.test(v.lang));
+  const pool=br.length?br:vs;
+  VOICE=pool.find(v=>/Daniel|Felipe|Antonio|Ricardo|Fabio|Male|Masculin/i.test(v.name))||pool.find(v=>/Google/i.test(v.name))||pool[0]||null;
+}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function say(text,{rate=1.08,pitch=1.15,queue=false,show=true}={}){
+  if(show){const h=document.getElementById('host'); if(h) h.innerHTML='<span class="mic">🎤</span> '+text;
+  if(S) S.lastHost='<span class="mic">🎤</span> '+text;}
+  if(!voiceOn||!('speechSynthesis' in window)) return;
+  try{
+    if(!queue) speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=VOICE?VOICE.lang:'pt-BR'; if(VOICE)u.voice=VOICE; u.rate=rate; u.pitch=pitch;
+    u.onstart=()=>{duck(true); const h=document.getElementById('host'); if(h) h.classList.add('speaking');}; 
+    u.onend=u.onerror=()=>{duck(false); const h=document.getElementById('host'); if(h) h.classList.remove('speaking');};
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function plain(html){ 
+  const d=document.createElement('div');d.innerHTML=html;
+  d.querySelectorAll('.fr').forEach(fr=>{const s=fr.children;fr.replaceWith(` ${s[0].textContent} sobre ${s[1].textContent} `)});
+  return d.textContent.replace(/\s+/g,' ').trim();
+}
+const spoken=n=> n>=1000000?'um milhão de reais':(n===1000?'mil reais':(n/1000)+' mil reais');
+const HYPE=['Vamos lá!','Atenção, atenção!','Olha só!','Muito bem!','Prestem atenção!'];
+
+/* ---------- tela cheia ---------- */
+function isFull(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
+document.getElementById('bFull').onclick=async()=>{
+  const el=document.documentElement;
+  try{
+    if(isFull()){await (document.exitFullscreen||document.webkitExitFullscreen).call(document)}
+    else{const req=el.requestFullscreen||el.webkitRequestFullscreen;if(!req)throw 0;await req.call(el)}
+  }catch(e){toast('Este aparelho não permite tela cheia aqui. No computador, a tecla F11 também funciona.')}
+};
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{
+  document.getElementById('fsLbl').textContent=isFull()?' Sair da tela cheia':' Tela cheia'}));
+
+/* ---------- botões de som ---------- */
+function setPressed(id,v){document.getElementById(id).setAttribute('aria-pressed',v)}
+document.getElementById('bMusic').onclick=()=>{ensureAudio();musicOn=!musicOn;setPressed('bMusic',musicOn);musicOn?startMusic():stopMusic()};
+document.getElementById('bVoice').onclick=()=>{voiceOn=!voiceOn;setPressed('bVoice',voiceOn);if(!voiceOn&&'speechSynthesis' in window)speechSynthesis.cancel();duck(false)};
+document.getElementById('bSfx').onclick=()=>{sound=!sound;setPressed('bSfx',sound)};
+
+/* ---------- efeitos ---------- */
+function tone(freq,dur,type='sine',delay=0,vol=.18){
+  if(!sound||!actx) return;
+  const t=actx.currentTime+delay, o=actx.createOscillator(), g=actx.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g).connect(actx.destination);o.start(t);o.stop(t+dur+.05);
+}
+const SFX={
+  click:()=>tone(660,.08,'square',0,.08),
+  suspense:()=>{for(let k=0;k<6;k++)tone(180+k*30,.18,'triangle',k*.2,.12)},
+  right:()=>[523,659,784,1047].forEach((n,k)=>tone(n,.25,'triangle',k*.1)),
+  wrong:()=>{tone(220,.35,'sawtooth',0,.12);tone(160,.5,'sawtooth',.3,.12)},
+
+  tick:()=>tone(900,.05,'square',0,.05),
+  win:()=>[523,523,659,784,659,784,1047].forEach((n,k)=>tone(n,.3,'triangle',k*.14,.2))
+};
+
+function victoryFanfare() {
+  if(!sound||!actx) return;
+  stopMusic();
+  const seq = [
+    [523.25, 0.15], [659.25, 0.15], [783.99, 0.15], [1046.50, 0.4],
+    [698.46, 0.15], [880.00, 0.15], [1046.50, 0.15], [1396.91, 0.4],
+    [783.99, 0.15], [987.77, 0.15], [1174.66, 0.15], [1567.98, 0.4],
+    [1046.50, 0.2], [1567.98, 0.2], [2093.00, 1.0]
+  ];
+  let t = 0;
+  seq.forEach(([n, d]) => {
+    tone(n, d*0.9, 'square', t, 0.15);
+    tone(n, d*0.9, 'triangle', t, 0.25);
+    t += d;
+  });
+}
+
+
+/* ---------- início ---------- */
+function startScreen(){
+  stopTimer(); modal.innerHTML='';
+  app.innerHTML=`
+  <section class="start">
+    <div class="marquee"><small>Proporcionalidade e regra de três</small>Show da Proporção</div>
+    
+    <div class="name-input-group">
+      <label for="playerName">Qual é o seu nome?</label>
+      <input type="text" id="playerName" placeholder="Digite seu nome" maxlength="25" autocomplete="off">
+    </div>
+
+    <div class="rules">
+      <div class="rule"><h3>Escolha e confirme</h3><p>Toque na alternativa e depois em <b>Responder</b>. Dá para mudar de ideia antes de confirmar.</p></div>
+      <div class="rule"><h3>Parar ou arriscar?</h3><p>Parar: leva o que já ganhou. Errar: fica com a metade. Errar o milhão: perde tudo.</p></div>
+      <div class="rule"><h3>4 ajudas</h3><p>Pular (3 vezes), Cartas, Ajuda da Turma/Plateia e Universitários. Não valem na pergunta final.</p></div>
+    </div>
+    
+    <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+        <label class="toggle" for="tmr">⏱️ Tempo por pergunta:
+          <select id="tmr" class="tsel">
+            <option value="0">Sem cronômetro</option>
+            <option value="180" selected>3 minutos</option>
+            <option value="300">5 minutos</option>
+          </select>
+        </label>
+        <label class="toggle" style="cursor:pointer; background:rgba(88,198,255,.1); padding:8px 16px; border-radius:12px; border:1px solid var(--sky);">
+          <input type="checkbox" id="classMode" checked style="width:18px;height:18px;accent-color:var(--sky);"> 
+          Modo Sala de Aula (Votação da Turma manual)
+        </label>
+    </div>
+    
+    <div><button class="big" id="go">Começar o show</button></div>
+    
+    <div class="teacher" id="tHint"><b>Para jogar com a turma no projetor</b>
+      <ul>
+        <li>Divida a turma em equipes. Cada equipe responde uma pergunta, e a escada de prêmios vira o placar.</li>
+        <li>Sorteie um aluno para ser o "apresentador" e ler a pergunta em voz alta.</li>
+        <li>Na <b>Votação da turma</b>, os alunos levantam a mão em cada letra e você registra os votos.</li>
+        <li>Depois de cada resposta, peça para um aluno explicar a conta no quadro antes de seguir.</li>
+      </ul>
+    </div>
+  </section>`;
+
+  // Recupera o último nome digitado (opcional)
+  const lastUser = localStorage.getItem('showPropLastUser');
+  if (lastUser) document.getElementById('playerName').value = lastUser;
+
+  document.getElementById('classMode').onchange = (e) => {
+      document.getElementById('tHint').style.display = e.target.checked ? 'block' : 'none';
+  };
+
+  document.getElementById('go').onclick=()=>{
+    const pName = document.getElementById('playerName').value.trim();
+    if (pName) localStorage.setItem('showPropLastUser', pName);
+
+    ensureAudio(); startMusic();
+    S={
+      i:0, won:0, acertos:0, helps:{pular:3,cartas:1,turma:1,univ:1}, 
+      timer:+document.getElementById('tmr').value, used:new Set(), 
+      classMode: document.getElementById('classMode').checked,
+      playerName: pName || 'Anônimo'
+    };
+    SFX.click(); nextQ();
+  };
+}
+
+function draw(){
+  const tier=TIER[S.i]; let q=null;
+  for(let t=0;t<50&&!q;t++) q=GEN[weighted(MIX[tier])](Math.min(tier,6));
+  if(!q) q=genDirect(Math.min(tier,6));
+  const ord=shuffle([0,1,2,3]);
+  return {...q,view:ord.map(k=>q.o[k]),ci:ord.indexOf(q.c)};
+}
+function nextQ(skipped){S.q=draw();S.sel=null;S.locked=false;S.hint=false;S.gone=[];S.asking=false;renderGame();startTimer();
+  const queue=skipped===true;
+  if(S.i===15) say('Atenção, muita atenção! Chegou a pergunta do milhão! Valendo um milhão de reais!',{rate:1,pitch:1.2,queue});
+  else if(queue) say(`Nova pergunta, valendo ${spoken(PR[S.i])}!`,{queue});
+  else if(S.i===0) say(`${S.playerName !== 'Anônimo' ? S.playerName + ', e' : 'E'}stá começando o Show da Proporção! Primeira pergunta, valendo mil reais!`);
+  else say(`${HYPE[S.i%HYPE.length]} Pergunta ${S.i+1}, valendo ${spoken(PR[S.i])}!`);
+  readQ(true);
+}
+function readQ(queued){const q=S.q;say(plain(q.t)+' '+q.view.map((o,k)=>`Letra ${LET[k]}: ${plain(o)}.`).filter((_,k)=>!S.gone.includes(k)).join(' '),{rate:1,pitch:1.05,queue:queued===true,show:queued!==true})}
+
+/* ---------- jogo ---------- */
+function renderGame(){
+  const q=S.q, fin=S.i===15, errar=fin?0:Math.floor(S.won/2);
+  const ladder=PR.map((p,k)=>`<div class="rung ${k<S.i?'done':''} ${k===S.i?'now':''} ${k===15?'top':''} ${k===5||k===10||k===15?'sep':''}"><span>${k+1}</span><span>${money(p)}</span></div>`).join('');
+  
+  app.innerHTML=`
+  <section class="game">
+    <div>
+      <div class="strip">
+        <span class="chip">Jogador: ${S.playerName}</span>
+        <span class="chip">Pergunta ${S.i+1} de 16</span>
+        <span class="chip gold">Valendo ${money(PR[S.i])}</span>
+        <span class="chip">Parar: ${S.won?money(S.won):'R$ 0'}</span>
+        <span class="chip">Errar: ${errar?money(errar):'R$ 0'}</span>
+      </div>
+      <div class="qhead">
+        <span class="tag" style="flex:none">${fin?'⭐ Pergunta do milhão':'Pergunta '+(S.i+1)+' · '+LVL[TIER[S.i]]+' · '+q.tipo}</span>
+        <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex:1;justify-content:flex-end">
+            <button class="listen" id="listen" aria-label="Ouvir a pergunta">🔈 Ouvir</button>
+            ${S.timer?`<div class="timer-wrap"><div class="timer" id="clock"></div><div class="tbar-bg"><div class="tbar-fill" id="tbar"></div></div></div>`:''}
+        </span>
+      </div>
+      <div class="host" id="host" aria-live="polite"></div>
+      <div class="qbox" id="qbox"><span class="qtext">${q.t}</span></div>
+      ${S.hint?`<div class="hint"><b>🎓 Dica dos universitários:</b> ${q.dica}</div>`:''}
+      <div class="opts" role="group" aria-label="Alternativas">
+        ${q.view.map((o,k)=>`<button class="opt ${S.sel===k?'sel':''} ${S.gone.includes(k)?'gone':''}" data-k="${k}" ${S.gone.includes(k)?'disabled':''}><span class="l">${LET[k]}</span><span>${o}</span></button>`).join('')}
+      </div>
+      <div class="actions">
+        <button class="confirm" id="ans" ${S.sel===null?'disabled':''}>Responder</button>
+        <span id="stopzone">${S.asking
+          ?`<span class="stopask">Parar e levar ${S.won?money(S.won):'R$ 0'}? <button class="yes" id="sy">Sim, parar</button><button class="no" id="sn">Continuar</button></span>`
+          :`<button class="stop" id="stop">Parar e levar ${S.won?money(S.won):'R$ 0'}</button>`}</span>
+      </div>
+      <div class="helps">
+        ${helpBtn('pular','⏭️','Pular',S.helps.pular+' restantes')}
+        ${helpBtn('cartas','🃏','Cartas','elimina 2')}
+        ${helpBtn('turma', S.classMode?'🙋':'👥', S.classMode?'Votação':'Ajuda da', S.classMode?'da turma':'plateia')}
+        ${helpBtn('univ','🎓','Dica','universitários')}
+      </div>
+      <button class="btn-mobile-ladder" id="bLdr">Ver Prêmios (Escada)</button>
+      <aside class="ladder show-mobile" id="m-ldr" style="display:none">${ladder}</aside>
+    </div>
+    <aside class="ladder" aria-label="Escada de prêmios">
+      <div style="text-align:center; padding-bottom:8px; border-bottom:2px solid var(--line); margin-bottom:8px; font-weight:900; color:var(--sky); font-size:14px;">${S.playerName}</div>
+      ${ladder}
+    </aside>
+  </section>`;
+  app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>pick(+b.dataset.k));
+  document.getElementById('ans').onclick=answer;
+  document.getElementById('listen').onclick=readQ;
+  if(S.lastHost) document.getElementById('host').innerHTML=S.lastHost;
+  const st=document.getElementById('stop'); if(st) st.onclick=()=>{S.asking=true;say('Vai parar? Está certo disso?');renderKeepClock()};
+  const sy=document.getElementById('sy'); if(sy) sy.onclick=()=>endScreen('stop',S.won);
+  const sn=document.getElementById('sn'); if(sn) sn.onclick=()=>{S.asking=false;renderKeepClock()};
+  app.querySelectorAll('.help').forEach(b=>b.onclick=()=>useHelp(b.dataset.h));
+  
+  const bLdr = document.getElementById('bLdr');
+  if(bLdr) {
+      bLdr.onclick = () => {
+          const ldr = document.getElementById('m-ldr');
+          const isVis = ldr.style.display === 'flex';
+          ldr.style.display = isVis ? 'none' : 'flex';
+          bLdr.textContent = isVis ? 'Ver Prêmios (Escada)' : 'Ocultar Prêmios';
+      };
+  }
+
+  if(S.timer) updateClock();
+}
+function renderKeepClock(){renderGame()}
+const ASK=['Está certo disso?','Está certo disso? Posso confirmar?','Tem certeza? Está certo disso?'];
+function pick(k){
+  if(S.locked||S.gone.includes(k)) return;
+  S.sel=k; SFX.click();
+  say(`Letra ${LET[k]}? ${ASK[Math.floor(Math.random()*ASK.length)]}`,{rate:1.02,pitch:1.2});
+  renderGame();
+}
+function helpBtn(h,ic,name,sub){
+  const off=S.locked||S.i===15||S.helps[h]<=0;
+  return `<button class="help" data-h="${h}" ${off?'disabled':''}><span class="ic">${ic}</span>${name}<small>${sub}</small></button>`;
+}
+function useHelp(h){
+  if(S.locked||S.helps[h]<=0) return; SFX.click(); S.helps[h]--;
+  if(h==='pular'){
+    const r=S.helps.pular;
+    say(`Vai pular? Pode pular! ${r===0?'Essa foi a sua última chance de pular!':r===1?'Ainda resta uma chance de pular.':'Ainda restam '+r+' chances de pular.'}`,{pitch:1.2});
+    stopTimer();nextQ(true);return}
+  if(h==='cartas'){
+    S.gone=shuffle([0,1,2,3].filter(k=>k!==S.q.ci)).slice(0,2).sort();if(S.gone.includes(S.sel))S.sel=null;
+    const left=[0,1,2,3].filter(k=>!S.gone.includes(k));
+    say(`Vamos às cartas! Ih, saíram as letras ${LET[S.gone[0]]} e ${LET[S.gone[1]]}! Agora sobraram só a letra ${LET[left[0]]} e a letra ${LET[left[1]]}. Qual vai ser?`,{pitch:1.2});
+  }
+  if(h==='univ'){S.hint=true;say(`Vamos ouvir os universitários! Atenção para a dica: ${plain(S.q.dica)}`,{rate:1,pitch:1.1})}
+  if(h==='turma'){
+      if(S.classMode){
+          openVote();
+          say('Vamos pedir a ajuda da turma! Levante a mão quem acha que é a letra A... agora a letra B... letra C... e letra D!',{rate:.95,pitch:1.2});
+      } else {
+          autoVote();
+          say('Vamos pedir a ajuda da plateia! O auditório já votou, vamos conferir o resultado!',{rate:1,pitch:1.1});
+      }
+  }
+  renderGame();
+}
+
+/* votação automatica (solo player) */
+function autoVote(){
+    const v = [0,0,0,0];
+    let rem = 100;
+    // chance grande da certa ganhar
+    const rightShare = rnd(40, 75);
+    v[S.q.ci] = rightShare;
+    rem -= rightShare;
+    
+    const others = [0,1,2,3].filter(k=>k!==S.q.ci && !S.gone.includes(k));
+    others.forEach((k, idx) => {
+        if (idx === others.length - 1) {
+            v[k] = rem;
+        } else {
+            const share = rnd(0, rem);
+            v[k] = share;
+            rem -= share;
+        }
+    });
+
+    modal.innerHTML=`<div class="veil"><div class="sheet" role="dialog" aria-label="Ajuda da Plateia">
+      <h2 class="gc">👥 Ajuda da Plateia</h2>
+      <p class="lead">A plateia votou e este é o resultado:</p>
+      <div class="vote">${v.map((n,k)=>`<div class="vrow" ${S.gone.includes(k)?'style="opacity:0.3"':''}><span class="l">${LET[k]}</span>
+        <div class="bar"><i style="width:${n}%"></i><span>${n}%</span></div></div>`).join('')}</div>
+      <div class="row"><button class="confirm" id="vclose">Voltar à pergunta</button></div>
+    </div></div>`;
+    
+    document.getElementById('vclose').onclick=()=>{
+        modal.innerHTML='';
+        const m=Math.max(...v),k=v.indexOf(m);
+        say(`A plateia escolheu a letra ${LET[k]} com ${m}% dos votos. Será que eles estão certos?`,{pitch:1.2});
+    };
+}
+
+/* votação manual da turma */
+function openVote(){
+  const v=[0,0,0,0];
+  const draw=()=>{
+    const tot=v.reduce((a,b)=>a+b,0)||1;
+    modal.innerHTML=`<div class="veil"><div class="sheet" role="dialog" aria-label="Votação da turma">
+      <h2 class="gc">🙋 Votação da turma</h2>
+      <p class="lead">Leia cada letra em voz alta. Quem escolhe aquela letra levanta a mão. Registre os votos com <b>+</b>.</p>
+      <div class="vote">${v.map((n,k)=>`<div class="vrow"><span class="l">${LET[k]}</span>
+        <div class="bar"><i style="width:${n/tot*100}%"></i><span>${n} voto${n===1?'':'s'}</span></div>
+        <div class="pm"><button data-m="${k}" aria-label="Tirar voto ${LET[k]}">−</button><button data-p="${k}" aria-label="Somar voto ${LET[k]}">+</button></div></div>`).join('')}</div>
+      <div class="row"><button class="confirm" id="vclose">Voltar à pergunta</button></div>
+    </div></div>`;
+    modal.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{v[+b.dataset.p]++;SFX.click();draw()});
+    modal.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{const k=+b.dataset.m;if(v[k]>0)v[k]--;draw()});
+    document.getElementById('vclose').onclick=()=>{modal.innerHTML='';
+      const tot=v.reduce((a,b)=>a+b,0);
+      if(tot){const m=Math.max(...v),k=v.indexOf(m);say(`A turma votou! A letra mais votada foi a letra ${LET[k]}, com ${m} ${m===1?'voto':'votos'}. E agora, vai confiar na turma?`,{pitch:1.2})}
+    };
+  };
+  draw();
+}
+
+/* cronômetro com barra */
+function startTimer(){stopTimer();if(!S.timer)return;S.left=S.timer;S.said30=false;updateClock();
+  timerId=setInterval(()=>{if(modal.innerHTML)return;S.left--;if(S.left<=10)SFX.tick();updateClock();if(S.left<=0){stopTimer();S.sel=null;answer(true)}},1000)}
+function stopTimer(){clearInterval(timerId);timerId=null}
+function updateClock(){
+  const c=document.getElementById('clock');
+  const tb=document.getElementById('tbar');
+  if(c){
+      c.textContent=Math.floor(S.left/60)+':'+String(S.left%60).padStart(2,'0');
+      c.classList.toggle('low',S.left<=10);
+  }
+  if(tb){
+      const pct = Math.max(0, (S.left / S.timer) * 100);
+      tb.style.width = pct + '%';
+      tb.classList.toggle('low', S.left<=10);
+  }
+  if(S.left===30&&S.timer>30&&!S.locked&&!S.said30&&(S.said30=true)) say('Atenção! Faltam 30 segundos!',{queue:true});
+}
+
+/* responder */
+function answer(timeout){
+  if(S.locked) return; if(S.sel===null && timeout!==true) return;
+  S.locked=true; stopTimer();
+  const btns=[...app.querySelectorAll('.opt')]; btns.forEach(b=>b.disabled=true);
+  app.querySelectorAll('.help,#ans,#stop').forEach(b=>b&&(b.disabled=true));
+  if(S.sel!==null){btns[S.sel].classList.add('wait');say('Valendo! Vamos ver...',{rate:.95,pitch:1.1})}
+  SFX.suspense();
+  setTimeout(()=>{
+    const ok=S.sel===S.q.ci;
+    btns.forEach(b=>b.classList.remove('wait'));
+    btns[S.q.ci].classList.add('right');
+    if(!ok && S.sel!==null){btns[S.sel].classList.add('wrong');document.getElementById('qbox').classList.add('shake')}
+    ok?SFX.right():SFX.wrong();
+    setTimeout(()=>feedback(ok,timeout===true),900);
+  },1900);
+}
+
+function explHTML(q){
+  let h='';
+  if(q.tab){
+    const t=q.tab, cell=v=>`<td class="${v==='x'?'x':''}">${v}</td>`;
+    h+=`<h4>Monte a tabela</h4><div class="rtwrap"><table class="rt"><thead><tr><th>${t.a}</th><th>${t.b}</th></tr></thead><tbody>
+      ${t.r.map(r=>`<tr>${cell(r[0])}${cell(r[1])}</tr>`).join('')}</tbody>
+      <tfoot><tr><td class="down">↓</td><td class="${t.inv?'up':'down'}">${t.inv?'↑':'↓'}</td></tr></tfoot></table></div>
+      <div class="kind ${t.inv?'inv':'dir'}">${t.inv?'Setas em sentidos opostos: grandezas inversamente proporcionais':'Setas no mesmo sentido: grandezas diretamente proporcionais'}</div>`;
+  }
+  h+=`<h4>Resolução passo a passo</h4><ol class="steps">${q.p.map(s=>`<li>${s}</li>`).join('')}</ol>`;
+  return `<div class="expl">${h}</div>`;
+}
+
+function feedback(ok,timeout){
+  const q=S.q, fin=S.i===15, right=q.view[q.ci];
+  if(ok){
+    S.acertos++; S.won=PR[S.i];
+    if(fin){confetti();SFX.win();say(`É um milhão de reais! Parabéns ${S.playerName}, você é o campeão da proporção!`,{rate:1,pitch:1.25})}
+    else say(`Certa resposta! Você acaba de ganhar ${spoken(S.won)}!`,{rate:1.1,pitch:1.2});
+    const errarProx = fin ? 0 : Math.floor(S.won/2);
+    const nextPrize = fin ? 0 : PR[S.i+1];
+    
+    modal.innerHTML=`<div class="veil"><div class="sheet" role="dialog">
+      <h2 class="okc">${fin?'VOCÊ GANHOU 1 MILHÃO!':'Certa resposta!'}</h2>
+      <p class="lead">A resposta é <b>${right}</b>. Você garantiu <b>${money(S.won)}</b>.</p>
+      
+      <div style="margin-bottom: 16px;">
+        <button class="stop" id="btnShowExpl" style="background:var(--panel2); border-color:var(--sky); color:var(--sky); width:100%; font-size:16px; padding:12px;">Ver Resolução Passo a Passo</button>
+      </div>
+      <div id="explArea" hidden>${explHTML(q)}</div>
+      
+      ${!fin ? `
+      <div style="margin-top:20px; background:var(--stage); padding:16px; border-radius:16px; border:2px dashed var(--gold);">
+         <h4 style="margin:0 0 10px; color:var(--gold);">O que você vai fazer?</h4>
+         <p style="margin:0 0 16px; font-size:15px; color:var(--muted);">
+           Se você continuar para a próxima valendo <b>${money(nextPrize)}</b> e errar, você perde metade e cai para <b>${money(errarProx)}</b>.<br>
+           ${S.i===14 ? '<b style="color:var(--bad)">Atenção: A próxima é a pergunta do MILHÃO. Se errar, perde TUDO (R$ 0).</b>' : ''}
+         </p>
+         <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="confirm" id="nx" style="flex:1;">Arriscar Próxima (${money(nextPrize)})</button>
+            <button class="stop" id="stopNow" style="background:var(--bad); border-color:var(--bad); color:#fff; font-weight:bold; flex:1;">Parar agora e levar ${money(S.won)}</button>
+         </div>
+      </div>
+      ` : `
+      <div class="row"><button class="confirm" id="nx">Ver resultado final</button></div>
+      `}
+    </div></div>`;
+    
+    if(!fin) confetti(25);
+    
+    const bExpl = document.getElementById('btnShowExpl');
+    if(bExpl) {
+        bExpl.onclick = () => {
+            const expl = document.getElementById('explArea');
+            expl.hidden = !expl.hidden;
+            bExpl.textContent = expl.hidden ? 'Ver Resolução Passo a Passo' : 'Ocultar Resolução';
+        };
+    }
+    
+    document.getElementById('nx').onclick=()=>{modal.innerHTML='';if(fin)endScreen('win',S.won);else{S.i++;nextQ()}};
+    const bStop = document.getElementById('stopNow');
+    if(bStop) {
+        bStop.onclick=()=>{modal.innerHTML=''; endScreen('stop',S.won)};
+    }
+
+  }else{
+    const keep=fin?0:Math.floor(S.won/2);
+    const perdText = fin ? 'Você errou a pergunta do milhão e PERDEU TUDO!' : `Você errou e vai levar apenas a metade: ${money(keep)}.`;
+    say(`${timeout?'O tempo acabou!':'Que pena! Você errou!'} ${perdText} A resposta certa era a letra ${LET[q.ci]}.`,{rate:1.02,pitch:1.05});
+    modal.innerHTML=`<div class="veil"><div class="sheet" role="dialog">
+      <h2 class="badc">${timeout?'O tempo acabou!':'Que pena, você errou!'}</h2>
+      <p class="lead">A resposta certa era <b>${right}</b>. ${perdText}</p>
+      <div style="margin-bottom: 16px;">
+        <button class="stop" id="btnShowExpl" style="background:var(--panel2); border-color:var(--sky); color:var(--sky); width:100%; font-size:16px; padding:12px;">Ver Resolução Passo a Passo</button>
+      </div>
+      <div id="explArea" hidden>${explHTML(q)}</div>
+      <div class="row"><button class="confirm" id="nx">Ver resultado final</button></div>
+    </div></div>`;
+    
+    const bExpl = document.getElementById('btnShowExpl');
+    if(bExpl) {
+        bExpl.onclick = () => {
+            const expl = document.getElementById('explArea');
+            expl.hidden = !expl.hidden;
+            bExpl.textContent = expl.hidden ? 'Ver Resolução Passo a Passo' : 'Ocultar Resolução';
+        };
+    }
+    document.getElementById('nx').onclick=()=>{modal.innerHTML='';endScreen('lose',keep)};
+  }
+}
+
+/* ---------- fim ---------- */
+function endScreen(how,prize){
+  stopTimer(); modal.innerHTML='';
+  if(how==='stop') say(`Parou! ${S.playerName} vai levar para casa ${prize?spoken(prize):'zero reais'}! Muito bem!`);
+  else if(how==='lose') say(`${S.playerName} vai levar para casa ${prize?spoken(prize):'zero reais'}. Obrigado por participar do Show da Proporção!`);
+  const msg={win:`Campeão da proporção! Você acertou todas, ${S.playerName}.`,stop:'Você parou na hora certa e garantiu o prêmio.',lose:'Errar faz parte. Agora você já sabe o caminho da conta!'}[how];
+  
+  // Portal da turma: envia a nota ao professor
+  if (window.GAMIFICA && GAMIFICA.enviar(S.acertos, PR.length, prize || 0)) GAMIFICA.aviso('📤 Nota enviada ao professor: ' + S.acertos + ' de ' + PR.length + ' perguntas');
+  // Salvar no Ranking
+  const currentRankList = saveRanking(S.playerName, prize || 0);
+
+  let moneyIcon = '💸';
+  if (how === 'win') moneyIcon = '🏆💰🏆';
+  else if (prize > 0) moneyIcon = '💰';
+
+  let extraClass = how === 'win' ? 'millionaire' : '';
+
+  if (how === 'win') {
+      confetti(250);
+      victoryFanfare();
+  }
+
+  app.innerHTML=`
+  <section class="end">
+    <p class="sub">${msg}</p>
+    
+    <div class="winner-panel ${extraClass}">
+       <div class="m-icon">${moneyIcon}</div>
+       <h2>${S.playerName}</h2>
+       <p>Prêmio conquistado:</p>
+       <div class="prize-value">${prize?money(prize):'R$ 0'}</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b>${S.acertos}</b>acertos</div>
+      <div class="stat"><b>${S.i+(how==='win'?1:0)}</b>de 16 perguntas vencidas</div>
+    </div>
+
+    <div class="ranking-box">
+      <h3>🏆 Ranking dos Melhores</h3>
+      <ul class="ranking-list" id="rankList">
+        ${currentRankList.map((r, idx) => `
+          <li class="rank-item ${(r.name === S.playerName && r.won === prize) ? 'me' : ''}">
+            <span class="rank-pos">${idx + 1}º</span>
+            <span class="rank-name">${r.name}</span>
+            <span class="rank-prize">${money(r.won)}</span>
+          </li>
+        `).join('')}
+      </ul>
+      <button class="btn-clear" id="btnClearRank">Limpar Ranking</button>
+    </div>
+
+    <div class="challenge" style="margin-top:10px">
+      <h3>Desafio no caderno</h3>
+      <ol>
+        <li>4 lápis custam R$ 6,00. Quanto custam 10 lápis iguais? Monte a tabela e diga se é direta ou inversa.</li>
+        <li>Uma caixa-d'água abastece 5 famílias durante 12 dias. Por quantos dias ela abastece 3 famílias, com o mesmo consumo por família?</li>
+        <li>Crie você: invente um problema de regra de três com algo da sua casa (receita, conta de luz, viagem) e troque com um colega para ele resolver.</li>
+      </ol>
+      <button class="linkbtn" id="gb">Mostrar gabarito</button>
+      <div class="gab" id="gab" hidden>
+        1) Direta: ${f(4,10)} = ${f(6,'x')} → 4 · x = 60 → <b>x = R$ 15,00</b>.<br>
+        2) Inversa (menos famílias, mais dias): ${f(5,3)} = ${f('x',12)} → 3 · x = 60 → <b>x = 20 dias</b>.<br>
+        3) Resposta pessoal.
+      </div>
+    </div>
+    
+    <div><button class="big" id="again">Jogar de novo</button></div>
+    <div style="margin-top:16px"><button class="stop" id="printBtn">🖨️ Imprimir Relatório Final</button></div>
+  </section>`;
+  
+  document.getElementById('gb').onclick=e=>{const g=document.getElementById('gab');g.hidden=!g.hidden;e.target.textContent=g.hidden?'Mostrar gabarito':'Esconder gabarito'};
+  document.getElementById('again').onclick=startScreen;
+
+  document.getElementById('btnClearRank').onclick = () => {
+      if(confirm('Tem certeza que deseja apagar o ranking de todos os jogadores?')) {
+          clearRanking();
+          document.getElementById('rankList').innerHTML = '<li class="rank-item" style="justify-content:center;color:var(--muted)">Ranking vazio.</li>';
+      }
+  };
+  
+  document.getElementById('printBtn').onclick = () => {
+      const printDiv = document.createElement('div');
+      printDiv.id = 'print-area';
+      const date = new Date().toLocaleDateString('pt-BR');
+      const questionsPlayed = S.i + (how==='win'?1:0);
+      printDiv.innerHTML = `
+          <h1>Relatório - Show da Proporção</h1>
+          <p><strong>Jogador:</strong> ${S.playerName}</p>
+          <p><strong>Data:</strong> ${date}</p>
+          <p><strong>Desempenho:</strong> ${S.acertos} acertos em ${questionsPlayed} perguntas jogadas.</p>
+          <p><strong>Prêmio Final:</strong> ${prize?money(prize):'R$ 0'}</p>
+          <hr style="margin:20px 0;">
+          <h3>Resumo de Aprendizagem</h3>
+          <p>O jogador demonstrou conhecimentos nos temas abordados até a Pergunta ${questionsPlayed}.</p>
+          <ul>
+              <li>Reconhecimento de grandezas diretamente e inversamente proporcionais.</li>
+              <li>Aplicação de regra de três simples.</li>
+              <li>Cálculo de porcentagens e proporções na prática.</li>
+          </ul>
+          <br><br><br>
+          <p>____________________________________________________<br><br>Assinatura do Aluno / Professor</p>
+      `;
+      document.body.appendChild(printDiv);
+      window.print();
+      document.body.removeChild(printDiv);
+  };
+}
+
+function confetti(n=90){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols=['#ffc93c','#2ed47a','#58c6ff','#ff5468','#ffffff'];
+  for(let k=0;k<n;k++){const d=document.createElement('div');d.className='confetti';
+    d.style.left=Math.random()*100+'vw';d.style.background=cols[k%cols.length];
+    d.style.animationDuration=(1.8+Math.random()*1.8)+'s';d.style.animationDelay=Math.random()*.4+'s';
+    document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
+}
+
+/* teclado: A–D ou 1–4 escolhem, Enter responde */
+document.addEventListener('keydown',e=>{
+  if(!S||S.locked||modal.innerHTML||!document.querySelector('.opts'))return;
+  const k='ABCD1234'.indexOf(e.key.toUpperCase());
+  if(k>=0) pick(k%4);
+  if(e.key==='Enter'&&S.sel!==null){e.preventDefault();answer()}
+});
+
+/* música a partir do primeiro toque/clique em qualquer lugar (o navegador bloqueia som antes disso) */
+function splash(){
+  app.innerHTML=`
+  <section class="start" style="padding-top:8vh">
+    <div class="marquee"><small>Proporcionalidade e regra de três</small>Show da Proporção</div>
+    <div><button class="big" id="open" style="font-size:28px;padding:20px 40px">▶ Abrir o show</button></div>
+    <p class="sub">Clique para abrir o programa com música e apresentador.</p>
+  </section>`;
+  document.getElementById('open').onclick=()=>{
+    ensureAudio(); startMusic(); SFX.win();
+    say('Está no ar o Show da Proporção! Escolha o tempo e vamos começar!',{pitch:1.2});
+    startScreen();
+  };
+}
+splash();
+
+// Fim do IIFE
+})();
+</script>
+
+<script>
+/* Portal da turma: envio da nota ao professor */
+GAMIFICA.preencherNome('#playerName', 25);
+</script>
+</body>
+</html>

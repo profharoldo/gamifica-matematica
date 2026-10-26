@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<script src="ponte-portal.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+</head>
+<body>
+<title>UNO da Radiciação</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: mesa de feltro azul-noite vista de cima — oponente no alto, montes no centro, a mão do aluno embaixo. Visual único (escuro) de propósito. */
+:root{
+  color-scheme: dark;
+  --felt:#173f73; --felt-deep:#08182f; --felt-hi:#21579a;
+  --panel:rgba(5,16,34,.86); --panel-solid:#0b1d38; --line:rgba(225,236,255,.14);
+  --ink:#f3f0e4; --ink-soft:#b5c4dc; --ink-faint:#7d8fae;
+  --gold:#f6c744; --gold-ink:#3a2700;
+  --red:#e2423a; --blue:#2f6ed6; --green:#1c9a56; --yellow:#f2b400;
+  --ok:#43dd8a; --bad:#ff6f66;
+  --display:'Baloo 2','Trebuchet MS','Arial Rounded MT Bold',system-ui,sans-serif;
+  --body:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--ink); font-family:var(--body); font-size:15px;
+  background-color:var(--felt-deep);
+  background-image:
+    radial-gradient(rgba(255,255,255,.028) 1px, transparent 1.2px),
+    radial-gradient(ellipse at 50% 42%, var(--felt-hi) 0%, var(--felt) 42%, var(--felt-deep) 100%);
+  background-size:5px 5px, 100% 100%;
+  background-attachment:fixed;
+  -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;
+}
+button{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.app{min-height:100%;display:flex;flex-direction:column}
+
+/* ---------- Barra superior ---------- */
+.topbar{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;
+  padding-block:10px;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  background:rgba(4,12,26,.93);border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{
+  width:44px;height:44px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;
+  font:800 22px/1 var(--display);color:var(--gold-ink);
+  background:conic-gradient(from 210deg,var(--red),var(--yellow),var(--green),var(--blue),var(--red));
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.85);
+}
+.logo span{background:#fff;border-radius:8px;width:30px;height:30px;display:grid;place-items:center}
+.logo sup{font-size:.55em;position:relative;top:-.45em;line-height:0;color:var(--red)}
+.brand h1{margin:0;font:800 21px/1 var(--display);letter-spacing:.01em}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--ink-soft);white-space:nowrap}
+.chip-gold{background:rgba(246,199,68,.16);border-color:rgba(246,199,68,.45);color:var(--gold)}
+.chip-ok{background:var(--ok);border-color:var(--ok);color:#06301b}
+
+.scores{display:flex;gap:8px;flex-wrap:wrap}
+.score{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:14px;background:rgba(255,255,255,.05);border:1.5px solid var(--line);transition:border-color .2s,background .2s}
+.score.is-turn{border-color:var(--gold);background:rgba(246,199,68,.1)}
+.score .av{font-size:20px}
+.score b{display:block;font-size:12.5px;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score span{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.score strong{font:800 17px/1 var(--display);color:var(--ink)}
+
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  font-weight:800;font-size:13px;padding:8px 11px;border-radius:12px;
+  background:rgba(255,255,255,.07);border:1px solid var(--line);color:var(--ink);
+  transition:background .15s, transform .1s;
+}
+.btn:hover{background:rgba(255,255,255,.13)}
+.btn:active{transform:scale(.96)}
+.btn.is-on{background:rgba(67,221,138,.16);border-color:rgba(67,221,138,.5)}
+.btn.is-challenge{background:rgba(255,111,102,.16);border-color:rgba(255,111,102,.55)}
+.btn-gold{background:var(--gold);color:var(--gold-ink);border-color:transparent}
+.btn-gold:hover{background:#ffd866}
+@media (max-width:760px){ .tools .lbl{display:none} }
+
+/* ---------- Mesa ---------- */
+.table{
+  position:relative;flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:10px;
+  width:100%;max-width:1120px;margin:0 auto;
+  padding-block:12px 14px;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px}
+
+.opp{display:flex;flex-direction:column;align-items:center;gap:6px}
+.opp-bar{display:flex;align-items:center;gap:10px;padding:5px 14px;border-radius:999px;font-size:13px;color:var(--ink-soft);flex-wrap:wrap;justify-content:center}
+.opp-bar b{color:var(--ink)}
+.sep{width:1px;height:14px;background:var(--line)}
+.uno-badge{background:var(--red);color:#fff;font:800 11px var(--display);padding:2px 8px;border-radius:999px;animation:pulse 1s infinite}
+.opp-hand{display:flex;justify-content:center;min-height:74px;padding-left:28px;max-width:100%;overflow:hidden}
+
+/* ---------- Cartas ---------- */
+.card{
+  --cw:96px; --ch:142px;
+  position:relative;flex:0 0 auto;width:var(--cw);height:var(--ch);
+  padding:5px;border:0;border-radius:14px;background:#fffdf6;
+  box-shadow:0 10px 18px -8px rgba(0,0,0,.7), 0 0 0 1px rgba(0,0,0,.25);
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s, filter .2s;
+}
+button.card{cursor:pointer}
+.face{position:relative;width:100%;height:100%;border-radius:10px;overflow:hidden;display:grid;place-items:center;background:var(--cc)}
+.c-red{--cc:linear-gradient(150deg,#ff6c5e,#d8342b 55%,#991c17);--ct:#d0302a}
+.c-blue{--cc:linear-gradient(150deg,#5d9cff,#2b63cf 55%,#173d8c);--ct:#2a5fcb}
+.c-green{--cc:linear-gradient(150deg,#45d18b,#16904f 55%,#0b5a30);--ct:#13824a}
+.c-yellow{--cc:linear-gradient(150deg,#ffd75a,#f0a800 55%,#b47300);--ct:#bd7d00}
+.c-wild{--cc:linear-gradient(150deg,#3b4254,#151a24 60%,#05070b);--ct:#fff}
+.oval{position:absolute;width:86%;height:70%;border-radius:50%;transform:rotate(-28deg);background:#fffdf6;box-shadow:inset 0 3px 7px rgba(0,0,0,.22)}
+.c-wild .oval{background:conic-gradient(var(--red) 0 90deg,var(--blue) 0 180deg,var(--yellow) 0 270deg,var(--green) 0);border:3px solid #fff}
+.val{position:relative;z-index:1;font-family:var(--display);font-weight:800;line-height:1;color:var(--ct);letter-spacing:-.02em;text-shadow:1px 2px 0 rgba(0,0,0,.1);white-space:nowrap}
+.v-l{font-size:calc(var(--cw)*.4)}
+.v-m{font-size:calc(var(--cw)*.31)}
+.v-s{font-size:calc(var(--cw)*.24)}
+.c-wild .val{color:#fff;background:rgba(8,10,16,.88);border:2px solid #fff;border-radius:999px;padding:3px 10px;font-size:calc(var(--cw)*.24)}
+sup{font-size:.6em;line-height:0;position:relative;top:-.62em;vertical-align:baseline;margin-left:.04em}
+.corner{position:absolute;z-index:1;font:800 calc(var(--cw)*.14)/1 var(--display);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);white-space:nowrap}
+.corner.tl{top:5px;left:6px}
+.corner.br{bottom:5px;right:6px;transform:rotate(180deg)}
+.pill{position:absolute;z-index:1;bottom:5px;left:5px;font-size:clamp(7.5px,calc(var(--cw)*.085),9.5px);font-weight:900;letter-spacing:.05em;text-transform:uppercase;background:rgba(0,0,0,.32);color:#fff;padding:1px 4px;border-radius:4px}
+.back .face{background:linear-gradient(150deg,#28323f,#0c1119)}
+.back .oval{background:linear-gradient(135deg,var(--red),var(--yellow));box-shadow:none}
+.back-logo{position:relative;z-index:1;transform:rotate(-18deg);text-align:center;font:800 calc(var(--cw)*.21)/1 var(--display);color:#fff;text-shadow:2px 2px 0 #0c1119}
+.back-logo small{display:block;font-size:.6em;color:#0c1119;text-shadow:none;margin-top:2px}
+.card.mini{--cw:48px;--ch:70px;padding:3px;border-radius:8px;margin-left:-28px}
+.card.mini .face{border-radius:6px}
+
+@media (max-width:640px){
+  .card{--cw:72px;--ch:106px;padding:4px;border-radius:11px}
+  .face{border-radius:8px}
+  .corner.br{display:none}
+  .card.mini{--cw:38px;--ch:56px;margin-left:-24px}
+}
+
+/* Símbolo de raiz desenhado (traço + barra sobre o radicando) */
+.rad{position:relative;display:inline-flex;align-items:stretch;line-height:1;padding-left:.06em}
+.rad .rs{flex:0 0 auto;width:.5em;height:auto;overflow:visible;margin-right:-.02em}
+.rad .rs path{fill:none;stroke:currentColor;stroke-width:.085em;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.rad .rc{border-top:.085em solid currentColor;padding:.07em .05em 0 .04em;line-height:.95}
+.rad .ix{position:absolute;left:-.08em;top:.06em;font-size:.42em;line-height:1}
+.rad.has-ix{padding-left:.3em}
+.logo .rad{font:800 18px/1 var(--display);color:var(--gold-ink)}
+.v-xs{font-size:calc(var(--cw)*.2)}
+.q-power .rad .rs path,.eq-top .rad .rs path{stroke-width:.075em}
+
+/* Estados da mão */
+.hand .card:hover{transform:translateY(-8px)}
+.hand .card.is-playable{transform:translateY(-10px);box-shadow:0 16px 24px -10px rgba(67,221,138,.7),0 0 0 3px var(--ok)}
+.hand .card.is-combo{transform:translateY(-14px);box-shadow:0 18px 28px -8px rgba(246,199,68,.8),0 0 0 3.5px var(--gold)}
+@media (hover:hover){
+  .hand .card.is-playable:hover{transform:translateY(-20px) scale(1.05)}
+  .hand .card.is-combo:hover{transform:translateY(-24px) scale(1.07)}
+}
+.hand .card.is-dim{filter:brightness(.6) saturate(.7)}
+.hand .card.is-dim:hover{transform:translateY(-3px)}
+.tag{position:absolute;z-index:3;top:-11px;right:-8px;font:800 11px/1 var(--display);padding:4px 7px;border-radius:999px;border:2px solid #fff;background:var(--gold);color:var(--gold-ink);box-shadow:0 4px 10px rgba(0,0,0,.4);animation:bob 1.2s ease-in-out infinite;white-space:nowrap}
+.tag.drawn{background:#fff;color:var(--felt);border-color:var(--gold);animation:none}
+.shake{animation:shake .35s ease-in-out}
+.pop{animation:pop .3s cubic-bezier(.34,1.56,.64,1)}
+
+/* ---------- Banner ---------- */
+.banner{
+  display:flex;align-items:center;gap:12px;width:100%;max-width:760px;margin:0 auto;min-height:66px;
+  padding:10px 14px;border-radius:16px;background:var(--panel);border:2px solid rgba(246,199,68,.35);
+  transition:border-color .25s, box-shadow .25s, background .25s;
+}
+.b-icon{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:21px;background:rgba(246,199,68,.13)}
+.b-text{min-width:0}
+.b-title{font:800 15px/1.2 var(--display);color:var(--gold);text-wrap:balance}
+.b-body{font-size:13.5px;line-height:1.4;color:var(--ink);margin-top:2px}
+.banner.is-combo{border-color:var(--gold);background:linear-gradient(90deg,rgba(90,60,0,.9),rgba(5,16,34,.92) 55%,rgba(90,60,0,.9));animation:glow 1.4s ease-in-out infinite}
+.banner.is-error{border-color:var(--bad)}
+.banner.is-error .b-title{color:var(--bad)}
+.banner.is-error .b-icon{background:rgba(255,111,102,.16)}
+.banner.is-alert{border-color:var(--red);animation:alarm .8s ease-in-out infinite}
+.banner.is-alert .b-title{color:#ff8f88}
+.banner.is-good .b-title{color:var(--ok)}
+
+/* ---------- Centro ---------- */
+.center{
+  display:grid;grid-template-columns:auto minmax(0,250px) auto;grid-template-areas:"draw status discard";
+  justify-content:center;align-items:center;gap:14px 28px;
+}
+.pile{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.draw-pile{grid-area:draw}
+.discard-pile{grid-area:discard}
+.status{grid-area:status}
+.pile-label{font-size:12px;font-weight:800;color:var(--ink-soft);background:var(--panel);border:1px solid var(--line);padding:2px 10px;border-radius:999px;font-variant-numeric:tabular-nums}
+#drawPile:hover{transform:translateY(-6px)}
+#drawPile:active{transform:scale(.96)}
+#drawPile.is-hint{box-shadow:0 0 0 3px var(--gold),0 14px 26px -8px rgba(246,199,68,.7);animation:bob 1.2s ease-in-out infinite}
+.discard-slot{min-width:var(--cw,96px);display:flex;justify-content:center}
+.float-zone{position:absolute;left:50%;top:0;width:0;height:0;z-index:20}
+.float{position:absolute;left:0;top:0;white-space:nowrap;pointer-events:none;font:800 14px/1 var(--display);padding:6px 12px;border-radius:999px;background:var(--panel-solid);color:var(--ok);border:1.5px solid var(--ok);animation:floatUp 1.7s cubic-bezier(.22,1,.36,1) forwards}
+.float.is-combo{background:var(--gold);color:var(--gold-ink);border-color:#fff;font-size:16px}
+
+.status{display:flex;flex-direction:column;gap:10px;padding:12px}
+.turn{text-align:center;font:800 14px/1.2 var(--display);padding:7px 10px;border-radius:12px;background:rgba(67,221,138,.14);color:var(--ok);border:1px solid rgba(67,221,138,.4)}
+.turn.is-bot{background:rgba(246,199,68,.12);color:var(--gold);border-color:rgba(246,199,68,.4);animation:breath 1.4s ease-in-out infinite}
+.status-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.status-row > div{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;border-radius:12px;background:rgba(255,255,255,.04)}
+.status-row small{font-size:10.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+.color-chip{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13.5px}
+.color-chip i{width:16px;height:16px;border-radius:50%;box-shadow:0 0 0 2px #fff}
+.dot-red{background:var(--red)} .dot-blue{background:var(--blue)} .dot-green{background:var(--green)} .dot-yellow{background:var(--yellow)}
+.result{font:800 22px/1 var(--display);color:var(--gold);font-variant-numeric:tabular-nums}
+.btn-uno{
+  cursor:not-allowed;width:100%;padding:10px;border-radius:12px;font:800 15px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;
+  background:rgba(255,255,255,.05);color:var(--ink-faint);border:1px solid var(--line);
+}
+.btn-uno.is-ready{cursor:pointer;color:#fff;border-color:rgba(255,255,255,.5);background:linear-gradient(90deg,#d42c25,#f2a300);animation:pulse 1s infinite}
+.btn-uno.is-done{color:var(--ok);background:rgba(67,221,138,.12);border-color:rgba(67,221,138,.4);cursor:default}
+.uno-timer{height:7px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.uno-timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--red),var(--yellow))}
+.btn-pass{justify-content:center;width:100%;background:rgba(246,199,68,.14);border-color:rgba(246,199,68,.5);color:var(--gold)}
+
+@media (max-width:620px){
+  .center{grid-template-columns:auto auto;grid-template-areas:"draw discard" "status status";gap:12px 22px}
+  .status{width:100%;max-width:340px;justify-self:center}
+}
+
+/* ---------- Mão do jogador ---------- */
+.me{display:flex;flex-direction:column;gap:6px}
+.me-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;width:100%;max-width:860px;margin:0 auto;padding:0 4px}
+.me-id{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.me-id > b{font:800 17px/1 var(--display)}
+.hint{font-size:13px;font-weight:800;color:var(--ok)}
+.hint.is-gold{color:var(--gold)}
+.hint.is-warn{color:#ffb35c}
+.hint.is-muted{color:var(--ink-soft)}
+.hand-wrap{border-radius:20px;background:rgba(3,10,24,.55);border:1px solid var(--line);box-shadow:inset 0 6px 18px rgba(0,0,0,.35)}
+.hand{display:flex;gap:10px;overflow-x:auto;padding:26px 14px 12px;min-height:186px;scrollbar-width:thin}
+.hand > :first-child{margin-left:auto}
+.hand > :last-child{margin-right:auto}
+.hand-msg{margin:auto;text-align:center;color:var(--ink-soft);font-weight:800;padding:30px 10px}
+@media (max-width:640px){ .hand{min-height:146px;gap:8px;padding:22px 10px 10px} }
+
+/* ---------- Janelas ---------- */
+.modal{
+  position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+  padding:max(16px, env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) max(16px, env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px));
+  background:rgba(3,9,22,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.sheet{
+  width:100%;max-width:540px;max-height:100%;overflow:auto;
+  background:var(--panel-solid);border:1px solid var(--line);border-radius:24px;padding:22px;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.8);animation:pop .3s cubic-bezier(.34,1.56,.64,1);
+}
+.sheet.wide{max-width:720px}
+.sheet h2{margin:0;font:800 26px/1.1 var(--display);text-wrap:balance}
+.eyebrow{font-size:11.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.lead{color:var(--ink-soft);line-height:1.5;margin:6px 0 0}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.x{flex:0 0 auto;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);cursor:pointer;font-size:16px;font-weight:900}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+.howto{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 4px}
+.howto div{padding:10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:12.5px;line-height:1.4;color:var(--ink-soft)}
+.howto b{display:block;font:800 14px/1.2 var(--display);color:var(--ink);margin-bottom:3px}
+.howto .ex{font:800 15px var(--display);color:var(--gold)}
+@media (max-width:520px){ .howto{grid-template-columns:1fr} }
+
+.field-label{font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.seg button{cursor:pointer;text-align:left;padding:10px 12px;border-radius:14px;border:2px solid var(--line);background:rgba(255,255,255,.04);display:flex;flex-direction:column;gap:2px}
+.seg button b{font:800 15px/1.2 var(--display)}
+.seg button small{font-size:11.5px;color:var(--ink-soft);line-height:1.3}
+.seg button[aria-pressed="true"]{border-color:var(--gold);background:rgba(246,199,68,.13)}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:460px){ .names{grid-template-columns:1fr} }
+.input{width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);font:700 15px var(--body);user-select:text}
+.input:focus{border-color:var(--gold);outline:none}
+.big-btn{width:100%;justify-content:center;padding:14px;font:800 18px/1 var(--display);border-radius:16px}
+
+.colors{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.colors button{cursor:pointer;padding:18px 10px;border-radius:16px;border:3px solid rgba(255,255,255,.7);font:800 17px var(--display);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);transition:transform .12s}
+.colors button:hover{transform:scale(1.04)}
+.colors .k-red{background:var(--red)} .colors .k-blue{background:var(--blue)} .colors .k-green{background:var(--green)} .colors .k-yellow{background:var(--yellow);color:var(--gold-ink);text-shadow:none}
+
+/* Pergunta relâmpago */
+.q-head{text-align:center}
+.q-power{font:800 76px/1 var(--display);color:var(--gold);margin:14px 0 4px}
+.q-question{font:800 20px/1.2 var(--display)}
+.q-opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.q-opts button{cursor:pointer;padding:16px 6px;border-radius:16px;border:2px solid var(--line);background:rgba(255,255,255,.06);font:800 28px/1 var(--display);font-variant-numeric:tabular-nums;transition:transform .12s, background .15s}
+.q-opts button:hover:not(:disabled){transform:translateY(-3px);background:rgba(255,255,255,.12)}
+.q-opts button.is-right{background:var(--ok);border-color:var(--ok);color:#06301b}
+.q-opts button.is-wrong{background:var(--bad);border-color:var(--bad);color:#3a0704}
+.q-opts button:disabled{cursor:default}
+.q-feedback{margin-top:14px;padding:12px 14px;border-radius:14px;line-height:1.5;font-size:15px}
+.q-feedback.ok{background:rgba(67,221,138,.13);border:1px solid rgba(67,221,138,.45)}
+.q-feedback.bad{background:rgba(255,111,102,.12);border:1px solid rgba(255,111,102,.45)}
+.q-feedback b{font-family:var(--display);font-size:17px}
+.q-feedback .calc{display:block;font:800 19px/1.3 var(--display);color:var(--gold);margin:4px 0}
+.q-feedback .note{display:block;font-size:13.5px;color:var(--ink-soft)}
+
+/* Regras */
+.rule-block{padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.rule-block h3{margin:0 0 8px;font:800 17px var(--display);color:var(--gold)}
+.rule-block ul{margin:0;padding-left:18px;line-height:1.55;color:var(--ink-soft)}
+.rule-block li b{color:var(--ink)}
+.pts{display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:14px}
+.pts span:nth-child(even){font:800 15px var(--display);color:var(--gold);text-align:right;font-variant-numeric:tabular-nums}
+.pts .hl{color:var(--ink);font-weight:800}
+.errs{display:grid;gap:8px}
+.err{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;padding:10px 12px;border-radius:12px;background:rgba(255,111,102,.08);border:1px solid rgba(255,111,102,.25)}
+.err .no{font:800 17px var(--display);color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
+.err .yes{font:800 17px var(--display);color:var(--ok)}
+.err small{grid-column:1/-1;color:var(--ink-soft);font-size:12.5px}
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.anatomy{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;align-items:center}
+.an-big{font:800 46px/1 var(--display);color:var(--gold);white-space:nowrap;padding:6px 4px}
+.anatomy ul{margin:0}
+@media (max-width:520px){ .anatomy{grid-template-columns:1fr} }
+.eq{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.eq-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:800 19px/1.2 var(--display)}
+.eq-top em{font-style:normal;color:var(--gold)}
+.eq small{display:block;margin-top:3px;color:var(--ink-soft);font-size:12px;line-height:1.35}
+
+/* Fim de jogo */
+.end-icon{font-size:52px;line-height:1;text-align:center}
+.final{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.final > div{padding:12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.final b{display:block;font-size:12.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.final strong{font:800 26px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.final small{display:block;color:var(--gold);font-weight:800;font-size:12px}
+.final .is-winner{border-color:var(--gold);background:rgba(246,199,68,.1)}
+.combo-list{display:flex;flex-direction:column;gap:5px;max-height:140px;overflow:auto;font-size:13px}
+.combo-list div{padding:6px 10px;border-radius:10px;background:rgba(246,199,68,.08);border:1px solid rgba(246,199,68,.25)}
+.notebook{padding:12px 14px;border-radius:14px;background:#f7f3e6;color:#2a2a2a;background-image:repeating-linear-gradient(#f7f3e6 0 23px,#c9d8e8 23px 24px);line-height:24px;font-size:14px}
+.notebook b{color:#b4241d}
+.final-result{text-align:center;font:800 18px var(--display);color:var(--ok)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* Animações */
+@keyframes pop{0%{transform:scale(.7) rotate(-6deg);opacity:0}80%{transform:scale(1.04) rotate(1deg);opacity:1}100%{transform:none;opacity:1}}
+@keyframes shake{0%,100%{translate:0}25%{translate:-8px 0}75%{translate:8px 0}}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -3px}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,66,58,.6)}50%{box-shadow:0 0 22px 5px rgba(226,66,58,.55)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(246,199,68,.4)}50%{box-shadow:0 0 28px 4px rgba(246,199,68,.55)}}
+@keyframes alarm{0%,100%{box-shadow:0 0 0 0 rgba(226,66,58,.5)}50%{box-shadow:0 0 24px 4px rgba(226,66,58,.6)}}
+@keyframes breath{0%,100%{opacity:1}50%{opacity:.65}}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}18%{opacity:1;transform:translate(-50%,-14px) scale(1.1)}80%{opacity:1;transform:translate(-50%,-46px) scale(1)}100%{opacity:0;transform:translate(-50%,-64px) scale(.9)}}
+/* Explosão do UNO! */
+.uno-burst{position:fixed;inset:0;z-index:60;display:grid;place-items:center;pointer-events:none;overflow:hidden}
+.uno-burst .rays{position:absolute;width:160vmax;height:160vmax;background:repeating-conic-gradient(rgba(246,199,68,.35) 0 8deg, transparent 8deg 20deg);border-radius:50%;opacity:0}
+.uno-burst .word{position:relative;font:800 clamp(90px,24vw,240px)/1 var(--display);letter-spacing:.02em;color:#fff;
+  -webkit-text-stroke:6px #b3140e;paint-order:stroke fill;
+  text-shadow:0 8px 0 #7a0c08,0 0 40px rgba(255,90,60,.9),0 0 90px rgba(246,199,68,.8);
+  background:none;transform:scale(0) rotate(-14deg);opacity:0}
+.uno-burst .word::after{content:"";position:absolute;inset:-18% -10%;background:radial-gradient(circle,rgba(246,199,68,.45),transparent 65%);z-index:-1}
+.uno-burst.go .rays{animation:raysIn 1.5s ease-out forwards}
+.uno-burst.go .word{animation:unoWord 1.5s cubic-bezier(.2,1.6,.4,1) forwards}
+.table.quake{animation:quake .45s ease-in-out}
+@keyframes unoWord{0%{transform:scale(0) rotate(-20deg);opacity:0}18%{transform:scale(1.25) rotate(6deg);opacity:1}30%{transform:scale(.95) rotate(-4deg)}42%{transform:scale(1.08) rotate(2deg)}75%{transform:scale(1) rotate(-3deg);opacity:1}100%{transform:scale(1.6) rotate(0);opacity:0}}
+@keyframes raysIn{0%{opacity:0;transform:rotate(0) scale(.3)}25%{opacity:1}100%{opacity:0;transform:rotate(90deg) scale(1)}}
+@keyframes quake{0%,100%{translate:0 0}15%{translate:-10px 4px}30%{translate:9px -5px}45%{translate:-7px 3px}60%{translate:6px -2px}80%{translate:-3px 1px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><span><span class="rad"><svg class="rs" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 62 L18 54 L46 100 L100 0"/></svg><span class="rc">x</span></span></span></div>
+      <div>
+        <h1>UNO da Radiciação</h1>
+        <div class="meta">
+          <span class="chip" id="pillMode">1 jogador</span>
+          <span class="chip" id="pillLevel">Nível médio</span>
+          <span class="chip" id="pillHelp">Com dicas</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scores">
+      <div class="score" id="scoreBoxP1">
+        <span class="av" aria-hidden="true">🧑‍🎓</span>
+        <div><b id="nameP1">Jogador 1</b><span><strong id="ptsP1">0</strong> pts · <span id="cbP1">0</span> combos</span></div>
+      </div>
+      <div class="score" id="scoreBoxP2">
+        <span class="av" id="avP2" aria-hidden="true">🤖</span>
+        <div><b id="nameP2">Prof. Robô</b><span><strong id="ptsP2">0</strong> pts · <span id="cbP2">0</span> combos</span></div>
+      </div>
+    </div>
+
+    <div class="tools">
+      <button class="btn is-on" id="btnHelp" title="Liga ou desliga as dicas (Modo Desafio)"><span aria-hidden="true">💡</span><span class="lbl" id="lblHelp">Dicas ligadas</span></button>
+      <button class="btn is-on" id="btnSound" title="Liga ou desliga a música e os efeitos do jogo"><span id="lblSound" aria-hidden="true">🔊</span><span class="lbl">Som</span> <b id="lblSoundState">ON</b></button>
+      <button class="btn" id="btnFull" title="Tela cheia"><span aria-hidden="true">⛶</span><span class="lbl" id="lblFull">Tela cheia</span></button>
+      <button class="btn" id="btnRules"><span aria-hidden="true">📘</span><span class="lbl">Regras e tabela</span></button>
+      <button class="btn btn-gold" id="btnNew"><span aria-hidden="true">↺</span><span class="lbl">Nova partida</span></button>
+    </div>
+  </header>
+
+  <main class="table">
+    <section class="opp" aria-label="Oponente">
+      <div class="opp-bar panel">
+        <span id="oppIcon" aria-hidden="true">🤖</span><b id="oppName">Prof. Robô</b>
+        <span class="sep"></span><span>Cartas: <b id="oppCount">7</b></span>
+        <span class="sep"></span><span><b id="oppPts">0</b> pts</span>
+        <span class="uno-badge" id="oppUno" hidden>UNO!</span>
+      </div>
+      <div class="opp-hand" id="oppHand"></div>
+    </section>
+
+    <div class="banner" id="banner" role="status" aria-live="polite">
+      <div class="b-icon" id="bIcon" aria-hidden="true">🎓</div>
+      <div class="b-text"><div class="b-title" id="bTitle">Bem-vindo à mesa!</div><div class="b-body" id="bBody">Escolha o modo de jogo para começar.</div></div>
+    </div>
+
+    <section class="center">
+      <div class="pile draw-pile">
+        <button class="card back" id="drawPile" aria-label="Comprar uma carta do monte">
+          <span class="face"><span class="oval"></span><span class="back-logo">UNO<small>√x</small></span></span>
+        </button>
+        <span class="pile-label">Comprar · <b id="deckCount">0</b></span>
+      </div>
+
+      <div class="status panel">
+        <div class="turn" id="turnBadge">Sua vez</div>
+        <div class="status-row">
+          <div><small>Cor da mesa</small><span class="color-chip"><i id="colorDot" class="dot-red"></i><b id="colorName">Vermelho</b></span></div>
+          <div><small>Resultado</small><b class="result" id="resultText">= 8</b></div>
+        </div>
+        <button class="btn-uno" id="btnUno">Gritar UNO!</button>
+        <div class="uno-timer" id="unoTimer" hidden><i id="unoTimerBar"></i></div>
+        <button class="btn btn-pass" id="btnPass" hidden>Passar a vez</button>
+      </div>
+
+      <div class="pile discard-pile">
+        <div class="float-zone" id="floatZone"></div>
+        <div class="discard-slot" id="discard"></div>
+        <span class="pile-label">Mesa</span>
+      </div>
+    </section>
+
+    <section class="me" aria-label="Sua mão">
+      <div class="me-bar">
+        <div class="me-id">
+          <span id="meIcon" aria-hidden="true">🧑‍🎓</span><b id="meName">Sua mão</b>
+          <span class="chip"><b id="meCount">7</b>&nbsp;cartas</span>
+          <span class="chip chip-gold"><b id="mePts">0</b>&nbsp;pts</span>
+          <span class="chip chip-ok" id="meUno" hidden>UNO avisado ✓</span>
+        </div>
+        <div class="hint" id="handHint"></div>
+      </div>
+      <div class="hand-wrap"><div class="hand" id="hand"></div></div>
+    </section>
+  </main>
+</div>
+
+<div class="uno-burst" id="unoBurst" hidden aria-hidden="true"><div class="rays"></div><div class="word">UNO!</div></div>
+
+<!-- Tela inicial / configuração -->
+<div class="modal" id="mSetup" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <div class="eyebrow">Jogo de cartas · Radiciação</div>
+    <h2 id="setupTitle">UNO da Radiciação</h2>
+    <p class="lead">Ligue cada raiz ao seu resultado e descarte todas as cartas primeiro.</p>
+    <div class="howto">
+      <div><b>1. Combine</b>Jogue uma carta da mesma cor <em>ou</em> com o mesmo resultado.</div>
+      <div><b>2. Faça combo 2x</b><span class="ex">√16 → 4</span><br>Raiz sobre o seu resultado vale o dobro!</div>
+      <div><b>3. Grite UNO!</b>Ficou com 1 carta? Aperte o botão rápido!</div>
+    </div>
+    <div class="stack" style="margin-top:14px">
+      <div>
+        <div class="field-label">Jogadores</div>
+        <div class="seg" data-group="players">
+          <button data-value="1p"><b>🤖 1 jogador</b><small>Contra o Prof. Robô</small></button>
+          <button data-value="2p"><b>👥 2 jogadores</b><small>No mesmo aparelho</small></button>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Nível</div>
+        <div class="seg" data-group="level">
+          <button data-value="facil"><b>Fácil</b><small>Só raiz quadrada: √4, √9, √16 … √100</small></button>
+          <button data-value="medio"><b>Médio</b><small>Inclui raiz cúbica (∛8, ∛27…), √0 e √1</small></button>
+          <button data-value="dificil"><b>Difícil</b><small>Inclui ∜16, ⁵√32, √121, √144…</small></button>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Ajuda</div>
+        <div class="seg" data-group="help">
+          <button data-value="dicas"><b>💡 Com dicas</b><small>Mostra o resultado e as cartas que combinam</small></button>
+          <button data-value="desafio"><b>🎯 Modo desafio</b><small>Sem dicas: o aluno calcula sozinho</small></button>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Pergunta relâmpago no combo</div>
+        <div class="seg" data-group="quiz">
+          <button data-value="on"><b>⚡ Ligada</b><small>Para ganhar o combo, responda quanto vale a raiz</small></button>
+          <button data-value="off"><b>Desligada</b><small>O combo vale direto</small></button>
+        </div>
+      </div>
+      <div class="names">
+        <div><label class="field-label" for="inName1">Nome do jogador 1</label><input class="input" id="inName1" maxlength="16" value="Jogador 1" autocomplete="off"></div>
+        <div id="wrapName2"><label class="field-label" for="inName2">Nome do jogador 2</label><input class="input" id="inName2" maxlength="16" value="Jogador 2" autocomplete="off"></div>
+      </div>
+      <button class="btn btn-gold big-btn" id="btnStart">Começar a partida</button>
+    </div>
+  </div>
+</div>
+
+<!-- Troca de aparelho (2 jogadores) -->
+<div class="modal" id="mPass" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" style="text-align:center">
+    <div class="eyebrow">Proteção das cartas</div>
+    <h2 style="margin-top:6px">Vez de <span id="passName" style="color:var(--gold)">Jogador 2</span></h2>
+    <p class="lead">Passe o aparelho. As cartas ficam escondidas até a pessoa certa tocar no botão.</p>
+    <div class="rule-block" style="text-align:left;margin:16px 0">
+      <div class="field-label">O que aconteceu</div>
+      <div id="passSummary" style="font-weight:800;line-height:1.45"></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:13px;color:var(--ink-soft);flex-wrap:wrap">
+        <span>Mesa: <b id="passTop" style="color:var(--ink)"></b></span><span>Cor: <b id="passColor" style="color:var(--gold)"></b></span>
+      </div>
+    </div>
+    <button class="btn btn-gold big-btn" id="btnReveal">Sou eu, mostrar minhas cartas</button>
+  </div>
+</div>
+
+<!-- Escolher cor (curinga) -->
+<div class="modal" id="mColor" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" style="max-width:400px;text-align:center">
+    <div class="eyebrow">Carta curinga</div>
+    <h2 style="margin-top:6px">Escolha a nova cor</h2>
+    <div class="colors">
+      <button class="k-red" data-color="red">Vermelho</button>
+      <button class="k-blue" data-color="blue">Azul</button>
+      <button class="k-green" data-color="green">Verde</button>
+      <button class="k-yellow" data-color="yellow">Amarelo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pergunta relâmpago -->
+<div class="modal" id="mQuiz" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" style="max-width:480px">
+    <div class="q-head">
+      <div class="eyebrow" id="qEyebrow">⚡ Pergunta relâmpago</div>
+      <p class="lead" id="qIntro"></p>
+      <div class="q-power" id="qPower"></div>
+      <div class="q-question" id="qQuestion">Quanto vale?</div>
+    </div>
+    <div class="q-opts" id="qOpts"></div>
+    <div class="q-feedback" id="qFeedback" hidden></div>
+    <button class="btn btn-gold big-btn" id="qNext" style="margin-top:14px" hidden>Continuar</button>
+  </div>
+</div>
+
+<!-- Regras -->
+<div class="modal" id="mRules" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="sheet-head">
+      <div><div class="eyebrow">Consulta rápida</div><h2 id="rulesTitle">Regras e tabela</h2></div>
+      <button class="x" data-close="mRules" aria-label="Fechar">✕</button>
+    </div>
+    <div class="stack">
+      <div class="rule-block">
+        <h3>Como jogar</h3>
+        <ul>
+          <li>Jogue uma carta <b>da mesma cor</b> da mesa, ou <b>com o mesmo resultado</b> (exemplo: √16 pode ir sobre 4 ou sobre ∛64, de qualquer cor).</li>
+          <li>Cartas de ação combinam com a mesma ação: ⊘ bloqueio, ⇄ inverter, +2. Com 2 jogadores, ⇄ funciona como bloqueio.</li>
+          <li>Curingas (★ e +4) podem ser jogados a qualquer momento: você escolhe a cor.</li>
+          <li>Sem carta que combine? <b>Compre 1 carta</b>. Se ela combinar, pode jogá-la; se não, ou se preferir, toque em <b>Passar a vez</b>.</li>
+          <li>Ao ficar com 1 carta, aperte <b>Gritar UNO!</b> em até 3 segundos, ou compre 2 cartas de castigo. Dá para gritar antes, quando ainda tem 2 cartas.</li>
+        </ul>
+      </div>
+      <div class="rule-block">
+        <h3>Pontos</h3>
+        <div class="pts">
+          <span>Jogada comum (cor ou resultado igual)</span><span>+50</span>
+          <span>Carta de ação ou curinga</span><span>+75</span>
+          <span class="hl">Combo 2x: raiz ↔ resultado (2 × 50)</span><span>+100</span>
+          <span>Bater as cartas</span><span>+300</span>
+        </div>
+        <p class="lead" style="font-size:13px">Com a pergunta relâmpago ligada, o combo só vale +100 se você acertar quanto vale a raiz. Errou? A jogada vale +50 e o jogo mostra a conta.</p>
+      </div>
+      <div class="rule-block">
+        <h3>As partes de uma raiz</h3>
+        <div class="anatomy">
+          <div class="an-big"><span class="rad has-ix"><span class="ix">3</span><svg class="rs" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 62 L18 54 L46 100 L100 0"/></svg><span class="rc">8</span></span> = 2</div>
+          <ul>
+            <li><b>3 é o índice:</b> quantas vezes o número se repete na multiplicação.</li>
+            <li><b>8 é o radicando:</b> o número que está dentro da raiz.</li>
+            <li><b>2 é a raiz:</b> o resultado, porque 2 × 2 × 2 = 8.</li>
+            <li>Quando não aparece índice (√), ele é <b>2</b>: raiz quadrada.</li>
+          </ul>
+        </div>
+        <p class="lead" style="font-size:13.5px">A radiciação desfaz a potenciação: √16 = 4 porque 4<sup>2</sup> = 16.</p>
+      </div>
+      <div class="rule-block">
+        <h3>Cuidado com estes erros</h3>
+        <div class="errs">
+          <div class="err"><span class="no">√16 = 8</span><span class="yes">√16 = 4, pois 4 × 4 = 16</span><small>Raiz quadrada não é dividir por 2. Procure o número que, multiplicado por ele mesmo, dá 16.</small></div>
+          <div class="err"><span class="no">∛27 = 9</span><span class="yes">∛27 = 3, pois 3 × 3 × 3 = 27</span><small>Raiz cúbica não é dividir por 3. Procure o número que aparece 3 vezes na multiplicação.</small></div>
+          <div class="err"><span class="no">√1 = 0</span><span class="yes">√1 = 1, pois 1 × 1 = 1</span><small>E √0 = 0, pois 0 × 0 = 0.</small></div>
+          <div class="err"><span class="no">√100 = 50</span><span class="yes">√100 = 10, pois 10 × 10 = 100</span><small>Dica: confira sempre multiplicando a resposta por ela mesma.</small></div>
+        </div>
+      </div>
+      <div class="rule-block">
+        <h3 id="eqTitle">Cartas deste nível</h3>
+        <div class="eq-grid" id="eqGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fim de jogo -->
+<div class="modal" id="mEnd" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <div class="end-icon" id="endIcon" aria-hidden="true">🏆</div>
+    <h2 id="endTitle" style="text-align:center;margin-top:6px">Você venceu!</h2>
+    <p class="lead" id="endSub" style="text-align:center"></p>
+    <div class="stack" style="margin-top:14px">
+      <div class="final">
+        <div id="finBox1"><b id="finName1">Jogador 1</b><strong id="finPts1">0</strong><small><span id="finCb1">0</span> combos 2x</small></div>
+        <div id="finBox2"><b id="finName2">Prof. Robô</b><strong id="finPts2">0</strong><small><span id="finCb2">0</span> combos 2x</small></div>
+      </div>
+      <div>
+        <div class="field-label">Combos da partida</div>
+        <div class="combo-list" id="comboList"></div>
+      </div>
+      <div class="rule-block" style="text-align:center">
+        <h3>🎯 Desafio final</h3>
+        <p class="lead" style="margin:0 0 10px;font-size:13.5px">3 perguntas rápidas para fixar o que você praticou.</p>
+        <div class="final-result" id="finalResult" hidden></div>
+        <button class="btn btn-gold" id="btnFinal" style="margin-top:6px">Fazer o desafio final</button>
+      </div>
+      <div>
+        <div class="field-label">Para o caderno</div>
+        <div class="notebook">Escolha <b>2 combos</b> desta partida e escreva cada um com a conta que prova o resultado.<br>Exemplo: ∛8 = 2, porque 2 × 2 × 2 = 8. Depois, procure <b>outra raiz</b> com o mesmo resultado (√4 = 2).</div>
+      </div>
+      <div class="row2">
+        <button class="btn big-btn" id="btnEndSetup" style="font-size:15px">Mudar opções</button>
+        <button class="btn btn-gold big-btn" id="btnEndAgain" style="font-size:15px">Jogar de novo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   1. CONTEÚDO MATEMÁTICO
+   ============================================================ */
+const COLORS = ['red','blue','green','yellow'];
+const COLOR_NAMES = {red:'Vermelho', blue:'Azul', green:'Verde', yellow:'Amarelo', wild:'Curinga'};
+const SUPS = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+const sup = n => String(n).split('').map(d => SUPS[d]).join('');
+const fmt = n => Number(n).toLocaleString('pt-BR');
+// Raiz: b = radicando, e = índice. Valor = número que, repetido "e" vezes na multiplicação, dá b.
+const RSYM = {2:'√', 3:'∛', 4:'∜'};
+const powPlain = (b,e) => (RSYM[e] || sup(e) + '√') + b;
+const RAD_SVG = '<svg class="rs" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 62 L18 54 L46 100 L100 0"/></svg>';
+const powHTML = (b,e) => `<span class="rad${e > 2 ? ' has-ix' : ''}">${e > 2 ? `<span class="ix">${e}</span>` : ''}${RAD_SVG}<span class="rc">${fmt(b)}</span></span>`;
+const rootOf = (b,e) => Math.round(Math.pow(b, 1 / e));
+
+// Cada grupo: [resultado, [[radicando, índice], ...]]
+const LEVELS = {
+  facil: { name:'Fácil', groups:[
+    [2,[[4,2]]], [3,[[9,2]]], [4,[[16,2]]], [5,[[25,2]]], [6,[[36,2]]], [7,[[49,2]]], [8,[[64,2]]], [9,[[81,2]]], [10,[[100,2]]]
+  ]},
+  medio: { name:'Médio', groups:[
+    [0,[[0,2]]], [1,[[1,2],[1,3]]], [2,[[4,2],[8,3]]], [3,[[9,2],[27,3]]], [4,[[16,2],[64,3]]], [5,[[25,2],[125,3]]],
+    [6,[[36,2]]], [7,[[49,2]]], [8,[[64,2]]], [9,[[81,2]]], [10,[[100,2],[1000,3]]]
+  ]},
+  dificil: { name:'Difícil', groups:[
+    [0,[[0,2],[0,3]]], [1,[[1,2],[1,3],[1,4]]], [2,[[4,2],[8,3],[16,4],[32,5]]], [3,[[9,2],[27,3],[81,4]]],
+    [4,[[16,2],[64,3]]], [5,[[25,2],[125,3]]], [6,[[36,2]]], [7,[[49,2]]], [8,[[64,2]]], [9,[[81,2]]],
+    [10,[[100,2],[1000,3]]], [11,[[121,2]]], [12,[[144,2]]]
+  ]}
+};
+
+const IDX_NAME = {2:'quadrada', 3:'cúbica', 4:'quarta', 5:'quinta'};
+function expansion(b,e){
+  const r = rootOf(b,e);
+  return `${powPlain(b,e)} = ${r}, porque ${Array(e).fill(r).join(' × ')} = ${fmt(b)}`;
+}
+function ruleNote(b,e){
+  const r = rootOf(b,e);
+  const q = `A raiz ${IDX_NAME[e] || ''} pergunta: qual número, repetido ${e} vezes na multiplicação, dá ${fmt(b)}?`;
+  if (b === 0) return `${q} Só o 0, porque 0 vezes qualquer número é 0.`;
+  if (b === 1) return `${q} O 1, porque 1 × 1 sempre dá 1. Não é 0!`;
+  if (b % e === 0 && b / e !== r) return `Cuidado: não é ${fmt(b)} ÷ ${e} = ${fmt(b / e)}. ${q}`;
+  return q;
+}
+// Explicação feita sob medida para a resposta errada escolhida
+function wrongNote(b,e,x){
+  const prova = `${Array(e).fill(x).join(' × ')} = ${fmt(x ** e)}`;
+  let start = '';
+  if (b % e === 0 && x === b / e && x !== rootOf(b,e)) start = `Você dividiu ${fmt(b)} por ${e}, mas raiz não é divisão. `;
+  else if (x === rootOf(b,e) * e) start = `Você multiplicou a raiz pelo índice ${e}. `;
+  return `${start}Confira o ${x}: ${prova}, e não ${fmt(b)}.`;
+}
+function distractors(b,e){
+  // Alternativas erradas = erros reais dos alunos
+  const r = rootOf(b,e), out = [];
+  const add = x => { if (Number.isInteger(x) && x >= 0 && x !== r && x !== b && !out.includes(x)) out.push(x); };
+  if (b === 1) add(0);              // acha que raiz de 1 é 0
+  if (b === 0) add(1);
+  if (b % e === 0) add(b / e);      // divide pelo índice (√16 = 8)
+  add(r + 1);                       // erra a tabuada por um número
+  add(r * e);                       // multiplica a raiz pelo índice
+  add(r - 1); add(r + 2);
+  return out.slice(0, 2);
+}
+
+/* ============================================================
+   2. ESTADO
+   ============================================================ */
+const settings = { players:'1p', level:'medio', help:'dicas', quiz:'on' };
+let draft = { ...settings };
+const names = { p1:'Jogador 1', p2:'Prof. Robô' };
+
+let deck = [], discard = [], hands = { p1:[], p2:[] };
+let turn = 'p1', activeColor = 'red';
+let scores = { p1:0, p2:0 }, combos = { p1:0, p2:0 }, history = [];
+let unoCalled = { p1:false, p2:false };
+let drawnCardId = null;       // carta comprada nesta vez (só ela pode ser jogada)
+let busy = false;             // trava enquanto uma jogada acontece
+let waitingPass = false, gameOver = false;
+let unoWin = null;            // janela de 3 s para gritar UNO
+let gameId = 0, lastTopId = null, lastSummary = '';
+
+const $ = id => document.getElementById(id);
+const other = a => a === 'p1' ? 'p2' : 'p1';
+const hints = () => settings.help === 'dicas';
+const isBot = a => settings.players === '1p' && a === 'p2';
+const isHumanActor = a => !isBot(a);
+const bottomActor = () => settings.players === '1p' ? 'p1' : turn;
+const topCard = () => discard[discard.length - 1];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const shuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function isHumanTurn(){ return !gameOver && !busy && !waitingPass && !unoWin && isHumanActor(turn); }
+
+/* ============================================================
+   3. SONS (Web Audio — começa só depois de um toque)
+   ============================================================ */
+let actx = null, soundOn = true, bgm = null, bgmStep = 0, musicQuietUntil = 0;
+const quietMusic = ms => { musicQuietUntil = Date.now() + ms; };
+function audio(){
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+  } catch (e) { actx = null; }
+  return actx;
+}
+function tone(f, d = .12, type = 'sine', delay = 0, vol = .12){
+  if (!soundOn) return;
+  const c = audio(); if (!c) return;
+  try {
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + .02);
+  } catch (e) {}
+}
+const sfx = {
+  play(){ tone(520,.09,'triangle'); tone(690,.11,'triangle',.06); },
+  draw(){ tone(380,.08); tone(490,.1,'sine',.06); },
+  combo(){ quietMusic(1200); [587,784,988,1175,1568].forEach((f,i) => tone(f, i > 2 ? .3 : .1, i > 2 ? 'triangle' : 'square', i * .08, .11)); },
+  error(){ tone(210,.15,'sawtooth',0,.09); tone(165,.2,'sawtooth',.12,.09); },
+  uno(){ unoShout(); },
+  right(){ tone(660,.1,'triangle'); tone(880,.1,'triangle',.08); tone(1175,.2,'triangle',.16); },
+  win(){ [523,659,784,1047,784,1047].forEach((f,i) => tone(f,.22,'triangle',[0,.11,.22,.34,.5,.63][i],.14)); },
+  tick(){ tone(950,.04,'square',0,.05); }
+};
+// Voz do navegador (fala a palavra em voz alta)
+let ptVoice = null;
+function pickVoice(){
+  try {
+    const vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    ptVoice = vs.find(v => /pt[-_]BR/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
+  } catch (e) { ptVoice = null; }
+}
+if (window.speechSynthesis) { pickVoice(); try { speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {} }
+function speak(text, pitch = 1.1, rate = 1.05, delay = 120){
+  if (!soundOn || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-BR'; if (ptVoice) u.voice = ptVoice;
+    u.rate = rate; u.pitch = pitch; u.volume = 1;
+    setTimeout(() => { try { speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }, delay);
+  } catch (e) {}
+}
+
+/* ---------- GRITO DO UNO (buzina de estádio + torcida + voz + explosão na tela) ---------- */
+function loudBus(c){
+  // compressor: deixa o som bem alto sem estourar
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -18; comp.knee.value = 6; comp.ratio.value = 8; comp.attack.value = .002; comp.release.value = .25;
+  const master = c.createGain(); master.gain.value = .9;
+  comp.connect(master); master.connect(c.destination);
+  return comp;
+}
+function airHorn(c, out, t, dur){
+  // buzina de torcida: acorde forte com vibrato
+  [233.1, 293.7, 349.2, 466.2].forEach((f, i) => {
+    const o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(f * .94, t); o.frequency.exponentialRampToValueAtTime(f, t + .08);
+    o.detune.value = (i - 1.5) * 7;
+    lfo.frequency.value = 7; lg.gain.value = f * .012; lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.22, t + .03);
+    g.gain.setValueAtTime(.22, t + dur - .08); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g); g.connect(out); o.start(t); lfo.start(t); o.stop(t + dur + .02); lfo.stop(t + dur + .02);
+  });
+}
+function crowd(c, out, t, dur){
+  // torcida vibrando: ruído filtrado que sobe e desce
+  const len = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = c.createBufferSource(); src.buffer = buf;
+  const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(700, t); bp.frequency.linearRampToValueAtTime(1500, t + dur * .4); bp.Q.value = .7;
+  const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .15); g.gain.setValueAtTime(.5, t + dur * .55); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  src.connect(bp); bp.connect(g); g.connect(out); src.start(t); src.stop(t + dur);
+}
+function unoShout(){
+  showUnoBurst();
+  if (!soundOn) return;
+  quietMusic(2600);
+  // voz empolgada: aguda, rápida e no volume máximo, antes da buzina
+  speak('UNO!!!', 2, 1.2, 0);
+  const c = audio();
+  if (c) {
+    try {
+      const out = loudBus(c), t = c.currentTime + .75;
+      airHorn(c, out, t, .32);           // TÓÓÓ
+      airHorn(c, out, t + .38, .7);      // TÓÓÓÓÓÓ
+      crowd(c, out, t + .2, 1.8);        // torcida
+      [523, 659, 784, 1047].forEach((f, i) => {   // fanfarra final
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'square'; o.frequency.value = f;
+        g.gain.setValueAtTime(.12, t + 1.1 + i * .07); g.gain.exponentialRampToValueAtTime(.001, t + 1.1 + i * .07 + .25);
+        o.connect(g); g.connect(out); o.start(t + 1.1 + i * .07); o.stop(t + 1.4 + i * .07);
+      });
+    } catch (e) {}
+  }
+}
+function showUnoBurst(){
+  const el = $('unoBurst'); if (!el) return;
+  el.hidden = false; el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+  const tbl = document.querySelector('.table');
+  if (tbl) { tbl.classList.remove('quake'); void tbl.offsetWidth; tbl.classList.add('quake'); }
+  clearTimeout(showUnoBurst.t);
+  showUnoBurst.t = setTimeout(() => { el.hidden = true; el.classList.remove('go'); }, 1500);
+}
+
+const MEL = [523,659,784,659,880,784,659,587,523,659,784,1047,988,784,698,587,440,523,659,523,698,659,587,523,587,698,784,880,784,659,587,523];
+const BAS = [131,131,196,196,220,220,196,196,175,175,131,131,147,147,196,196,220,220,165,165,175,175,131,131,147,147,196,196,131,196,131,131];
+function startMusic(){
+  if (bgm) return;
+  bgm = setInterval(() => {
+    const c = actx; if (!soundOn || !c || c.state !== 'running' || Date.now() < musicQuietUntil) return;
+    const t = c.currentTime;
+    const voice = (f, type, vol, d) => { const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0008, t + d); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + .02); };
+    voice(MEL[bgmStep % MEL.length], 'triangle', .022, .22);
+    if (bgmStep % 2 === 0) voice(BAS[bgmStep % BAS.length], 'sine', .035, .44);
+    bgmStep++;
+  }, 260);
+}
+function stopMusic(){ if (bgm) { clearInterval(bgm); bgm = null; } }
+
+/* ============================================================
+   4. BARALHO
+   ============================================================ */
+function mathCard(id, color, value, b, e){
+  const pow = b !== undefined;
+  return { id, color, type:'math', value, kind: pow ? 'Raiz' : 'Resultado', base:b, exp:e,
+           html: pow ? powHTML(b,e) : fmt(value), plain: pow ? powPlain(b,e) : fmt(value) };
+}
+const ACTIONS = {
+  skip:   { html:'⊘', plain:'Bloqueio', kind:'Ação' },
+  reverse:{ html:'⇄', plain:'Inverter', kind:'Ação' },
+  draw2:  { html:'+2', plain:'+2', kind:'Ação' },
+  wild:   { html:'★', plain:'Curinga', kind:'Curinga' },
+  wild4:  { html:'+4', plain:'Curinga +4', kind:'Curinga' }
+};
+function actionCard(id, color, type){ return { id, color, type, value:null, ...ACTIONS[type] }; }
+
+function buildDeck(level){
+  let id = 1; const d = [];
+  LEVELS[level].groups.forEach(([v, powers], gi) => {
+    // 8 cartas por resultado: 4 raízes + 4 resultados, uma de cada cor
+    for (let i = 0; i < 4; i++) { const [b,e] = powers[i % powers.length]; d.push(mathCard(id++, COLORS[(i + gi) % 4], v, b, e)); }
+    for (let i = 0; i < 4; i++) d.push(mathCard(id++, COLORS[(i + gi + 1) % 4], v));
+  });
+  COLORS.forEach(c => ['skip','reverse','draw2'].forEach(t => d.push(actionCard(id++, c, t))));
+  for (let i = 0; i < 4; i++) { d.push(actionCard(id++, 'wild', 'wild')); d.push(actionCard(id++, 'wild', 'wild4')); }
+  return shuffle(d);
+}
+function drawFromDeck(){
+  if (deck.length === 0 && discard.length > 1) {
+    const top = discard.pop();
+    deck = shuffle(discard); discard = [top];
+    setBanner('Monte embaralhado de novo', 'O monte acabou. As cartas da mesa voltaram para o monte.', '🔄');
+  }
+  return deck.pop() || null;
+}
+function giveCards(actor, n){
+  let got = 0;
+  for (let i = 0; i < n; i++) { const c = drawFromDeck(); if (c) { hands[actor].push(c); got++; } }
+  if (got) unoCalled[actor] = false;
+  return got;
+}
+function powersOf(v){
+  const g = LEVELS[settings.level].groups.find(x => x[0] === v);
+  return g ? g[1].map(([b,e]) => powPlain(b,e)).join(' = ') : '';
+}
+
+/* ============================================================
+   5. REGRAS DA JOGADA
+   ============================================================ */
+function canPlay(card){
+  const top = topCard(); if (!top || !card) return false;
+  if (drawnCardId !== null && card.id !== drawnCardId) return false;
+  if (card.color === 'wild') return true;
+  if (card.color === activeColor) return true;
+  if (card.type === 'math' && top.type === 'math' && card.value === top.value) return true;
+  if (card.type !== 'math' && card.type === top.type) return true;
+  return false;
+}
+function isCombo(card, top){
+  return !!(card && top && card.type === 'math' && top.type === 'math' && card.value === top.value && card.plain !== top.plain);
+}
+
+/* ============================================================
+   6. DESENHO DA MESA
+   ============================================================ */
+function sizeClass(card){
+  if (card.type !== 'math') return 'v-l';
+  const len = card.kind === 'Raiz'
+    ? String(card.base).length + .75 + (card.exp > 2 ? .3 : 0)
+    : card.plain.replace('.', '').length + (card.plain.includes('.') ? .3 : 0);
+  return len <= 2 ? 'v-l' : len <= 3 ? 'v-m' : len <= 4.2 ? 'v-s' : 'v-xs';
+}
+function cardHTML(card, { el = 'div', cls = '', attrs = '', tag = '' } = {}){
+  const pill = card.type === 'math' ? (card.kind === 'Raiz' ? 'Raiz' : 'Resultado') : card.kind;
+  return `<${el} class="card c-${card.color} ${cls}" ${attrs}>${tag}<span class="face">
+    <span class="corner tl">${card.html}</span><span class="oval"></span>
+    <span class="val ${sizeClass(card)}">${card.html}</span>
+    <span class="pill">${pill}</span><span class="corner br">${card.html}</span></span></${el}>`;
+}
+const backHTML = cls => `<div class="card back ${cls}"><span class="face"><span class="oval"></span><span class="back-logo">UNO<small>√x</small></span></span></div>`;
+
+function setBanner(title, body, icon = '🎓', variant = ''){
+  $('bTitle').textContent = title;
+  $('bBody').textContent = body;
+  $('bIcon').textContent = icon;
+  $('banner').className = 'banner' + (variant ? ' is-' + variant : '');
+}
+
+function render(){
+  // Cabeçalho
+  $('nameP1').textContent = names.p1; $('nameP2').textContent = names.p2;
+  $('ptsP1').textContent = scores.p1; $('ptsP2').textContent = scores.p2;
+  $('cbP1').textContent = combos.p1;  $('cbP2').textContent = combos.p2;
+  $('avP2').textContent = settings.players === '1p' ? '🤖' : '🧑‍💻';
+  $('scoreBoxP1').classList.toggle('is-turn', !gameOver && turn === 'p1');
+  $('scoreBoxP2').classList.toggle('is-turn', !gameOver && turn === 'p2');
+  $('pillMode').textContent = settings.players === '1p' ? '1 jogador' : '2 jogadores';
+  $('pillLevel').textContent = 'Nível ' + LEVELS[settings.level].name.toLowerCase();
+  $('pillHelp').textContent = hints() ? 'Com dicas' : 'Modo desafio';
+  $('btnHelp').className = 'btn ' + (hints() ? 'is-on' : 'is-challenge');
+  $('lblHelp').textContent = hints() ? 'Dicas ligadas' : 'Modo desafio';
+
+  // Oponente
+  const bot = bottomActor(), opp = other(bot), oh = hands[opp];
+  $('oppIcon').textContent = isBot(opp) ? '🤖' : '🧑';
+  $('oppName').textContent = names[opp];
+  $('oppCount').textContent = oh.length;
+  $('oppPts').textContent = scores[opp];
+  $('oppUno').hidden = oh.length !== 1;
+  $('oppHand').innerHTML = Array.from({ length: Math.min(oh.length, 12) }, () => backHTML('mini')).join('');
+
+  // Centro
+  const top = topCard();
+  if (top) {
+    const anim = top.id !== lastTopId ? 'pop' : '';
+    lastTopId = top.id;
+    $('discard').innerHTML = cardHTML(top, { cls: anim });
+  }
+  $('deckCount').textContent = deck.length;
+  $('colorDot').className = 'dot-' + activeColor;
+  $('colorName').textContent = COLOR_NAMES[activeColor];
+  const rt = $('resultText');
+  if (top && top.type === 'math') { rt.textContent = hints() ? '= ' + fmt(top.value) : '?'; rt.title = hints() ? '' : 'Modo desafio: calcule você!'; }
+  else { rt.textContent = top ? top.html.replace(/<[^>]+>/g,'') : '–'; rt.title = ''; }
+
+  const tb = $('turnBadge');
+  if (gameOver) { tb.className = 'turn'; tb.textContent = 'Partida encerrada'; }
+  else if (isBot(turn)) { tb.className = 'turn is-bot'; tb.textContent = '🤖 Vez do Prof. Robô…'; }
+  else if (settings.players === '1p') { tb.className = 'turn'; tb.textContent = '🟢 Sua vez'; }
+  else { tb.className = 'turn'; tb.textContent = '🎯 Vez de ' + names[turn]; }
+
+  // UNO e Passar
+  const me = bottomActor(), myHand = hands[me];
+  const canShout = !!unoWin || (isHumanTurn() && myHand.length === 2 && !unoCalled[turn]);
+  const done = unoCalled[me] && myHand.length <= 2;
+  const ub = $('btnUno');
+  ub.className = 'btn-uno' + (canShout ? ' is-ready' : done ? ' is-done' : '');
+  ub.textContent = canShout ? '🚨 Gritar UNO!' : done ? '✓ UNO avisado' : 'Gritar UNO!';
+  $('btnPass').hidden = !(isHumanTurn() && drawnCardId !== null);
+  $('drawPile').classList.remove('is-hint');
+
+  // Mão
+  $('meIcon').textContent = me === 'p1' ? '🧑‍🎓' : '🧑‍💻';
+  $('meName').textContent = settings.players === '1p' ? 'Sua mão' : 'Mão de ' + names[me];
+  $('meCount').textContent = myHand.length;
+  $('mePts').textContent = scores[me];
+  $('meUno').hidden = !done;
+  renderHand(me, top);
+}
+
+function renderHand(me, top){
+  const handEl = $('hand'), hint = $('handHint');
+  if (waitingPass) {
+    handEl.innerHTML = `<div class="hand-msg">🔒 Cartas escondidas até ${names[turn]} pegar o aparelho.</div>`;
+    hint.textContent = ''; return;
+  }
+  const ready = isHumanTurn() && turn === me;
+  let playable = 0, comboN = 0;
+  handEl.innerHTML = hands[me].map((card, i) => {
+    let cls = '', tag = '';
+    if (ready) {
+      const ok = canPlay(card), cb = ok && isCombo(card, top);
+      if (ok) playable++; if (cb) comboN++;
+      if (hints()) { cls = cb ? 'is-combo' : ok ? 'is-playable' : 'is-dim'; if (cb) tag = '<span class="tag">2x!</span>'; }
+      if (card.id === drawnCardId) { tag = `<span class="tag drawn">Comprada</span>`; if (!hints()) cls = 'is-playable'; }
+    }
+    const label = `Carta ${card.plain}, ${COLOR_NAMES[card.color]}`;
+    return cardHTML(card, { el:'button', cls, tag, attrs:`data-i="${i}" aria-label="${label}"` });
+  }).join('');
+
+  hint.className = 'hint';
+  if (gameOver) { hint.textContent = ''; return; }
+  if (!ready) { hint.className = 'hint is-muted'; hint.textContent = isBot(turn) ? 'O Prof. Robô está pensando…' : ''; return; }
+  if (drawnCardId !== null) { hint.className = 'hint is-gold'; hint.textContent = 'Jogue a carta comprada ou toque em “Passar a vez”.'; return; }
+  if (!hints()) { hint.className = 'hint is-muted'; hint.textContent = '🎯 Modo desafio: descubra quais cartas combinam!'; return; }
+  if (comboN) { hint.className = 'hint is-gold'; hint.textContent = `🔥 ${comboN} combo${comboN > 1 ? 's' : ''} 2x disponível${comboN > 1 ? 'is' : ''}!`; }
+  else if (playable) hint.textContent = `✨ ${playable} carta${playable > 1 ? 's combinam' : ' combina'} com a mesa`;
+  else { hint.className = 'hint is-warn'; hint.textContent = 'Nenhuma carta combina: compre 1 carta do monte.'; $('drawPile').classList.add('is-hint'); }
+}
+
+function floatScore(text, combo){
+  const z = $('floatZone'), b = document.createElement('div');
+  b.className = 'float' + (combo ? ' is-combo' : '');
+  b.textContent = text; z.appendChild(b);
+  setTimeout(() => b.remove(), 1750);
+}
+
+/* ============================================================
+   7. JANELAS
+   ============================================================ */
+function show(id){ $(id).hidden = false; }
+function hide(id){ $(id).hidden = true; }
+
+function pickColor(){
+  return new Promise(resolve => {
+    show('mColor');
+    $('mColor').querySelectorAll('[data-color]').forEach(b => {
+      b.onclick = () => { hide('mColor'); resolve(b.dataset.color); };
+    });
+  });
+}
+
+// Pergunta relâmpago. Resolve com true (acertou) ou false (errou).
+function askQuiz(b, e, { eyebrow = '⚡ Pergunta relâmpago', intro = '' } = {}){
+  return new Promise(resolve => {
+    const v = rootOf(b, e);
+    const opts = shuffle([v, ...distractors(b, e)]);
+    $('qEyebrow').textContent = eyebrow;
+    $('qIntro').textContent = intro; $('qIntro').hidden = !intro;
+    $('qPower').innerHTML = powHTML(b, e);
+    $('qQuestion').textContent = 'Quanto vale esta raiz?';
+    const fb = $('qFeedback'), next = $('qNext');
+    fb.hidden = true; next.hidden = true;
+    $('qOpts').innerHTML = opts.map(o => `<button data-v="${o}">${fmt(o)}</button>`).join('');
+    $('qOpts').querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        const chosen = Number(btn.dataset.v), ok = chosen === v;
+        $('qOpts').querySelectorAll('button').forEach(x => {
+          x.disabled = true;
+          if (Number(x.dataset.v) === v) x.classList.add('is-right');
+        });
+        if (!ok) btn.classList.add('is-wrong');
+        ok ? sfx.right() : sfx.error();
+        fb.className = 'q-feedback ' + (ok ? 'ok' : 'bad');
+        fb.innerHTML = `<b>${ok ? '✅ Acertou!' : '❌ Quase! A resposta é ' + fmt(v) + '.'}</b>
+          <span class="calc">${expansion(b, e)}</span><span class="note">${ok ? ruleNote(b, e) : wrongNote(b, e, chosen)}</span>`;
+        fb.hidden = false; next.hidden = false; next.focus();
+        next.onclick = () => { hide('mQuiz'); if (window.GAMIFICA) GAMIFICA.contar(ok); resolve(ok); };
+      };
+    });
+    show('mQuiz');
+  });
+}
+
+/* ============================================================
+   8. AÇÕES DO JOGADOR
+   ============================================================ */
+async function onCardClick(i){
+  audio();
+  if (!isHumanTurn()) return;
+  const actor = turn, card = hands[actor][i], top = topCard();
+  if (!card) return;
+  if (!canPlay(card)) {
+    sfx.error();
+    const el = $('hand').querySelector(`[data-i="${i}"]`);
+    if (el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+    let msg;
+    if (drawnCardId !== null) msg = 'Você já comprou nesta vez. Só pode jogar a carta comprada (marcada) ou passar a vez.';
+    else if (hints()) {
+      msg = `A mesa pede a cor ${COLOR_NAMES[activeColor]}${top.type === 'math' ? ' ou uma carta que valha ' + fmt(top.value) : ''}.`;
+      if (card.type === 'math') msg += card.kind === 'Raiz' ? ` Sua carta: ${expansion(card.base, card.exp)}.` : ` Sua carta vale ${card.plain}.`;
+    } else msg = `Precisa ser da cor ${COLOR_NAMES[activeColor]}${top.type === 'math' ? ' ou ter o mesmo resultado da carta da mesa' : ''}. Tente outra!`;
+    setBanner(`${card.plain} não combina`, msg, '✋', 'error');
+    return;
+  }
+  let color = card.color;
+  if (color === 'wild') { busy = true; color = await pickColor(); busy = false; }
+  playCard(actor, i, color);
+}
+
+function onDraw(){
+  audio();
+  if (!isHumanTurn()) return;
+  const actor = turn;
+  if (drawnCardId !== null) {
+    sfx.error();
+    setBanner('Só 1 compra por vez', 'Jogue a carta que você comprou ou toque em “Passar a vez”.', '✋', 'error');
+    return;
+  }
+  const c = drawFromDeck();
+  if (!c) { setBanner('Monte vazio', 'Não há cartas para comprar. A vez passou.', '🃏'); endTurn(other(actor), `${names[actor]} passou a vez (monte vazio).`); return; }
+  hands[actor].push(c); unoCalled[actor] = false; sfx.draw();
+  if (canPlay(c)) {
+    drawnCardId = c.id;
+    const cb = isCombo(c, topCard());
+    setBanner(`Você comprou ${c.plain}`,
+      hints() ? (cb ? 'Ela faz combo 2x com a mesa! Jogue agora ou passe a vez.' : 'Ela combina com a mesa. Jogue agora ou passe a vez.') : 'Jogue a carta comprada, se ela combinar, ou passe a vez.',
+      '🃏', cb && hints() ? 'combo' : '');
+    render();
+  } else {
+    setBanner(`Você comprou ${c.plain}`, 'Ela não combina com a mesa. A vez passou.', '🃏');
+    endTurn(other(actor), `${names[actor]} comprou 1 carta e passou a vez.`);
+  }
+}
+
+function onPass(){
+  if (!isHumanTurn() || drawnCardId === null) return;
+  const actor = turn;
+  setBanner('Vez passada', `${names[actor]} ficou com a carta comprada e passou a vez.`, '⏭️');
+  endTurn(other(actor), `${names[actor]} comprou 1 carta e passou a vez.`);
+}
+
+function unoWindow(actor){
+  return new Promise(resolve => {
+    const bar = $('unoTimerBar');
+    $('unoTimer').hidden = false;
+    bar.style.transition = 'none'; bar.style.width = '100%';
+    void bar.offsetWidth;
+    bar.style.transition = 'width 3s linear'; bar.style.width = '0%';
+    const ticks = [setTimeout(sfx.tick, 1000), setTimeout(sfx.tick, 2000)];
+    const finish = called => {
+      clearTimeout(unoWin.timer); ticks.forEach(clearTimeout);
+      unoWin = null; $('unoTimer').hidden = true; resolve(called);
+    };
+    unoWin = { actor, finish, timer: setTimeout(() => finish(false), 3000) };
+    setBanner('Rápido! Grite UNO!', `${names[actor]} ficou com 1 carta. Aperte “Gritar UNO!” antes que a barra acabe.`, '🚨', 'alert');
+    render();
+  });
+}
+
+function onUno(){
+  audio();
+  if (unoWin) {
+    const a = unoWin.actor;
+    unoCalled[a] = true; sfx.uno();
+    setBanner('UNO gritado a tempo!', `${names[a]} avisou que tem só 1 carta. Escapou do castigo!`, '🚨', 'good');
+    unoWin.finish(true); render(); return;
+  }
+  if (!isHumanTurn()) return;
+  const a = turn;
+  if (hands[a].length === 2 && !unoCalled[a]) {
+    unoCalled[a] = true; sfx.uno();
+    setBanner('UNO avisado!', `${names[a]} avisou antes de jogar a penúltima carta.`, '🚨', 'good');
+    render();
+  }
+}
+
+/* ============================================================
+   9. JOGADA, PONTOS E TURNOS
+   ============================================================ */
+async function playCard(actor, idx, color){
+  const g = gameId;
+  busy = true;
+  const hand = hands[actor], prev = topCard();
+  const card = hand.splice(idx, 1)[0];
+  discard.push(card); activeColor = color; drawnCardId = null;
+  sfx.play(); render();
+
+  const name = names[actor];
+  let pts, comboOk = false, summary;
+
+  if (isCombo(card, prev)) {
+    const pow = card.kind === 'Raiz' ? card : prev;
+    let ok = true;
+    if (isHumanActor(actor) && settings.quiz === 'on') {
+      await sleep(350);
+      ok = await askQuiz(pow.base, pow.exp, { intro: `${name} jogou ${card.plain} sobre ${prev.plain}. Acerte para ganhar o combo!` });
+      if (g !== gameId) return;
+    }
+    if (ok) {
+      pts = 100; comboOk = true; combos[actor]++;
+      history.push({ who: name, text: `${card.plain} = ${prev.plain}`, calc: expansion(pow.base, pow.exp) });
+      sfx.combo();
+      setBanner(`Combo 2x! ${card.plain} = ${prev.plain}`, `${name} ligou a raiz ao seu resultado: ${expansion(pow.base, pow.exp)}. Pontos em dobro: +100!`, '🔥', 'combo');
+      summary = `${name} fez combo 2x: ${card.plain} = ${prev.plain} (+100)`;
+    } else {
+      pts = 50;
+      setBanner('Jogada valeu, combo não', `${name} errou a pergunta e ganhou +50 (jogada comum). Lembre: ${expansion(pow.base, pow.exp)}.`, '📘');
+      summary = `${name} jogou ${card.plain} (+50)`;
+    }
+  } else if (card.type === 'math') {
+    pts = 50;
+    let body;
+    if (hints()) body = card.kind === 'Raiz' ? `${expansion(card.base, card.exp)}. Ligue uma raiz ao seu resultado para ganhar o dobro!` : `${card.plain} é o resultado de ${powersOf(card.value)}. Ligue raiz e resultado para ganhar o dobro!`;
+    else body = 'Ligue uma raiz ao seu resultado para ganhar o dobro de pontos!';
+    setBanner(`${name} jogou ${card.plain} · +50`, body, isBot(actor) ? '🤖' : '🃏');
+    summary = `${name} jogou ${card.plain} (+50)`;
+  } else {
+    pts = 75;
+    summary = `${name} jogou ${card.plain} (+75)`;
+  }
+  scores[actor] += pts;
+  floatScore(comboOk ? '🔥 +100 · 2x' : `+${pts}`, comboOk);
+
+  if (hand.length === 0) {
+    scores[actor] += 300; render();
+    await sleep(500); if (g !== gameId) return;
+    endGame(actor); return;
+  }
+
+  // Efeitos das cartas de ação
+  const opp = other(actor); let keep = false;
+  if (card.type === 'skip' || card.type === 'reverse') {
+    keep = true;
+    setBanner(`${card.plain}! · +75`, `${names[opp]} perdeu a vez. ${name} joga de novo.`, '⊘');
+  } else if (card.type === 'draw2') {
+    keep = true; giveCards(opp, 2);
+    setBanner('+2! · +75', `${names[opp]} comprou 2 cartas e perdeu a vez. ${name} joga de novo.`, '💥');
+  } else if (card.type === 'wild') {
+    setBanner('Curinga! · +75', `${name} escolheu a cor ${COLOR_NAMES[color]}.`, '★');
+  } else if (card.type === 'wild4') {
+    keep = true; giveCards(opp, 4);
+    setBanner('Curinga +4! · +75', `Nova cor: ${COLOR_NAMES[color]}. ${names[opp]} comprou 4 cartas e perdeu a vez.`, '💥');
+  }
+  if (keep) summary += ` · ${names[opp]} perdeu a vez`;
+  render();
+
+  // Regra do UNO
+  if (hand.length === 1 && !unoCalled[actor]) {
+    if (isHumanActor(actor)) {
+      await sleep(comboOk ? 900 : 300); if (g !== gameId) return;
+      const called = await unoWindow(actor); if (g !== gameId) return;
+      if (!called) {
+        sfx.error(); giveCards(actor, 2);
+        setBanner('Esqueceu o UNO! +2 cartas', `${names[actor]} não gritou UNO a tempo e comprou 2 cartas de castigo.`, '⚠️', 'error');
+        summary += ' · esqueceu o UNO (+2 cartas)';
+      }
+    } else {
+      await sleep(700); if (g !== gameId) return;
+      if (Math.random() < 0.8) { unoCalled[actor] = true; sfx.uno(); setBanner('O Prof. Robô gritou UNO!', 'Ele tem só 1 carta. Fique de olho!', '🤖', 'alert'); }
+      else { giveCards(actor, 2); sfx.error(); setBanner('O Prof. Robô esqueceu o UNO!', 'Ele comprou 2 cartas de castigo.', '🤖', 'good'); }
+    }
+  }
+
+  busy = false;
+  if (gameOver || g !== gameId) return;
+  if (keep) {
+    turn = actor; render();
+    if (isBot(actor)) scheduleBot();
+    else if (settings.players === '2p') lastSummary = summary;
+  } else endTurn(opp, summary);
+}
+
+function endTurn(next, summary){
+  drawnCardId = null; busy = false;
+  if (summary) lastSummary = summary;
+  turn = next;
+  if (settings.players === '2p') {
+    waitingPass = true; render();
+    const top = topCard();
+    $('passName').textContent = names[next];
+    $('passSummary').textContent = lastSummary;
+    $('passTop').textContent = top ? top.plain : '–';
+    $('passColor').textContent = COLOR_NAMES[activeColor];
+    show('mPass');
+  } else {
+    render();
+    if (isBot(next)) scheduleBot();
+  }
+}
+function scheduleBot(){ const g = gameId; setTimeout(() => { if (g === gameId) botTurn(); }, 1200); }
+
+/* ============================================================
+   10. PROF. ROBÔ
+   ============================================================ */
+function chooseBotCard(hand){
+  const top = topCard();
+  const idx = hand.map((c, i) => i).filter(i => canPlay(hand[i]));
+  if (!idx.length) return -1;
+  const score = c => isCombo(c, top) ? 0 : c.type === 'math' ? 1 : c.color !== 'wild' ? 2 : c.type === 'wild' ? 3 : 4;
+  idx.sort((a, b) => score(hand[a]) - score(hand[b]));
+  return idx[0];
+}
+function bestColor(hand){
+  const n = { red:0, blue:0, green:0, yellow:0 };
+  hand.forEach(c => { if (c.color in n) n[c.color]++; });
+  const max = Math.max(...Object.values(n));
+  const best = COLORS.filter(c => n[c] === max);
+  return best[Math.floor(Math.random() * best.length)];
+}
+async function botTurn(){
+  const g = gameId;
+  if (gameOver || !isBot(turn)) return;
+  busy = true; render();
+  const hand = hands.p2;
+  let i = chooseBotCard(hand);
+  if (i === -1) {
+    const c = drawFromDeck();
+    if (!c) { endTurn('p1', 'O Prof. Robô passou a vez.'); return; }
+    hand.push(c); unoCalled.p2 = false; sfx.draw();
+    if (canPlay(c)) {
+      setBanner('O Prof. Robô comprou 1 carta', 'Ela combina com a mesa. Ele vai jogar!', '🤖'); render();
+      await sleep(900); if (g !== gameId) return;
+      i = hand.length - 1;
+    } else {
+      setBanner('O Prof. Robô comprou 1 carta', `Não combinou. Vez de ${names.p1}!`, '🤖');
+      endTurn('p1'); return;
+    }
+  }
+  const card = hand[i];
+  hand.splice(i, 1);
+  const color = card.color === 'wild' ? bestColor(hand) : card.color;
+  hand.splice(i, 0, card);
+  await playCard('p2', i, color);
+}
+
+/* ============================================================
+   11. INÍCIO E FIM DE PARTIDA
+   ============================================================ */
+function initGame(){
+  gameId++;
+  if (unoWin) { clearTimeout(unoWin.timer); unoWin = null; }
+  $('unoTimer').hidden = true;
+  ['mPass','mColor','mQuiz','mEnd'].forEach(hide);
+  busy = false; waitingPass = false; gameOver = false; drawnCardId = null; lastTopId = null;
+  if (window.GAMIFICA) GAMIFICA.zerar();
+  scores = { p1:0, p2:0 }; combos = { p1:0, p2:0 }; history = []; unoCalled = { p1:false, p2:false };
+  deck = buildDeck(settings.level); discard = []; hands = { p1:[], p2:[] };
+  for (let i = 0; i < 7; i++) { hands.p1.push(drawFromDeck()); hands.p2.push(drawFromDeck()); }
+  let first = drawFromDeck();
+  while (first.type !== 'math') { deck.unshift(first); first = drawFromDeck(); }
+  discard.push(first); activeColor = first.color; turn = 'p1';
+  lastSummary = `Partida começou com ${first.plain} na mesa.`;
+  setBanner(`Vez de ${names.p1}!`,
+    `Jogue uma carta ${COLOR_NAMES[activeColor].toLowerCase()} ou que valha o mesmo que ${first.plain}. Raiz sobre o seu resultado vale o dobro!`, '🎓');
+  buildRulesTable();
+  if (settings.players === '2p') {
+    waitingPass = true; render();
+    $('passName').textContent = names.p1; $('passSummary').textContent = lastSummary;
+    $('passTop').textContent = first.plain; $('passColor').textContent = COLOR_NAMES[activeColor];
+    show('mPass');
+  } else render();
+}
+
+function endGame(winner){
+  gameOver = true; busy = false; waitingPass = false;
+  const robotWon = isBot(winner);
+  robotWon ? sfx.error() : sfx.win();
+  $('endIcon').textContent = robotWon ? '🤖' : '🏆';
+  $('endTitle').textContent = robotWon ? 'O Prof. Robô venceu!' : `${names[winner]} venceu!`;
+  $('endSub').textContent = robotWon ? 'Ele bateu as cartas primeiro (+300). Na próxima, caprichem nos combos!' : `Bateu as cartas primeiro e ganhou +300 de bônus.`;
+  $('finName1').textContent = names.p1; $('finName2').textContent = names.p2;
+  $('finPts1').textContent = scores.p1; $('finPts2').textContent = scores.p2;
+  $('finCb1').textContent = combos.p1;  $('finCb2').textContent = combos.p2;
+  $('finBox1').className = winner === 'p1' ? 'is-winner' : '';
+  $('finBox2').className = winner === 'p2' ? 'is-winner' : '';
+  $('comboList').innerHTML = history.length
+    ? history.map(h => `<div>🔥 <b>${h.who}</b>: ${h.text} <span style="color:var(--ink-soft)">(${h.calc})</span></div>`).join('')
+    : '<div style="background:none;border:0;color:var(--ink-soft);padding:0">Nenhum combo nesta partida. Na próxima, procure raiz + resultado!</div>';
+  $('finalResult').hidden = true; $('btnFinal').hidden = false;
+  if (window.GAMIFICA && GAMIFICA.noPortal) { $('finalResult').textContent = '📤 Faça o Desafio final para enviar sua nota ao professor.'; $('finalResult').hidden = false; }
+  render(); show('mEnd');
+}
+
+async function finalChallenge(){
+  hide('mEnd');
+  const pool = shuffle(LEVELS[settings.level].groups.flatMap(([, ps]) => ps)).slice(0, window.GAMIFICA && GAMIFICA.noPortal ? 5 : 3);
+  let right = 0;
+  for (let i = 0; i < pool.length; i++) {
+    const [b, e] = pool[i];
+    if (await askQuiz(b, e, { eyebrow: `🎯 Desafio final · pergunta ${i + 1} de ${pool.length}` })) right++;
+  }
+  const r = $('finalResult');
+  r.textContent = `Você acertou ${right} de ${pool.length} ${'⭐'.repeat(right)}${right === pool.length ? ' Excelente!' : right ? ' Bom trabalho!' : ' Vamos revisar a tabela?'}`;
+  r.hidden = false; $('btnFinal').textContent = 'Fazer outro desafio';
+  if (window.GAMIFICA && GAMIFICA.enviarContagem(scores.p1)) { const c = GAMIFICA.contagem(); r.textContent += ' · 📤 Nota enviada ao professor (' + c.certas + ' de ' + c.total + ' perguntas certas na partida).'; }
+  if (right === pool.length) sfx.win();
+  show('mEnd');
+}
+
+function buildRulesTable(){
+  $('eqTitle').textContent = `Cartas do nível ${LEVELS[settings.level].name.toLowerCase()} (cada linha forma combos 2x)`;
+  $('eqGrid').innerHTML = LEVELS[settings.level].groups.map(([v, ps]) => `
+    <div class="eq"><div class="eq-top"><span>${ps.map(([b,e]) => powHTML(b,e)).join(' = ')}</span><em>= ${fmt(v)}</em></div>
+    <small>${ps.map(([b,e]) => Array(e).fill(v).join(' × ') + ' = ' + fmt(b)).join('<br>')}</small></div>`).join('');
+}
+
+/* ============================================================
+   12. CONFIGURAÇÃO E BOTÕES
+   ============================================================ */
+function syncSetup(){
+  document.querySelectorAll('#mSetup .seg').forEach(seg => {
+    const grp = seg.dataset.group;
+    seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === draft[grp])));
+  });
+  $('wrapName2').hidden = draft.players !== '2p';
+}
+function openSetup(){
+  draft = { ...settings };
+  $('inName1').value = (window.GAMIFICA && GAMIFICA.aluno) ? GAMIFICA.aluno.slice(0, 16) : names.p1;
+  if (settings.players === '2p') $('inName2').value = names.p2;
+  syncSetup(); ['mEnd','mRules'].forEach(hide); show('mSetup');
+}
+document.querySelectorAll('#mSetup .seg').forEach(seg => {
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    draft[seg.dataset.group] = b.dataset.value; syncSetup();
+  });
+});
+$('btnStart').addEventListener('click', () => {
+  audio();
+  if (window.GAMIFICA && GAMIFICA.noPortal) { draft.players = '1p'; draft.quiz = 'on'; }
+  Object.assign(settings, draft);
+  names.p1 = $('inName1').value.trim() || 'Jogador 1';
+  names.p2 = settings.players === '1p' ? 'Prof. Robô' : ($('inName2').value.trim() || 'Jogador 2');
+  hide('mSetup'); initGame();
+  if (soundOn) startMusic();
+});
+
+$('hand').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) onCardClick(Number(b.dataset.i)); });
+$('drawPile').addEventListener('click', onDraw);
+$('btnPass').addEventListener('click', onPass);
+$('btnUno').addEventListener('click', onUno);
+$('btnReveal').addEventListener('click', () => { hide('mPass'); waitingPass = false; audio(); sfx.play(); render(); });
+$('btnNew').addEventListener('click', openSetup);
+$('btnEndSetup').addEventListener('click', openSetup);
+$('btnEndAgain').addEventListener('click', () => { hide('mEnd'); initGame(); });
+$('btnFinal').addEventListener('click', finalChallenge);
+$('btnRules').addEventListener('click', () => show('mRules'));
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => hide(b.dataset.close)));
+$('mRules').addEventListener('click', e => { if (e.target.id === 'mRules') hide('mRules'); });
+
+$('btnHelp').addEventListener('click', () => {
+  settings.help = hints() ? 'desafio' : 'dicas';
+  setBanner(hints() ? 'Dicas ligadas' : 'Modo desafio ligado',
+    hints() ? 'O resultado da mesa e as cartas que combinam aparecem destacados.' : 'Sem destaques e sem o resultado da mesa: calcule de cabeça!', hints() ? '💡' : '🎯');
+  render();
+});
+$('btnSound').addEventListener('click', () => {
+  soundOn = !soundOn;
+  $('lblSound').textContent = soundOn ? '🔊' : '🔇';
+  $('lblSoundState').textContent = soundOn ? 'ON' : 'OFF';
+  $('btnSound').classList.toggle('is-on', soundOn);
+  if (soundOn) { audio(); sfx.play(); startMusic(); }
+  else { stopMusic(); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} }
+});
+$('btnFull').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  try {
+    if (!(d.fullscreenElement || d.webkitFullscreenElement)) {
+      const req = el.requestFullscreen || el.webkitRequestFullscreen;
+      const p = req && req.call(el);
+      if (!req) throw new Error();
+      if (p && p.catch) p.catch(() => setBanner('Tela cheia indisponível aqui', 'Abra o jogo em uma aba própria do navegador para usar a tela cheia.', '⛶'));
+    } else (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+  } catch (e) { setBanner('Tela cheia indisponível aqui', 'Abra o jogo em uma aba própria do navegador para usar a tela cheia.', '⛶'); }
+});
+['fullscreenchange','webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => {
+  $('lblFull').textContent = (document.fullscreenElement || document.webkitFullscreenElement) ? 'Sair da tela cheia' : 'Tela cheia';
+}));
+
+// Mesa de exemplo atrás da tela inicial
+initGame();
+openSetup();
+})();
+</script>
+
+<script>
+/* Portal da turma: envio da nota ao professor */
+
+GAMIFICA.preencherNome('#inName1', 16);
+if (GAMIFICA.noPortal) {
+  ['players', 'quiz'].forEach(function(g){
+    var seg = document.querySelector('#mSetup .seg[data-group="' + g + '"]');
+    if (!seg) return;
+    var box = seg.parentElement; if (box) box.style.display = 'none';
+  });
+}
+
+</script>
+</body>
+</html>

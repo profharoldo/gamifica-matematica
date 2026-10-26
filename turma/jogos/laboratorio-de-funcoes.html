@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<script src="ponte-portal.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laboratório de Funções</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Lexend:wght@400;500;600&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap">
+<style>
+/* Layout: caderno de laboratório em papel milimetrado — etapa ativa à esquerda, caderno de resultados à direita; uma cor fixa para cada personagem matemático (a, b, c, Δ, vértice) */
+:root{
+  --bg:#EDF2FA; --paper:#FFFFFF; --paper-2:#F6F9FE; --ink:#16203F; --muted:#56628A; --line:#D3DCEC; --grid:#DFE7F4;
+  --accent:#2952F5; --accent-2:#1B3CC9; --on-accent:#FFFFFF;
+  --ca:#2952F5; --cb:#08936A; --cc:#CF2F7C; --cd:#D9730A; --cv:#7646E6;
+  --ok:#0F8F4C; --ok-bg:#E1F5E9; --bad:#D83A3F; --bad-bg:#FDE9E9; --gold:#E8A900; --gold-bg:#FFF4CF;
+  --shadow:0 1px 0 rgba(22,32,63,.05),0 10px 30px -16px rgba(22,32,63,.35);
+  --f-display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-math:"STIX Two Text","Cambria Math","Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1230; --paper:#131C45; --paper-2:#18235A; --ink:#E8EDFF; --muted:#9BA8D4; --line:#28346A; --grid:#18224F;
+  --accent:#6C8BFF; --accent-2:#8EA6FF; --on-accent:#0B1230;
+  --ca:#7C9BFF; --cb:#3DD39B; --cc:#FF70B2; --cd:#FFA94A; --cv:#B596FF;
+  --ok:#43D68D; --ok-bg:rgba(67,214,141,.14); --bad:#FF7275; --bad-bg:rgba(255,114,117,.14); --gold:#FFCB3D; --gold-bg:rgba(255,203,61,.14);
+  --shadow:0 1px 0 rgba(0,0,0,.2),0 12px 30px -14px rgba(0,0,0,.6); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0B1230; --paper:#131C45; --paper-2:#18235A; --ink:#E8EDFF; --muted:#9BA8D4; --line:#28346A; --grid:#18224F;
+  --accent:#6C8BFF; --accent-2:#8EA6FF; --on-accent:#0B1230;
+  --ca:#7C9BFF; --cb:#3DD39B; --cc:#FF70B2; --cd:#FFA94A; --cv:#B596FF;
+  --ok:#43D68D; --ok-bg:rgba(67,214,141,.14); --bad:#FF7275; --bad-bg:rgba(255,114,117,.14); --gold:#FFCB3D; --gold-bg:rgba(255,203,61,.14);
+  --shadow:0 1px 0 rgba(0,0,0,.2),0 12px 30px -14px rgba(0,0,0,.6); color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{background-color:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--paper)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.1;text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+.ca{color:var(--ca)}.cb{color:var(--cb)}.cc{color:var(--cc)}.cd{color:var(--cd)}.cv{color:var(--cv)}
+
+/* Math typesetting */
+.mx{font-family:var(--f-math);font-size:1.15em;white-space:nowrap}
+.mx i{font-style:italic}
+.mx sup{font-size:.65em;vertical-align:.7em;line-height:0}
+.mx sub{font-size:.62em;vertical-align:-.25em;line-height:0}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .2em;line-height:1.25}
+.frac>span{padding:0 .3em}
+.frac>span+span{border-top:1.6px solid currentColor;padding-top:.15em}
+.sqrt{white-space:nowrap}
+.sqrt>span{border-top:1.6px solid currentColor;padding:0 .15em;margin-left:1px}
+.t{font-weight:600}
+
+/* HUD */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--paper) 92%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px}
+.hud-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:1.15rem;white-space:nowrap}
+.brand svg{width:34px;height:34px;flex:none}
+.hud-fn{flex:1 1 260px;min-width:0;text-align:center;font-size:1.25rem;overflow-x:auto}
+.hud-fn:empty{visibility:hidden}
+.hud-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.score{display:flex;align-items:center;gap:6px;background:var(--gold-bg);color:var(--ink);border:1.5px solid var(--gold);
+  border-radius:999px;padding:2px 14px 2px 8px;font-family:var(--f-display);font-weight:800;font-size:1.25rem;font-variant-numeric:tabular-nums;min-width:92px}
+.score svg{width:22px;height:22px;color:var(--gold)}
+.score.bump{animation:bump .35s}
+@keyframes bump{50%{transform:scale(1.15)}}
+.streak{display:none;align-items:center;gap:4px;font-family:var(--f-display);font-weight:700;color:var(--cd);font-size:1rem}
+.streak.on{display:flex}
+.streak svg{width:18px;height:18px}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;color:var(--muted);transition:.15s}
+.icon-btn:hover{color:var(--ink);border-color:var(--muted)}
+.icon-btn.off{opacity:.45}
+.icon-btn.off .wave{display:none}
+.icon-btn svg{width:20px;height:20px}
+
+/* Screens */
+.screen{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.inner{max-width:1180px;margin:0 auto}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:12px 22px;
+  background:var(--accent);color:var(--on-accent);font-family:var(--f-display);font-weight:700;font-size:1.1rem;
+  box-shadow:0 4px 0 var(--accent-2);transition:transform .08s,box-shadow .08s}
+.btn:hover{filter:brightness(1.05)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--accent-2)}
+.btn.big{font-size:1.3rem;padding:14px 28px}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line)}
+.btn.go{background:var(--ok);color:#fff;box-shadow:0 4px 0 color-mix(in srgb,var(--ok) 60%,#000)}
+.btn svg{width:20px;height:20px}
+
+/* Intro */
+.intro{display:grid;grid-template-columns:1.15fr 1fr;gap:28px;align-items:center}
+.intro-copy h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800;letter-spacing:-.01em}
+.intro-copy h1 span{color:var(--accent)}
+.kicker{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:.85rem;color:var(--cd)}
+.lead{font-size:1.1rem;color:var(--muted);max-width:52ch;margin:12px 0 22px}
+.start-row{display:flex;gap:10px;flex-wrap:wrap;max-width:520px}
+.name{flex:1 1 220px;min-width:0;font:inherit;font-size:1.15rem;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
+.name:focus{border-color:var(--accent);outline:none}
+.name.err{border-color:var(--bad);animation:shake .4s}
+.err-msg{color:var(--bad);font-size:.9rem;min-height:1.4em;margin-top:6px}
+.hero-card{background:var(--paper);border:1.5px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--shadow)}
+.hero-card svg{width:100%;height:auto;display:block}
+.hero-card .ax{stroke:var(--muted);stroke-width:2}
+.hero-card .gridl{stroke:var(--grid);stroke-width:1}
+.hero-card .pc{stroke:var(--accent);stroke-width:4;fill:none;stroke-linecap:round}
+.hero-card .sym{stroke:var(--cv);stroke-width:2;stroke-dasharray:6 6}
+.hero-card text{font-family:var(--f-display);font-weight:700;font-size:15px}
+.rules{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:28px}
+.rule{background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:14px}
+.rule b{display:block;font-family:var(--f-display);font-size:1.5rem;line-height:1.1}
+.rule span{font-size:.9rem;color:var(--muted)}
+.mini-rank{margin-top:22px;background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:14px 16px}
+.mini-rank h3{font-size:1.1rem;margin-bottom:6px}
+
+/* Mission layout */
+.stepper{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px}
+.st{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--paper);border:1.5px solid var(--line);
+  white-space:nowrap;font-weight:500;font-size:.9rem;color:var(--muted);flex:none}
+.st .g{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--paper-2);font-family:var(--f-math);font-weight:600;font-size:.95rem;color:var(--muted)}
+.st.now{border-color:var(--accent);color:var(--ink)}
+.st.now .g{background:var(--accent);color:var(--on-accent)}
+.st.done{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 50%,var(--line))}
+.st.done .g{background:var(--ok);color:#fff}
+.mission{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+.notes{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);background:var(--paper);border:1.5px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.notes h3{font-size:1.15rem;display:flex;align-items:center;gap:8px}
+.notes h3 svg{width:22px;height:22px;color:var(--cd)}
+.notes .fn{font-size:1.2rem;margin:8px 0 10px;padding:10px;border-radius:12px;background:var(--paper-2);text-align:center;overflow-x:auto}
+.nl{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.nl li{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:8px;font-size:.92rem}
+.nl li .k{color:var(--muted)}
+.nl li .v{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.nl li.empty .v{color:var(--line)}
+.nl li.new{animation:flash 1.2s}
+@keyframes flash{0%{background:var(--gold-bg)}100%{background:transparent}}
+
+.stage-head{margin-bottom:14px}
+.stage-head .kicker{display:block;margin-bottom:2px}
+.stage-head h2{font-size:clamp(1.7rem,4vw,2.3rem)}
+.part{background:var(--paper);border:1.5px solid var(--line);border-radius:20px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow);animation:rise .4s ease-out}
+@keyframes rise{from{transform:translateY(10px);opacity:.4}to{transform:none;opacity:1}}
+.part.done{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.part header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pnum{font-family:var(--f-display);font-weight:800;font-size:.85rem;background:var(--paper-2);border:1.5px solid var(--line);border-radius:8px;padding:0 8px;color:var(--muted)}
+.part.done .pnum{background:var(--ok);border-color:var(--ok);color:#fff}
+.part h3{font-size:1.3rem}
+.concept{background:var(--paper-2);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:.98rem}
+.concept .big{display:block;text-align:center;font-size:1.35rem;margin:6px 0}
+.pbody{display:flex;flex-direction:column;gap:14px;align-items:flex-start;font-size:1.25rem}
+.pbody .line{display:block;font-family:var(--f-math);line-height:2.6}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:14px 10px;font-family:var(--f-math);font-size:1.3rem;width:100%;overflow-x:auto;padding:4px 2px}
+.chain+.chain{margin-top:6px;padding-top:14px;border-top:1.5px dashed var(--line);width:100%}
+.seg{display:inline-block;white-space:nowrap;line-height:1.3}
+.seg .cell,.line .cell{vertical-align:middle}
+.frac .cell{margin:3px 0}
+.scroll-x{overflow-x:auto;max-width:100%;padding:4px 2px}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+.field{display:flex;align-items:center;gap:8px;font-family:var(--f-math);font-size:1.4rem;background:var(--paper-2);padding:8px 12px;border-radius:14px}
+.field i{font-weight:600}
+
+.cell{width:4.2rem;height:2.7rem;text-align:center;font-family:var(--f-display);font-weight:700;font-size:1.3rem;color:var(--ink);
+  background:var(--paper);border:2.5px solid var(--line);border-radius:12px;outline:none;transition:border-color .15s,background .15s}
+.cell.w{width:5.4rem}
+.cell:focus{border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 20%,transparent)}
+.cell.k-ca{border-color:color-mix(in srgb,var(--ca) 55%,var(--line))}
+.cell.k-cb{border-color:color-mix(in srgb,var(--cb) 55%,var(--line))}
+.cell.k-cc{border-color:color-mix(in srgb,var(--cc) 55%,var(--line))}
+.cell.k-cd{border-color:color-mix(in srgb,var(--cd) 55%,var(--line))}
+.cell.k-cv{border-color:color-mix(in srgb,var(--cv) 55%,var(--line))}
+.cell.ok{border-color:var(--ok)!important;background:var(--ok-bg);color:var(--ok)}
+.cell.bad{border-color:var(--bad)!important;background:var(--bad-bg);color:var(--bad);animation:shake .4s}
+.cell.empty{border-style:dashed}
+@keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-4px)}}
+
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;width:100%}
+.choice{text-align:center;padding:12px;border-radius:16px;border:2px solid var(--line);background:var(--paper);font-size:1.05rem;font-weight:500;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:transform .1s,border-color .15s;min-height:64px}
+.choice:hover:not(:disabled){border-color:var(--accent);transform:translateY(-2px)}
+.choice.ok{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+.choice.bad{border-color:var(--bad);background:var(--bad-bg);color:var(--bad);animation:shake .4s}
+.choice:disabled:not(.ok){opacity:.55;cursor:default}
+.choice .mini{width:100%;max-width:120px;height:auto}
+.mini .ax{stroke:var(--muted);stroke-width:1.5;opacity:.6}
+.mini .pc{stroke:var(--accent);stroke-width:4;fill:none;stroke-linecap:round}
+.mini .dot{fill:var(--cb)}
+.choice.ok .mini .pc{stroke:var(--ok)}
+
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.hint-btn{border:1.5px dashed var(--gold);background:transparent;border-radius:12px;padding:8px 14px;font-weight:500;display:inline-flex;gap:8px;align-items:center}
+.hint-btn span{font-family:var(--f-display);font-weight:700;color:var(--bad);font-size:.9rem}
+.hint-btn svg{width:18px;height:18px;color:var(--gold)}
+.hint{margin-top:12px;background:var(--gold-bg);border-left:4px solid var(--gold);padding:10px 14px;border-radius:0 12px 12px 0;font-size:.97rem}
+.fb{margin-top:10px;font-size:1rem;min-height:0}
+.fb .m{padding:10px 14px;border-radius:12px;margin-top:6px}
+.fb .m.ok{background:var(--ok-bg);color:var(--ok);font-weight:500}
+.fb .m.bad{background:var(--bad-bg);color:var(--bad)}
+.fb .m.info{background:var(--paper-2);color:var(--ink)}
+.after{margin-top:12px;border-top:1.5px dashed var(--line);padding-top:12px;font-size:.98rem}
+.after b{color:var(--ok)}
+
+.dtable{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.dcase{border:2px solid var(--line);border-radius:14px;padding:10px;text-align:center;font-size:.9rem;background:var(--paper)}
+.dcase .mini{width:100%;max-width:110px}
+.dcase b{display:block;font-family:var(--f-math);font-size:1.15rem;color:var(--ink)}
+.dcase.me{border-color:var(--cd);background:color-mix(in srgb,var(--cd) 10%,var(--paper))}
+.dcase.me b{color:var(--cd)}
+
+.clear{background:linear-gradient(135deg,color-mix(in srgb,var(--ok) 16%,var(--paper)),var(--paper));border:2px solid var(--ok);border-radius:20px;padding:20px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;animation:rise .4s}
+.clear h3{font-size:1.5rem;color:var(--ok)}
+.clear p{margin:4px 0 0;color:var(--muted)}
+
+/* Graph */
+.tasks{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.tasks li{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);font-size:.92rem;color:var(--muted);background:var(--paper)}
+.tasks li .dotk{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.tasks li.now{border-color:var(--accent);color:var(--ink);font-weight:600;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.tasks li.ok{border-color:var(--ok);color:var(--ok)}
+.tasks li.ok .dotk{background:var(--ok)}
+.target{font-family:var(--f-display);font-size:1.3rem;font-weight:700;margin-bottom:10px}
+.target span{color:var(--accent)}
+.plot{position:relative;width:100%;border-radius:16px;overflow:hidden;border:1.5px solid var(--line);background:var(--paper)}
+.plot canvas{display:block;width:100%;touch-action:manipulation;cursor:crosshair}
+.readout{position:absolute;top:10px;right:10px;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:2px 10px;font-family:var(--f-math);font-size:1.1rem;pointer-events:none;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.88rem;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.reflect{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:6px}
+.reflect li{display:flex;gap:10px;align-items:flex-start}
+.reflect li svg{width:20px;height:20px;color:var(--ok);flex:none;margin-top:3px}
+
+/* Final */
+.final{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start}
+.card{background:var(--paper);border:1.5px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+.final h1{font-size:clamp(2rem,5vw,3rem)}
+.stars{display:flex;gap:6px;margin:10px 0}
+.stars svg{width:46px;height:46px;color:var(--line)}
+.stars svg.on{color:var(--gold);animation:pop .5s backwards}
+.stars svg.on:nth-child(2){animation-delay:.15s}.stars svg.on:nth-child(3){animation-delay:.3s}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.bigscore{font-family:var(--f-display);font-weight:800;font-size:clamp(3rem,9vw,5rem);line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.stat{background:var(--paper-2);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-family:var(--f-display);font-size:1.6rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:.8rem;color:var(--muted)}
+.ficha{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.95rem;margin-top:10px}
+.ficha dt{color:var(--muted)}.ficha dd{margin:0;font-weight:600}
+.rank{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px;counter-reset:r}
+.rank li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:var(--paper-2);counter-increment:r}
+.rank li::before{content:counter(r);font-family:var(--f-display);font-weight:800;text-align:center;color:var(--muted)}
+.rank li:nth-child(1)::before{color:var(--gold)}
+.rank li.me{background:color-mix(in srgb,var(--accent) 16%,var(--paper));outline:2px solid var(--accent)}
+.rank .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.rank .pt{font-family:var(--f-display);font-weight:800;font-variant-numeric:tabular-nums}
+.rank-empty{color:var(--muted);font-size:.92rem}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:.9rem;padding:4px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.92rem;margin-top:8px}
+
+/* Floating points + confetti + toast */
+.pop{position:fixed;z-index:90;pointer-events:none;font-family:var(--f-display);font-weight:800;font-size:1.5rem;animation:float 1.1s ease-out forwards;text-shadow:0 2px 0 var(--paper)}
+.pop.p{color:var(--ok)}.pop.n{color:var(--bad)}.pop.g{color:var(--gold);font-size:1.8rem}
+@keyframes float{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:1;transform:translate(-50%,-14px) scale(1.15)}100%{opacity:0;transform:translate(-50%,-56px) scale(1)}}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:80;width:100%;height:100%}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:95;background:var(--ink);color:var(--paper);
+  padding:10px 20px;border-radius:999px;font-family:var(--f-display);font-weight:700;font-size:1.1rem;box-shadow:var(--shadow);animation:toast 2.2s forwards;white-space:nowrap}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,20px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,10px)}}
+
+@media (max-width:960px){
+  .intro,.final{grid-template-columns:1fr}
+  .mission{grid-template-columns:minmax(0,1fr)}
+  .notes{position:static;order:-1;padding:12px}
+  .notes .fn{display:none}
+  .nl{display:flex;flex-wrap:wrap;gap:6px}
+  .nl li{background:var(--paper-2);padding:4px 10px;border-radius:999px;gap:6px}
+  .nl li.empty{display:none}
+  .rules{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:560px){
+  .hud-fn{order:5;flex-basis:100%;font-size:1.1rem}
+  .brand .bt{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .dtable{grid-template-columns:1fr}
+  .pbody{font-size:1.1rem}
+  .cell{width:3.4rem}
+  .chain{font-size:1.1rem;gap:12px 6px}
+  .part{padding:16px 14px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="hud">
+  <div class="hud-in">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="10" fill="var(--accent)"/><path d="M8 9 Q20 46 32 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="20" cy="27.5" r="3.2" fill="var(--gold)"/></svg>
+      <span class="bt">Laboratório de Funções</span>
+    </div>
+    <div class="hud-fn mx" id="hudFn"></div>
+    <div class="hud-right">
+      <div class="streak" id="streak" title="Acertos seguidos de primeira"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 1.5s1 3.2-1.6 6.4C9.6 10.7 7 12.6 7 16a5 5 0 0 0 10 0c0-2-.9-3.3-1.7-4.4.2 1.7-.4 3-1.5 3.4.6-3.6-.3-8.8-.3-13.5Z"/></svg><span id="streakN">0</span></div>
+      <div class="score" id="score" aria-live="polite"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 16.9 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z"/></svg><span id="scoreN">0</span></div>
+      <button class="icon-btn" id="btnMusic" title="Música de fundo" aria-label="Ligar ou desligar música"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
+      <button class="icon-btn" id="btnSfx" title="Efeitos sonoros" aria-label="Ligar ou desligar efeitos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+      <button class="icon-btn" id="btnFull" title="Tela cheia" aria-label="Tela cheia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<!-- INTRO -->
+<section class="screen" id="scrIntro">
+  <div class="inner">
+    <div class="intro">
+      <div class="intro-copy">
+        <span class="kicker">Missão Parábola · Função do 2º grau</span>
+        <h1>Desvende a <span>parábola</span> passo a passo</h1>
+        <p class="lead">Você vai receber uma função misteriosa. Descubra os coeficientes, calcule o discriminante, as raízes e o vértice, digitando cada passo da conta. No final, construa o gráfico e entre no ranking da turma.</p>
+        <div class="start-row">
+          <input class="name" id="playerName" maxlength="24" placeholder="Digite seu nome" autocomplete="off" aria-label="Seu nome">
+          <button class="btn big" id="btnStart"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Começar</button>
+        </div>
+        <div class="err-msg" id="nameErr" aria-live="polite"></div>
+      </div>
+      <div class="hero-card" aria-hidden="true">
+        <svg viewBox="0 0 360 260">
+          <g class="gridl"><path d="M20 20H340M20 60H340M20 100H340M20 140H340M20 220H340M30 10V250M70 10V250M150 10V250M190 10V250M230 10V250M270 10V250M310 10V250"/></g>
+          <line class="ax" x1="14" y1="180" x2="346" y2="180"/><line class="ax" x1="110" y1="6" x2="110" y2="254"/>
+          <path class="pc" d="M80 20 Q200 420 320 20"/>
+          <circle cx="110" cy="107.5" r="8" fill="var(--cc)"/><circle cx="146.3" cy="180" r="8" fill="var(--cb)"/><circle cx="253.7" cy="180" r="8" fill="var(--cb)"/><circle cx="200" cy="220" r="8" fill="var(--cv)"/>
+          <text x="118" y="100" fill="var(--cc)">corta o eixo y</text>
+          <text x="120" y="205" fill="var(--cb)">x₁</text><text x="262" y="172" fill="var(--cb)">x₂</text>
+          <text x="212" y="240" fill="var(--cv)">vértice V</text>
+          <text x="334" y="198" fill="var(--muted)">x</text><text x="118" y="18" fill="var(--muted)">y</text>
+        </svg>
+      </div>
+    </div>
+    <div class="rules">
+      <div class="rule"><b class="cb">+20</b><span>acerto de primeira</span></div>
+      <div class="rule"><b class="ca">+10</b><span>acerto depois de errar</span></div>
+      <div class="rule"><b class="cd">+15</b><span>bônus a cada 3 acertos seguidos</span></div>
+      <div class="rule"><b class="cc">−5</b><span>cada erro ou dica pedida (no gráfico, clique errado: −10)</span></div>
+    </div>
+    <div class="mini-rank" id="introRank"></div>
+  </div>
+</section>
+
+<!-- MISSION -->
+<section class="screen" id="scrMission" hidden>
+  <div class="inner">
+    <nav class="stepper" id="stepper" aria-label="Etapas da missão"></nav>
+    <div class="mission">
+      <main id="stage"></main>
+      <aside class="notes" aria-label="Caderno de resultados">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 3h12a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2z"/><path d="M5 17a2 2 0 0 1 2-2h12M9 7h6M9 11h4"/></svg>Caderno de resultados</h3>
+        <div class="fn mx" id="notesFn"></div>
+        <ul class="nl" id="notesList"></ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="screen" id="scrFinal" hidden>
+  <div class="inner final">
+    <div class="card" id="finalMain"></div>
+    <div class="card" id="finalRank"></div>
+  </div>
+</section>
+
+<canvas id="fx"></canvas>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= SOUND ENGINE (Web Audio, gerado na hora) ================= */
+const Sound = (() => {
+  let ctx = null, master, musicBus, sfxBus, revIn, timer = null, next = 0, step = 0, level = 0;
+  let musicOn = true, sfxOn = true, playing = false;
+  const BPM = 92, S16 = 60 / BPM / 4;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const prog = [
+    { root: 48, chord: [60, 64, 67, 71] },  // Cmaj7
+    { root: 45, chord: [57, 60, 64, 67] },  // Am7
+    { root: 41, chord: [57, 60, 64, 65] },  // Fmaj7
+    { root: 43, chord: [55, 59, 62, 67] }   // G
+  ];
+  function init() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    ctx = new AC();
+    master = ctx.createGain(); master.gain.value = .9;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
+    master.connect(comp); comp.connect(ctx.destination);
+    musicBus = ctx.createGain(); musicBus.gain.value = .5; musicBus.connect(master);
+    sfxBus = ctx.createGain(); sfxBus.gain.value = .7; sfxBus.connect(master);
+    // reverb
+    const conv = ctx.createConvolver(); const len = ctx.sampleRate * 2.2;
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    conv.buffer = buf; revIn = ctx.createGain(); revIn.gain.value = .35; revIn.connect(conv); conv.connect(master);
+  }
+  function env(g, t, a, peak, dur) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  }
+  function tone(freq, t, dur, type, vol, dest, a = .005, rev = .3) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    env(g, t, a, vol, dur); o.connect(g); g.connect(dest);
+    if (rev) { const s = ctx.createGain(); s.gain.value = rev; g.connect(s); s.connect(revIn); }
+    o.start(t); o.stop(t + dur + .05); return o;
+  }
+  // ---- music instruments
+  function pad(t, notes, dur) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700 + level * 220; f.Q.value = .4;
+    const g = ctx.createGain(); env(g, t, .7, .045, dur); f.connect(g); g.connect(musicBus);
+    const s = ctx.createGain(); s.gain.value = .6; g.connect(s); s.connect(revIn);
+    notes.forEach(n => [-6, 6].forEach(det => {
+      const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = mtof(n); o.detune.value = det;
+      o.connect(f); o.start(t); o.stop(t + dur + .1);
+    }));
+  }
+  function bass(t, m, dur) {
+    const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    o.type = 'triangle'; o.frequency.value = mtof(m); f.type = 'lowpass'; f.frequency.value = 500;
+    env(g, t, .01, .22, dur); o.connect(f); f.connect(g); g.connect(musicBus); o.start(t); o.stop(t + dur + .05);
+  }
+  function pluck(t, m, vol) { tone(mtof(m), t, .45, 'sine', vol, musicBus, .004, .5); tone(mtof(m) * 2, t, .15, 'triangle', vol * .2, musicBus, .002, 0); }
+  function kick(t) {
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine';
+    o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + .14);
+    env(g, t, .004, .38, .22); o.connect(g); g.connect(musicBus); o.start(t); o.stop(t + .25);
+  }
+  let noiseBuf = null;
+  function hat(t, vol) {
+    if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * .06, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = 7500; env(g, t, .002, vol, .05);
+    s.connect(f); f.connect(g); g.connect(musicBus); s.start(t);
+  }
+  const arpSteps = { 0: 0, 3: 1, 6: 2, 8: 3, 11: 2, 14: 1 };
+  function schedule(i, t) {
+    const s = i % 16, bar = Math.floor(i / 16) % 4, P = prog[bar], barDur = S16 * 16;
+    if (s === 0) { pad(t, P.chord, barDur * .98); }
+    if (s === 0 || s === 8) bass(t, P.root, S16 * 5);
+    if (s === 14) bass(t, P.root + 7, S16 * 2);
+    if (level >= 1 && (s === 0 || s === 8)) kick(t);
+    if (level >= 2 && (s === 4 || s === 12)) hat(t, .05);
+    if (level >= 4 && s % 2 === 0 && s !== 4 && s !== 12) hat(t, .025);
+    if (arpSteps[s] !== undefined) pluck(t, P.chord[arpSteps[s]] + 12, .05 + level * .006);
+    if (level >= 3 && s === 15 && bar % 2 === 1) pluck(t, P.chord[3] + 24, .03);
+  }
+  function tick() { while (next < ctx.currentTime + .15) { schedule(step, next); next += S16; step++; } }
+  function startMusic() { if (!ctx || playing || !musicOn) return; playing = true; next = ctx.currentTime + .08; timer = setInterval(tick, 25); }
+  function stopMusic() { clearInterval(timer); timer = null; playing = false; }
+  // ---- sound effects
+  const N = { C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.7, E6: 1318.5, G6: 1568, B6: 1975.5 };
+  function fx(fn) { if (!ctx || !sfxOn) return; fn(ctx.currentTime + .01); }
+  const sfx = {
+    correct: () => fx(t => { tone(N.E6, t, .2, 'sine', .22, sfxBus); tone(N.B6, t + .08, .35, 'sine', .18, sfxBus); }),
+    wrong: () => fx(t => { tone(330, t, .16, 'triangle', .22, sfxBus, .005, .1); tone(247, t + .13, .3, 'triangle', .22, sfxBus, .005, .1); }),
+    click: () => fx(t => tone(N.A5, t, .06, 'sine', .08, sfxBus, .002, 0)),
+    part: () => fx(t => [N.G5, N.C6, N.E6].forEach((f, k) => tone(f, t + k * .07, .3, 'sine', .16, sfxBus))),
+    combo: () => fx(t => [N.C6, N.D6, N.E6, N.G6, N.C6 * 2].forEach((f, k) => tone(f, t + k * .055, .25, 'triangle', .12, sfxBus))),
+    point: () => fx(t => { const o = tone(660, t, .25, 'sine', .25, sfxBus); o.frequency.exponentialRampToValueAtTime(1320, t + .12); }),
+    stage: () => fx(t => {
+      [N.C5, N.E5, N.G5, N.C6, N.E6].forEach((f, k) => tone(f, t + k * .09, .5, 'triangle', .13, sfxBus));
+      [N.C5, N.E5, N.G5].forEach(f => tone(f, t + .5, 1.2, 'sine', .09, sfxBus, .05, .6));
+    }),
+    fanfare: () => fx(t => {
+      const seq = [[N.C5, 0], [N.C5, .14], [N.C5, .28], [N.E5, .42], [N.G5, .7], [N.E5, .9], [N.G5, 1.04]];
+      seq.forEach(([f, d]) => tone(f, t + d, .3, 'square', .06, sfxBus, .005, .3));
+      [N.C5, N.E5, N.G5, N.C6].forEach(f => tone(f, t + 1.2, 1.8, 'triangle', .1, sfxBus, .02, .6));
+    })
+  };
+  document.addEventListener('visibilitychange', () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
+  return {
+    init, sfx,
+    start() { init(); startMusic(); },
+    setLevel(l) { level = l; },
+    toggleMusic() { musicOn = !musicOn; if (musicOn) { init(); startMusic(); } else stopMusic(); return musicOn; },
+    toggleSfx() { sfxOn = !sfxOn; return sfxOn; }
+  };
+})();
+
+/* ================= MATH HELPERS ================= */
+const near = (x, y) => Math.abs(x - y) < 1e-6;
+const z = n => (Math.abs(n) < 1e-9 ? 0 : n);
+function fmt(n) {
+  n = z(n);
+  const s = Number.isInteger(n) ? String(Math.abs(n)) : String(Math.round(Math.abs(n) * 1000) / 1000).replace('.', ',');
+  return (n < 0 ? '−' : '') + s;
+}
+const par = n => (z(n) < 0 ? `(${fmt(n)})` : fmt(n));
+function parseNum(raw) {
+  let s = String(raw).trim().replace(/[−–—]/g, '-').replace(/[\s()]+/g, '').replace(/,/g, '.').replace(/^\+/, '');
+  const fr = s.match(/^([+-]?\d*\.?\d+)\/([+-]?\d*\.?\d+)$/);
+  if (fr) { const d = parseFloat(fr[2]); return d === 0 ? NaN : parseFloat(fr[1]) / d; }
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+const frac = (n, d) => `<span class="frac"><span>${n}</span><span>${d}</span></span>`;
+const sqrt = x => `<span class="sqrt">√<span>${x}</span></span>`;
+const pt = (x, y) => `(${fmt(x)}, ${fmt(y)})`;
+
+const POOL = {
+  pos: [[1,-4,3],[1,-2,-3],[1,-6,5],[1,2,-8],[1,0,-4],[1,0,-9],[-1,4,-3],[-1,2,3],[-1,0,9],[-1,-2,8],[2,-8,6],[-2,8,-6],[1,-2,-8],[1,4,3],[1,-6,8],[1,-2,0],[-1,4,0],[1,2,-3]],
+  zero: [[1,-4,4],[1,6,9],[-1,2,-1],[2,-8,8],[-2,8,-8],[1,-8,16],[-1,-6,-9]],
+  neg: [[1,-2,5],[1,4,5],[-1,2,-2],[-1,-4,-5],[2,-4,3],[1,0,2],[1,-6,10]]
+};
+let lastKey = '';
+function pickFunction() {
+  const r = Math.random();
+  const list = r < .6 ? POOL.pos : r < .8 ? POOL.zero : POOL.neg;
+  let f; do { f = list[Math.floor(Math.random() * list.length)]; } while (f.join() === lastKey && list.length > 1);
+  lastKey = f.join();
+  const [a, b, c] = f, D = b * b - 4 * a * c, xv = z(-b / (2 * a)), yv = z(-D / (4 * a));
+  let r1 = null, r2 = null, sq = null;
+  if (D >= 0) { sq = Math.sqrt(D); r1 = z((-b + sq) / (2 * a)); r2 = z((-b - sq) / (2 * a)); }
+  return { a, b, c, D, xv, yv, r1, r2, sq };
+}
+function fnHTML(F, colored = true) {
+  const { a, b, c } = F, k = cls => (colored ? cls : '');
+  let s = `<i>f</i>(<i>x</i>) = <span class="t ${k('ca')}">${a === 1 ? '' : a === -1 ? '−' : fmt(a)}<i>x</i><sup>2</sup></span>`;
+  if (b) s += ` <span class="t ${k('cb')}">${b > 0 ? '+' : '−'} ${Math.abs(b) === 1 ? '' : Math.abs(b)}<i>x</i></span>`;
+  if (c) s += ` <span class="t ${k('cc')}">${c > 0 ? '+' : '−'} ${Math.abs(c)}</span>`;
+  return s;
+}
+function mini(kind) {
+  const P = { up: 'M18 14 Q60 116 102 14', down: 'M18 82 Q60 -20 102 82', two: 'M18 10 Q60 130 102 10', one: 'M18 10 Q60 100 102 10', none: 'M18 8 Q60 64 102 8' };
+  const dots = kind === 'two' ? '<circle class="dot" cx="39" cy="55" r="5"/><circle class="dot" cx="81" cy="55" r="5"/>' : kind === 'one' ? '<circle class="dot" cx="60" cy="55" r="5"/>' : '';
+  return `<svg class="mini" viewBox="0 0 120 90" aria-hidden="true"><line class="ax" x1="6" y1="55" x2="114" y2="55"/><line class="ax" x1="60" y1="4" x2="60" y2="86"/><path class="pc" d="${P[kind]}"/>${dots}</svg>`;
+}
+function deltaTable(D) {
+  const k = D > 0 ? 0 : D === 0 ? 1 : 2;
+  const rows = [['two', 'Δ > 0', 'duas raízes diferentes: corta o eixo x em 2 pontos'], ['one', 'Δ = 0', 'uma raiz (duas iguais): só toca o eixo x'], ['none', 'Δ < 0', 'nenhuma raiz real: não toca o eixo x']];
+  return `<div class="dtable">${rows.map((r, i) => `<div class="dcase ${i === k ? 'me' : ''}">${mini(r[0])}<b>${r[1]}</b>${r[2]}</div>`).join('')}</div>`;
+}
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+function uniqOpts(list) { const seen = new Set(); return list.filter(o => (seen.has(o.html) ? false : (seen.add(o.html), true))); }
+
+/* ================= UI BUILDERS ================= */
+const inp = (key, col = '', wide = false) => `<input class="cell ${col ? 'k-' + col : ''} ${wide ? 'w' : ''}" id="in-${key}" data-key="${key}" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="resposta">`;
+const field = (key, label, col) => `<label class="field"><i class="${col}">${label}</i> = ${inp(key, col)}</label>`;
+const choices = (key, opts) => `<div class="choices" data-key="${key}">${opts.map(o => `<button type="button" class="choice" data-v="${o.v}">${o.html}</button>`).join('')}</div>`;
+const num = (key, expect, o = {}) => ({ key, kind: 'num', expect, ...o });
+const ch = (key, expect, o = {}) => ({ key, kind: 'choice', expect, ...o });
+function signFb(v, e) {
+  if (e !== 0 && near(v, -e)) return 'Quase! O número está certo, mas confira o <b>sinal</b> (+ ou −).';
+  return null;
+}
+
+/* ================= STAGES ================= */
+const L = s => `<span class="mx">${s}</span>`;
+const vA = '<span class="ca"><i>a</i></span>', vB = '<span class="cb"><i>b</i></span>', vC = '<span class="cc"><i>c</i></span>', vD = '<span class="cd">Δ</span>';
+function buildStages(F) {
+  const { a, b, c, D, xv, yv, r1, r2, sq } = F;
+  const m4ac = -4 * a * c;
+  const S = [];
+
+  // ---------- 1. Coeficientes
+  S.push({ name: 'Coeficientes', glyph: 'abc', title: 'Quem são a, b e c?', parts: [{
+    title: 'Encontre os coeficientes',
+    concept: `Toda função do 2º grau pode ser escrita assim:<span class="big mx"><i>f</i>(<i>x</i>) = <b class="ca"><i>a</i></b><i>x</i><sup>2</sup> + <b class="cb"><i>b</i></b><i>x</i> + <b class="cc"><i>c</i></b></span><span class="ca">a</span> acompanha o <i>x</i>², <span class="cb">b</span> acompanha o <i>x</i> e <span class="cc">c</span> é o número sozinho. <b>O sinal faz parte do número!</b>`,
+    body: () => `<div class="line scroll-x mx">${fnHTML(F, false)}</div><div class="row">${field('a', 'a', 'ca')}${field('b', 'b', 'cb')}${field('c', 'c', 'cc')}</div>`,
+    items: [
+      num('a', a, { note: ['a', fmt(a)], fb: v => (Math.abs(a) === 1 && v === 0) ? 'Quando não aparece número na frente do x², ele vale 1 (ou −1, se tiver o sinal de menos).' : signFb(v, a) }),
+      num('b', b, { note: ['b', fmt(b)], fb: v => b === 0 ? 'Não existe termo com x sozinho, então b vale 0.' : (Math.abs(b) === 1 && v === 0 ? 'Quando aparece só “x”, o número escondido é 1.' : signFb(v, b)) }),
+      num('c', c, { note: ['c', fmt(c)], fb: v => c === 0 ? 'Não existe número sozinho na função, então c vale 0.' : signFb(v, c) })
+    ],
+    hint: 'Se aparece só <b>x²</b>, então a = 1. Se aparece <b>−x²</b>, então a = −1. Se falta o termo com x, b = 0. Se falta o número sozinho, c = 0. Copie sempre o sinal que está na frente do termo.',
+    after: () => `Muito bem! Agora a função está colorida: <span class="ca">a</span>, <span class="cb">b</span> e <span class="cc">c</span> vão aparecer nessas cores em todas as etapas.`
+  }]});
+
+  // ---------- 2. Discriminante
+  const DF = `Δ = ${vB}<sup>2</sup> − 4 · ${vA} · ${vC}`;
+  const seg = h => `<span class="seg">${h}</span>`;
+  const rq = x => `<span class="sqrt">√<span>${x}</span></span>`;
+  S.push({ name: 'Discriminante', glyph: 'Δ', title: 'O discriminante Δ (delta)', parts: [
+    { title: 'Qual é a fórmula do Δ?',
+      concept: 'O <b>discriminante</b> (Δ, lê-se “delta”) é um número que conta quantas raízes a função tem. Escolha a fórmula correta:',
+      body: () => choices('dform', shuffle([
+        { v: 'ok', html: L(`Δ = <i>b</i><sup>2</sup> − 4 · <i>a</i> · <i>c</i>`) },
+        { v: 'w1', html: L(`Δ = <i>b</i><sup>2</sup> + 4 · <i>a</i> · <i>c</i>`) },
+        { v: 'w2', html: L(`Δ = <i>b</i> − 4 · <i>a</i> · <i>c</i>`) },
+        { v: 'w3', html: L(`Δ = 2<i>b</i> − 4 · <i>a</i> · <i>c</i>`) }])),
+      items: [ch('dform', 'ok')],
+      hint: 'Na fórmula do Δ, o <b>b</b> aparece elevado ao quadrado, e depois <b>subtraímos</b> 4 vezes a vezes c.' },
+    { title: 'Calcule o Δ',
+      concept: 'Resolva em linha, como no caderno: substitua os valores, calcule <b>b²</b> e <b>−4 · a · c</b> (o sinal de menos entra na conta!) e escreva o resultado final.',
+      body: () => `<div class="chain">${seg(DF)}${seg(`= ( ${inp('d_b', 'cb')} )<sup>2</sup> − 4 · ( ${inp('d_a', 'ca')} ) · ( ${inp('d_c', 'cc')} )`)}${seg(`= ${inp('b2', 'cb', true)} + ( ${inp('m4ac', 'cd', true)} )`)}${seg(`= ${inp('delta', 'cd', true)}`)}</div>`,
+      items: [
+        num('d_b', b, { fb: v => signFb(v, b) || 'No primeiro parêntese vai o valor de b.' }),
+        num('d_a', a, { fb: v => signFb(v, a) || 'No segundo parêntese vai o valor de a.' }),
+        num('d_c', c, { fb: v => signFb(v, c) || 'No terceiro parêntese vai o valor de c.' }),
+        num('b2', b * b, { fb: v => (b !== 0 && near(v, -b * b)) ? 'b²: um número ao quadrado nunca fica negativo, porque menos vezes menos dá mais.' : (b !== 0 && near(v, 2 * b) ? 'b²: elevar ao quadrado é multiplicar o número por ele mesmo, e não por 2.' : 'b²: multiplique b por ele mesmo.') }),
+        num('m4ac', m4ac, { fb: v => (m4ac !== 0 && near(v, -m4ac)) ? '−4 · a · c: confira o sinal! A conta começa com −4. Sinais iguais dão +, sinais diferentes dão −.' : '−4 · a · c: multiplique −4 por a e depois pelo c.' }),
+        num('delta', D, { note: ['delta', fmt(D)], fb: v => (m4ac !== 0 && near(v, b * b - m4ac)) ? 'Δ: some os dois resultados, mantendo o sinal de cada um.' : 'Δ: some o resultado de b² com o resultado de −4 · a · c.' })
+      ],
+      hint: 'Troque b, a e c pelos valores do caderno. b² é b vezes b. Para −4 · a · c use a regra de sinais: <b>(−)·(−) = +</b> e <b>(−)·(+) = −</b>. Exemplo com a = 1 e c = −3: −4 · 1 · (−3) = 12. No final, some as duas partes.' },
+    { title: 'Quantas raízes reais a função tem?',
+      concept: `Você encontrou <b class="cd mx">Δ = ${fmt(D)}</b>. As <b>raízes</b> são os valores de x onde a parábola encontra o eixo x. O sinal do Δ responde a pergunta.`,
+      body: () => choices('nroots', [{ v: '2', html: mini('two') + 'duas raízes reais diferentes' }, { v: '1', html: mini('one') + 'uma raiz real (duas iguais)' }, { v: '0', html: mini('none') + 'nenhuma raiz real' }]),
+      items: [ch('nroots', D > 0 ? '2' : D === 0 ? '1' : '0', { note: ['nr', D > 0 ? 'duas' : D === 0 ? 'uma (dupla)' : 'nenhuma'] })],
+      fbAll: () => `Lembre a regra do Δ:${deltaTable(D)}`,
+      hint: 'Δ positivo (maior que zero) → 2 raízes. Δ igual a zero → 1 raiz. Δ negativo → nenhuma raiz real.' }
+  ]});
+
+  // ---------- 3. Bhaskara
+  const BF = `<i>x</i> = ${frac('−' + vB + ' ± ' + sqrt(vD), '2 · ' + vA)}`;
+  const divFb = (v, n, d, r) => near(v, n * d) ? 'Aqui é <b>divisão</b>: divida o número de cima pelo de baixo.' : signFb(v, r);
+  const rootLine = (k, op, nExp, rExp, sub) => `<div class="chain">${seg(`<i>x</i><sub>${sub}</sub> = ${frac(`${inp(k + 'p', 'cb')} ${op} ${inp(k + 'q', 'cd')}`, inp(k + 'd', 'ca'))}`)}${seg(`= ${frac(inp(k + 'n', 'cb', true), inp(k + 'e', 'ca'))}`)}${seg(`= ${inp(k, 'cb', true)}`)}</div>`;
+  const rootItems = (k, sign, rExp, notes) => {
+    const n = -b + sign * sq;
+    return [
+      num(k + 'p', -b, { fb: v => (b !== 0 && near(v, b)) ? 'Em cima, primeiro vem o −b: o oposto de b.' : 'Em cima, primeiro vem o valor de −b.' }),
+      num(k + 'q', sq, { fb: v => near(v, -sq) ? 'Escreva o √Δ sem sinal: o sinal da conta já está entre os quadrinhos.' : 'O segundo valor de cima é o √Δ.' }),
+      num(k + 'd', 2 * a, { fb: v => signFb(v, 2 * a) || 'Embaixo vai o valor de 2 · a.' }),
+      num(k + 'n', n, { fb: v => near(v, -b - sign * sq) ? `Confira a operação: aqui é ${sign > 0 ? '<b>mais</b>' : '<b>menos</b>'}.` : 'Faça a conta de cima com a regra de sinais.' }),
+      num(k + 'e', 2 * a, { fb: v => signFb(v, 2 * a) || 'Embaixo continua o valor de 2 · a.' }),
+      num(k, rExp, { ...notes, fb: v => divFb(v, n, 2 * a, rExp) || 'Divida o número de cima pelo de baixo.' })
+    ];
+  };
+  let bParts;
+  if (D >= 0) {
+    bParts = [
+      { title: 'Qual é a fórmula de Bhaskara?',
+        concept: 'A fórmula de Bhaskara calcula as raízes. Escolha a fórmula correta:',
+        body: () => choices('bform', shuffle([
+          { v: 'ok', html: L(`<i>x</i> = ${frac('−<i>b</i> ± ' + sqrt('Δ'), '2 · <i>a</i>')}`) },
+          { v: 'w1', html: L(`<i>x</i> = ${frac('<i>b</i> ± ' + sqrt('Δ'), '2 · <i>a</i>')}`) },
+          { v: 'w2', html: L(`<i>x</i> = ${frac('−<i>b</i> ± Δ', '2 · <i>a</i>')}`) },
+          { v: 'w3', html: L(`<i>x</i> = ${frac('−<i>b</i> ± ' + sqrt('Δ'), '<i>a</i>')}`) }])),
+        items: [ch('bform', 'ok')],
+        hint: 'Na fórmula certa aparece <b>−b</b> (o oposto de b), a <b>raiz quadrada</b> do Δ e, embaixo, <b>2 vezes a</b>.' },
+      { title: 'Substitua e calcule cada parte',
+        concept: 'Resolva em linha: troque as letras pelos valores e depois calcule −b, √Δ e 2 · a.',
+        body: () => `<div class="chain">${seg(BF)}${seg(`= ${frac(`−( ${inp('bh_b', 'cb')} ) ± ${rq(inp('bh_d', 'cd'))}`, `2 · ( ${inp('bh_a', 'ca')} )`)}`)}${seg(`= ${frac(`${inp('mb', 'cb')} ± ${inp('sq', 'cd')}`, inp('twoa', 'ca'))}`)}</div>`,
+        items: [
+          num('bh_b', b, { fb: v => signFb(v, b) || 'Dentro do primeiro parêntese vai o valor de b.' }),
+          num('bh_d', D, { fb: v => signFb(v, D) || 'Dentro da raiz vai o valor do Δ.' }),
+          num('bh_a', a, { fb: v => signFb(v, a) || 'Embaixo, no parêntese, vai o valor de a.' }),
+          num('mb', -b, { fb: v => (b !== 0 && near(v, b)) ? '−b é o <b>oposto</b> de b: troque o sinal.' : '−(b): troque o sinal do valor de b.' }),
+          num('sq', sq, { fb: v => near(v, D / 2) ? '√Δ: raiz quadrada não é dividir por 2. Procure o número que, vezes ele mesmo, dá o Δ.' : '√Δ: qual número multiplicado por ele mesmo dá o Δ?' }),
+          num('twoa', 2 * a, { fb: v => signFb(v, 2 * a) || '2 · a: multiplique 2 pelo valor de a.' })
+        ],
+        hint: 'No 1º espaço vai o b (o menos já está do lado de fora), dentro da raiz vai o Δ e embaixo vai o a. Depois: −(b) troca o sinal de b; √Δ é o número que vezes ele mesmo dá Δ (ex.: √16 = 4); 2 · a é o dobro de a.' },
+      D > 0 ? {
+        title: 'Encontre as raízes x₁ e x₂',
+        concept: '<b>x₁</b> usa o sinal <b>+</b> e <b>x₂</b> usa o sinal <b>−</b>. Resolva cada linha: copie os valores, faça a conta de cima e depois divida.',
+        body: () => rootLine('x1', '+', 0, 0, '1') + rootLine('x2', '−', 0, 0, '2'),
+        items: [...rootItems('x1', 1, r1, { note: ['x1', fmt(r1)] }), ...rootItems('x2', -1, r2, { note: ['x2', fmt(r2)] })],
+        hint: 'Use os valores de −b, √Δ e 2 · a da linha anterior. Na divisão, sinais iguais dão resultado positivo e sinais diferentes dão negativo.' }
+      : {
+        title: 'Encontre a raiz',
+        concept: 'Como √Δ = 0, somar ou subtrair dá o mesmo resultado: x₁ e x₂ são iguais. Resolva a linha.',
+        body: () => rootLine('x1', '+', 0, 0, '1'),
+        items: rootItems('x1', 1, r1, { notes: [['x1', fmt(r1)], ['x2', fmt(r1)]] }),
+        hint: 'Some −b com 0 e depois divida por 2 · a.' }
+    ];
+  } else {
+    bParts = [
+      { title: 'Dá para usar Bhaskara?',
+        concept: `A fórmula de Bhaskara precisa de ${sqrt(vD)}, ou seja, ${sqrt(fmt(D))}. Existe algum número real que, multiplicado por ele mesmo, dá ${fmt(D)}?`,
+        body: () => choices('negsq', [{ v: 'yes', html: 'Sim, existe' }, { v: 'no', html: 'Não existe' }]),
+        items: [ch('negsq', 'no', { fb: () => '3 · 3 = 9 e (−3) · (−3) = 9. Um número vezes ele mesmo nunca dá negativo.' })],
+        hint: '3 · 3 = 9 e (−3) · (−3) = 9. Todo número vezes ele mesmo dá positivo ou zero, nunca negativo.' },
+      { title: 'Então, as raízes reais são…',
+        concept: 'Sem a raiz de Δ, a fórmula de Bhaskara não tem resultado nos números reais.',
+        body: () => choices('noroot', shuffle([{ v: 'ok', html: 'não existem raízes reais' }, { v: 'w1', html: L('<i>x</i> = 0') }, { v: 'w2', html: L(`<i>x</i> = ${fmt(D)}`) }])),
+        items: [ch('noroot', 'ok', { notes: [['x1', 'não existe'], ['x2', 'não existe']] })],
+        hint: 'Volte na regra do Δ: quando Δ < 0, quantas raízes reais existem?' }
+    ];
+  }
+  S.push({ name: 'Bhaskara', glyph: '√', title: D < 0 ? 'As raízes: o caso do Δ negativo' : 'As raízes pela fórmula de Bhaskara', parts: bParts });
+
+  // ---------- 4. Vértice
+  const VX = `<i>x</i><sub>v</sub> = ${frac('−' + vB, '2 · ' + vA)}`, VY = `<i>y</i><sub>v</sub> = ${frac('−' + vD, '4 · ' + vA)}`;
+  S.push({ name: 'Vértice', glyph: 'V', title: 'O vértice da parábola', parts: [
+    { title: 'Quais são as fórmulas do vértice?',
+      concept: 'O vértice é o “bico” da parábola, o ponto V(x<sub>v</sub>, y<sub>v</sub>). Escolha as fórmulas corretas:',
+      body: () => choices('vform', shuffle([
+        { v: 'ok', html: L(`<i>x</i><sub>v</sub> = ${frac('−<i>b</i>', '2 · <i>a</i>')}  e  <i>y</i><sub>v</sub> = ${frac('−Δ', '4 · <i>a</i>')}`) },
+        { v: 'w1', html: L(`<i>x</i><sub>v</sub> = ${frac('<i>b</i>', '2 · <i>a</i>')}  e  <i>y</i><sub>v</sub> = ${frac('Δ', '4 · <i>a</i>')}`) },
+        { v: 'w2', html: L(`<i>x</i><sub>v</sub> = ${frac('−<i>b</i>', '<i>a</i>')}  e  <i>y</i><sub>v</sub> = ${frac('−Δ', '<i>a</i>')}`) },
+        { v: 'w3', html: L(`<i>x</i><sub>v</sub> = ${frac('−Δ', '4 · <i>a</i>')}  e  <i>y</i><sub>v</sub> = ${frac('−<i>b</i>', '2 · <i>a</i>')}`) }])),
+      items: [ch('vform', 'ok')],
+      hint: 'O x do vértice usa o <b>b</b> e o <b>2a</b> (parecido com Bhaskara). O y do vértice usa o <b>Δ</b> e o <b>4a</b>. As duas têm sinal de menos em cima.' },
+    { title: 'Calcule o xᵥ',
+      concept: 'Resolva em linha: substitua os valores, calcule em cima e embaixo, e depois divida.',
+      body: () => `<div class="chain">${seg(VX)}${seg(`= ${frac(`−( ${inp('vx_b', 'cb')} )`, `2 · ( ${inp('vx_a', 'ca')} )`)}`)}${seg(`= ${frac(inp('vx_n', 'cb'), inp('vx_d', 'ca'))}`)}${seg(`= ${inp('xv', 'cv')}`)}</div>`,
+      items: [
+        num('vx_b', b, { fb: v => signFb(v, b) || 'Dentro do parêntese de cima vai o valor de b.' }),
+        num('vx_a', a, { fb: v => signFb(v, a) || 'Dentro do parêntese de baixo vai o valor de a.' }),
+        num('vx_n', -b, { fb: v => (b !== 0 && near(v, b)) ? '−(b): troque o sinal de b.' : 'Em cima: calcule −(b).' }),
+        num('vx_d', 2 * a, { fb: v => signFb(v, 2 * a) || 'Embaixo: calcule 2 · a.' }),
+        num('xv', xv, { note: ['xv', fmt(xv)], fb: v => divFb(v, -b, 2 * a, xv) || 'xᵥ: divida o número de cima pelo de baixo.' })
+      ],
+      hint: 'Em cima vai o b (o menos já está fora do parêntese) e embaixo vai o a. Depois troque o sinal de b, calcule 2 · a e divida.' + (D > 0 ? ' Curiosidade: o xᵥ fica bem no meio das duas raízes.' : '') },
+    { title: 'Calcule o yᵥ',
+      concept: 'Resolva em linha: substitua os valores, calcule em cima e embaixo, e depois divida.',
+      body: () => `<div class="chain">${seg(VY)}${seg(`= ${frac(`−( ${inp('vy_d', 'cd')} )`, `4 · ( ${inp('vy_a', 'ca')} )`)}`)}${seg(`= ${frac(inp('vy_n', 'cd'), inp('vy_den', 'ca'))}`)}${seg(`= ${inp('yv', 'cv')}`)}</div>`,
+      items: [
+        num('vy_d', D, { fb: v => signFb(v, D) || 'Dentro do parêntese de cima vai o valor do Δ.' }),
+        num('vy_a', a, { fb: v => signFb(v, a) || 'Dentro do parêntese de baixo vai o valor de a.' }),
+        num('vy_n', -D, { fb: v => (D !== 0 && near(v, D)) ? '−(Δ): troque o sinal do Δ.' : 'Em cima: calcule −(Δ).' }),
+        num('vy_den', 4 * a, { fb: v => signFb(v, 4 * a) || 'Embaixo: calcule 4 · a.' }),
+        num('yv', yv, { note: ['yv', fmt(yv)], fb: v => divFb(v, -D, 4 * a, yv) || 'yᵥ: divida o número de cima pelo de baixo.' })
+      ],
+      hint: 'Em cima vai o Δ (o menos já está fora do parêntese) e embaixo vai o a. Depois troque o sinal do Δ, calcule 4 · a e divida. Para conferir, troque x por xᵥ na função: o resultado é o yᵥ.' }
+  ]});
+
+  // ---------- 5. Gráfico
+  const yOpts = shuffle(uniqOpts([
+    { v: 'ok', html: L(pt(0, c)) }, { v: 'x1', html: L(pt(c, 0)) }, { v: 'x2', html: L(pt(0, b)) }, { v: 'x3', html: L(pt(0, a)) }, { v: 'x4', html: L(pt(0, -c)) }
+  ])).slice(0, 4);
+  if (!yOpts.some(o => o.v === 'ok')) yOpts[0] = { v: 'ok', html: L(pt(0, c)) };
+  S.push({ name: 'Gráfico', glyph: '⌒', title: 'O gráfico da função', parts: [
+    { title: 'Para onde a parábola abre?',
+      concept: `Olhe o sinal de <span class="ca mx"><i>a</i> = ${fmt(a)}</span>. Ele decide a “boca” da parábola.`,
+      body: () => choices('conc', [{ v: 'up', html: mini('up') + 'para cima' }, { v: 'down', html: mini('down') + 'para baixo' }]),
+      items: [ch('conc', a > 0 ? 'up' : 'down', { note: ['conc', a > 0 ? 'para cima ∪' : 'para baixo ∩'] })],
+      hint: '<b>a positivo → boca para cima</b> (parece um sorriso). <b>a negativo → boca para baixo</b>.' },
+    { title: 'O vértice é ponto de mínimo ou de máximo?',
+      concept: `A parábola abre para ${a > 0 ? 'cima' : 'baixo'}. Pense: o vértice fica no ponto mais baixo ou no mais alto?`,
+      body: () => choices('ext', [{ v: 'min', html: mini('up') + 'ponto de <b>mínimo</b>' }, { v: 'max', html: mini('down') + 'ponto de <b>máximo</b>' }]),
+      items: [ch('ext', a > 0 ? 'min' : 'max', { note: ['ext', a > 0 ? 'mínimo' : 'máximo'] })],
+      hint: 'Boca para cima (∪): o vértice é o fundo, o ponto mais baixo → mínimo. Boca para baixo (∩): o vértice é o topo → máximo.' },
+    { title: 'Onde a parábola corta o eixo y?',
+      concept: `Todo ponto do eixo y tem <i>x</i> = 0. Trocando <i>x</i> por 0 na função, sobra só o ${vC}. Então a parábola corta o eixo y no ponto (0, ${vC}).`,
+      body: () => choices('yint', yOpts),
+      items: [ch('yint', 'ok', { note: ['yint', pt(0, c)], fb: v => v === 'x1' ? 'Cuidado com a ordem: o primeiro número é o x. No eixo y, o x vale 0.' : null })],
+      hint: 'O ponto é escrito como (x, y). No eixo y, x = 0, e o y é o valor de c.' },
+    { title: 'Marque os pontos no plano', plot: true, items: [],
+      concept: `Toque no plano para marcar cada ponto, usando os valores do <b>caderno de resultados</b>.<br><b>Pontuação:</b> ponto certo na 1ª tentativa vale <b>+${PTS.pVals[0]}</b>, na 2ª vale <b>+${PTS.pVals[1]}</b> e depois <b>+${PTS.pVals[2]}</b>. Cada clique errado tira <b class="cc">${PTS.pWrong}</b>.`,
+      body: () => `<ul class="tasks" id="tasks"></ul>
+        <div class="target" id="target"></div>
+        <div class="plot" id="plotBox"><canvas id="plot" aria-label="Plano cartesiano para marcar os pontos"></canvas><div class="readout" id="readout">( , )</div></div>
+        <div class="legend"><span><i style="background:var(--cc)"></i>eixo y</span><span><i style="background:var(--cb)"></i>raízes</span><span><i style="background:var(--cv)"></i>vértice</span><span><i style="background:var(--accent)"></i>parábola</span></div>
+        <div class="actions"><button class="hint-btn" id="gHint" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2Zm-3 18h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg>Pedir dica <span>−5</span></button></div>
+        <div class="fb" id="gfb" aria-live="polite"></div>` }
+  ]});
+  return S;
+}
+
+/* ================= STATE ================= */
+const PTS = { first: 20, later: 10, wrong: -5, hint: -5, combo: 15, stage: 30, pVals: [30, 20, 10], pWrong: -10 };
+let state = null;
+const NOTE_ROWS = [['a', 'a'], ['b', 'b'], ['c', 'c'], ['delta', 'Δ'], ['nr', 'Nº de raízes'], ['x1', 'x₁'], ['x2', 'x₂'], ['xv', 'xᵥ'], ['yv', 'yᵥ'], ['conc', 'Concavidade'], ['ext', 'Vértice é'], ['yint', 'Corta o eixo y']];
+
+function newState(name) {
+  const F = pickFunction();
+  return { name, F, S: buildStages(F), stage: 0, part: 0, score: 0, streak: 0, maxStreak: 0, firstOk: 0, totalItems: 0, wrongs: 0, hints: 0, it: {}, notes: {}, colored: false };
+}
+const it = key => (state.it[key] ||= { tries: 0, done: false, val: null });
+
+/* ================= SCORE + FX ================= */
+function addScore(n) {
+  state.score = Math.max(0, state.score + n);
+  $('#scoreN').textContent = state.score;
+  const s = $('#score'); s.classList.remove('bump'); void s.offsetWidth; s.classList.add('bump');
+}
+function pop(el, n, cls) {
+  const r = el.getBoundingClientRect ? el.getBoundingClientRect() : { left: el.x, top: el.y, width: 0 };
+  const d = document.createElement('div');
+  d.className = 'pop ' + (cls || (n > 0 ? 'p' : 'n'));
+  d.textContent = typeof n === 'number' ? (n > 0 ? '+' + n : '−' + Math.abs(n)) : n;
+  d.style.left = (r.left + r.width / 2) + 'px'; d.style.top = (r.top - 8) + 'px';
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1150);
+}
+function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2300); }
+function updateStreak() {
+  const s = $('#streak'); $('#streakN').textContent = '×' + state.streak;
+  s.classList.toggle('on', state.streak >= 2);
+}
+function comboCheck() {
+  if (state.streak > 0 && state.streak % 3 === 0) setTimeout(() => { addScore(PTS.combo); pop($('#score'), 'Combo +' + PTS.combo, 'g'); Sound.sfx.combo(); }, 350);
+}
+function reward(el, first) {
+  state.totalItems++;
+  if (first) { state.firstOk++; state.streak++; state.maxStreak = Math.max(state.maxStreak, state.streak); addScore(PTS.first); pop(el, PTS.first); comboCheck(); }
+  else { state.streak = 0; addScore(PTS.later); pop(el, PTS.later); }
+  updateStreak();
+}
+function penalize(el, n = PTS.wrong) { state.wrongs++; state.streak = 0; addScore(n); pop(el, n); updateStreak(); }
+
+// confetti
+const fxC = $('#fx'), fxX = fxC.getContext('2d'); let parts = [], fxRun = false;
+function confetti(n = 120) {
+  if (reduceMotion) return;
+  const dpr = window.devicePixelRatio || 1; fxC.width = innerWidth * dpr; fxC.height = innerHeight * dpr; fxX.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cs = getComputedStyle(document.documentElement);
+  const cols = ['--ca', '--cb', '--cc', '--cd', '--cv', '--gold'].map(v => cs.getPropertyValue(v).trim());
+  for (let i = 0; i < n; i++) parts.push({ x: innerWidth / 2 + (Math.random() - .5) * 200, y: innerHeight * .35, vx: (Math.random() - .5) * 14, vy: -Math.random() * 12 - 4, r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .4, c: cols[i % cols.length], life: 0 });
+  if (!fxRun) { fxRun = true; requestAnimationFrame(fxLoop); }
+}
+function fxLoop() {
+  fxX.clearRect(0, 0, innerWidth, innerHeight);
+  parts.forEach(p => { p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va; p.life++;
+    fxX.save(); fxX.translate(p.x, p.y); fxX.rotate(p.a); fxX.fillStyle = p.c; fxX.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); fxX.restore(); });
+  parts = parts.filter(p => p.y < innerHeight + 40 && p.life < 300);
+  if (parts.length) requestAnimationFrame(fxLoop); else { fxRun = false; fxX.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+/* ================= SCREENS ================= */
+function show(id) { ['#scrIntro', '#scrMission', '#scrFinal'].forEach(s => $(s).hidden = s !== id); scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); }
+
+function renderStepper() {
+  $('#stepper').innerHTML = state.S.map((s, i) => `<div class="st ${i < state.stage ? 'done' : i === state.stage ? 'now' : ''}"><span class="g">${i < state.stage ? '✓' : s.glyph}</span>${s.name}</div>`).join('');
+  const now = $('#stepper .now'); if (now) now.scrollIntoView({ block: 'nearest', inline: 'center' });
+}
+const NOTE_COL = { a: 'ca', b: 'cb', c: 'cc', delta: 'cd', x1: 'cb', x2: 'cb', xv: 'cv', yv: 'cv' };
+function renderNotes(flashKey) {
+  const fn = fnHTML(state.F, state.colored);
+  $('#notesFn').innerHTML = fn; $('#hudFn').innerHTML = fn;
+  $('#notesList').innerHTML = NOTE_ROWS.map(([k, l]) => {
+    const v = state.notes[k];
+    return `<li class="${v === undefined ? 'empty' : ''} ${k === flashKey ? 'new' : ''}"><span class="k">${l}</span><span class="v ${NOTE_COL[k] || ''}">${v === undefined ? '?' : v}</span></li>`;
+  }).join('');
+}
+function setNote(k, v) { state.notes[k] = v; renderNotes(k); }
+function applyNotes(item) { if (item.note) setNote(item.note[0], item.note[1]); if (item.notes) item.notes.forEach(([k, v]) => setNote(k, v)); }
+
+/* ================= STAGE RENDER ================= */
+const HINT_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2Zm-3 18h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg>';
+function renderStage() {
+  const st = state.S[state.stage];
+  Sound.setLevel(state.stage);
+  renderStepper();
+  $('#stage').innerHTML = `<div class="stage-head"><span class="kicker">Etapa ${state.stage + 1} de ${state.S.length}</span><h2>${st.title}</h2></div>` +
+    st.parts.map((p, i) => `
+    <section class="part" id="part-${i}" hidden>
+      <header><span class="pnum">${state.stage + 1}.${i + 1}</span><h3>${p.title}</h3></header>
+      ${p.concept ? `<div class="concept">${p.concept}</div>` : ''}
+      <div class="pbody">${p.body()}</div>
+      ${p.plot ? '' : `<div class="actions">
+        ${p.items.some(x => x.kind === 'num') ? `<button class="btn check-btn" data-p="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Verificar</button>` : ''}
+        ${p.hint ? `<button class="hint-btn" data-p="${i}">${HINT_ICON}Pedir dica <span>−5</span></button>` : ''}
+      </div>
+      ${p.hint ? `<div class="hint" hidden>${p.hint}</div>` : ''}
+      <div class="fb" aria-live="polite"></div>
+      <div class="after" hidden></div>`}
+    </section>`).join('') + `<div id="stageClear"></div>`;
+  revealPart(0, false);
+}
+function revealPart(i, scroll = true) {
+  state.part = i;
+  const el = $('#part-' + i); el.hidden = false;
+  if (state.S[state.stage].parts[i].plot) initPlot();
+  if (scroll) setTimeout(() => el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 120);
+  const first = el.querySelector('input.cell'); if (first && matchMedia('(pointer:fine)').matches) setTimeout(() => first.focus({ preventScroll: true }), 300);
+}
+function partEl(i) { return $('#part-' + i); }
+function feedback(i, html, kind) { partEl(i).querySelector('.fb').innerHTML = `<div class="m ${kind}">${html}</div>`; }
+function showHint(i, free) {
+  const h = partEl(i).querySelector('.hint'); if (!h || !h.hidden) return;
+  h.hidden = false; const btn = partEl(i).querySelector('.hint-btn'); if (btn) btn.remove();
+  if (!free) { state.hints++; addScore(PTS.hint); pop(h, PTS.hint); }
+}
+const PRAISE = ['Certo! Mandou bem.', 'Isso mesmo!', 'Perfeito!', 'Acertou! Continue assim.', 'Muito bem!', 'Exato!'];
+const praise = () => PRAISE[Math.floor(Math.random() * PRAISE.length)];
+
+function checkPart(i) {
+  const p = state.S[state.stage].parts[i];
+  let wrongMsgs = [], anyWrong = false, anyRight = false, empty = 0;
+  for (const item of p.items.filter(x => x.kind === 'num')) {
+    const s = it(item.key); if (s.done) continue;
+    const el = $('#in-' + item.key); el.classList.remove('bad', 'empty');
+    if (!el.value.trim()) { empty++; el.classList.add('empty'); continue; }
+    const v = parseNum(el.value);
+    if (isNaN(v)) { anyWrong = true; void el.offsetWidth; el.classList.add('bad'); wrongMsgs.push('Escreva só números. Pode usar o sinal −, vírgula ou fração (como 5/2).'); continue; }
+    const ok = item.check ? item.check(v) : near(v, item.expect);
+    if (ok) {
+      s.done = true; s.val = v; anyRight = true;
+      el.value = fmt(v); el.classList.add('ok'); el.disabled = true;
+      reward(el, s.tries === 0); applyNotes(item);
+    } else {
+      s.tries++; anyWrong = true;
+      void el.offsetWidth; el.classList.add('bad'); penalize(el);
+      wrongMsgs.push((item.fb && item.fb(v)) || 'Ainda não. Refaça a conta com calma.');
+      if (s.tries >= 2) showHint(i, true);
+    }
+  }
+  if (anyWrong) { Sound.sfx.wrong(); feedback(i, [...new Set(wrongMsgs)].slice(0, 3).join('<br>'), 'bad'); }
+  else if (anyRight) { Sound.sfx.correct(); if (empty) feedback(i, 'Agora complete os campos que faltam.', 'info'); else partEl(i).querySelector('.fb').innerHTML = ''; }
+  else if (empty) feedback(i, 'Preencha os campos antes de verificar.', 'info');
+  afterCheck(i);
+}
+function choose(btn) {
+  const group = btn.closest('.choices'), key = group.dataset.key;
+  const i = +btn.closest('.part').id.split('-')[1];
+  const item = state.S[state.stage].parts[i].items.find(x => x.key === key);
+  const s = it(key); if (s.done || btn.disabled) return;
+  if (btn.dataset.v === item.expect) {
+    s.done = true; btn.classList.add('ok');
+    group.querySelectorAll('.choice').forEach(b => b.disabled = true);
+    Sound.sfx.correct(); reward(btn, s.tries === 0); partEl(i).querySelector('.fb').innerHTML = ''; applyNotes(item);
+  } else {
+    s.tries++; btn.classList.add('bad'); btn.disabled = true;
+    Sound.sfx.wrong(); penalize(btn);
+    const pp = state.S[state.stage].parts[i];
+    feedback(i, ((item.fb && item.fb(btn.dataset.v)) || 'Não é essa. Leia a explicação de novo e tente outra opção.') + (pp.fbAll ? pp.fbAll() : ''), 'bad');
+    if (s.tries >= 2) showHint(i, true);
+  }
+  afterCheck(i);
+}
+function afterCheck(i) {
+  const st = state.S[state.stage], p = st.parts[i];
+  if (!p.items.every(x => it(x.key).done)) return;
+  const el = partEl(i); if (el.classList.contains('done')) return;
+  el.classList.add('done');
+  el.querySelectorAll('.check-btn,.hint-btn').forEach(b => b.remove());
+  if (state.stage === 0) { state.colored = true; renderNotes(); }
+  if (i + 1 < st.parts.length) { setTimeout(() => { Sound.sfx.part(); revealPart(i + 1); }, 450); }
+  else setTimeout(stageClear, 500);
+}
+function stageClear() {
+  addScore(PTS.stage); Sound.sfx.stage(); confetti(90);
+  const next = state.S[state.stage + 1];
+  const box = $('#stageClear');
+  box.innerHTML = `<div class="clear"><div><h3>Etapa concluída! +${PTS.stage} de bônus</h3><p>Próxima: ${next.name}.</p></div><button class="btn go" id="btnNext">Próxima etapa<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`;
+  pop($('#score'), '+' + PTS.stage, 'g');
+  setTimeout(() => box.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' }), 150);
+  $('#btnNext').onclick = () => { Sound.sfx.click(); state.stage++; renderStage(); scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); };
+}
+
+/* ================= GRAPH ================= */
+let G = null, plotRO = null;
+function initPlot() {
+  const F = state.F, { c, D, xv, yv, r1, r2 } = F;
+  const raw = [{ x: 0, y: c, label: 'corte no eixo y', col: '--cc', hint: 'Olhe no caderno a linha “Corta o eixo y”.' }];
+  if (D > 0) raw.push({ x: r1, y: 0, label: 'raiz x₁', col: '--cb', hint: 'A raiz x₁ fica em cima do eixo x: o ponto é (x₁, 0).' }, { x: r2, y: 0, label: 'raiz x₂', col: '--cb', hint: 'A raiz x₂ fica em cima do eixo x: o ponto é (x₂, 0).' });
+  if (D === 0) raw.push({ x: r1, y: 0, label: 'raiz', col: '--cb', hint: 'A raiz fica em cima do eixo x: o ponto é (x₁, 0).' });
+  raw.push({ x: xv, y: yv, label: 'vértice V', col: '--cv', hint: 'O vértice é o ponto (xᵥ, yᵥ). Ande xᵥ na horizontal e yᵥ na vertical.' });
+  const tasks = [];
+  raw.forEach(p => { const e = tasks.find(t => near(t.x, p.x) && near(t.y, p.y)); if (e) e.label += ' + ' + p.label; else tasks.push({ ...p, done: false, tries: 0 }); });
+  const xs = [0, ...tasks.map(t => t.x)], ys = [0, ...tasks.map(t => t.y)];
+  let x0 = Math.min(...xs) - 2, x1 = Math.max(...xs) + 2, y0 = Math.min(...ys) - 2, y1 = Math.max(...ys) + 2;
+  while (x1 - x0 < 10) { x0--; x1++; } while (y1 - y0 < 8) { y0--; y1++; }
+  G = { tasks, cur: 0, hover: null, miss: null, prog: 0, done: false, b: { x0, x1, y0, y1 } };
+  renderTasks();
+  const cv = $('#plot');
+  if (plotRO) plotRO.disconnect();
+  plotRO = new ResizeObserver(sizePlot); plotRO.observe($('#plotBox'));
+  sizePlot();
+  cv.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') { G.hover = snap(e); drawPlot(); } });
+  cv.addEventListener('pointerleave', () => { G.hover = null; drawPlot(); });
+  cv.addEventListener('click', onPlotClick);
+  $('#gHint').onclick = () => { const t = G.tasks[G.cur]; if (!t || G.done) return; state.hints++; addScore(PTS.hint); pop($('#gHint'), PTS.hint); $('#gfb').innerHTML = `<div class="m info"><b>Dica:</b> ${t.hint}</div>`; };
+}
+const pointValue = t => PTS.pVals[Math.min(t.tries, PTS.pVals.length - 1)];
+function renderTasks() {
+  $('#tasks').innerHTML = G.tasks.map((t, i) => `<li class="${t.done ? 'ok' : i === G.cur ? 'now' : ''}"><span class="dotk"></span>${t.label}${t.done ? ` <span class="mx">${pt(t.x, t.y)}</span>` : ''}</li>`).join('');
+  const t = G.tasks[G.cur];
+  $('#target').innerHTML = t ? `Agora marque: <span>${t.label}</span> <small style="font-size:.75em;color:var(--muted)">(vale +${pointValue(t)})</small>` : 'Todos os pontos marcados!';
+}
+let plotCss = { w: 0, h: 0 };
+function sizePlot() {
+  const cv = $('#plot'); if (!cv) return;
+  const w = $('#plotBox').clientWidth, h = Math.round(Math.max(300, Math.min(560, w * .68)));
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
+  cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  plotCss = { w, h }; drawPlot();
+}
+const PAD = { l: 14, r: 14, t: 14, b: 14 };
+const X = x => PAD.l + (x - G.b.x0) / (G.b.x1 - G.b.x0) * (plotCss.w - PAD.l - PAD.r);
+const Y = y => plotCss.h - PAD.b - (y - G.b.y0) / (G.b.y1 - G.b.y0) * (plotCss.h - PAD.t - PAD.b);
+function snap(e) {
+  const r = $('#plot').getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+  const x = G.b.x0 + (px - PAD.l) / (plotCss.w - PAD.l - PAD.r) * (G.b.x1 - G.b.x0);
+  const y = G.b.y0 + (plotCss.h - PAD.b - py) / (plotCss.h - PAD.t - PAD.b) * (G.b.y1 - G.b.y0);
+  const s = { x: z(Math.round(x)), y: z(Math.round(y)) };
+  $('#readout').textContent = `(${fmt(s.x)}, ${fmt(s.y)})`;
+  return s;
+}
+function drawPlot() {
+  const cv = $('#plot'); if (!cv || !G) return;
+  const g = cv.getContext('2d'), cs = getComputedStyle(document.documentElement), C = v => cs.getPropertyValue(v).trim();
+  const { w, h } = plotCss, { x0, x1, y0, y1 } = G.b;
+  g.clearRect(0, 0, w, h); g.fillStyle = C('--paper'); g.fillRect(0, 0, w, h);
+  g.strokeStyle = C('--grid'); g.lineWidth = 1;
+  for (let x = Math.ceil(x0); x <= x1; x++) { g.beginPath(); g.moveTo(Math.round(X(x)) + .5, PAD.t); g.lineTo(Math.round(X(x)) + .5, h - PAD.b); g.stroke(); }
+  for (let y = Math.ceil(y0); y <= y1; y++) { g.beginPath(); g.moveTo(PAD.l, Math.round(Y(y)) + .5); g.lineTo(w - PAD.r, Math.round(Y(y)) + .5); g.stroke(); }
+  g.strokeStyle = C('--ink'); g.fillStyle = C('--ink'); g.lineWidth = 2;
+  const ax = Y(0), ay = X(0);
+  g.beginPath(); g.moveTo(PAD.l, ax); g.lineTo(w - PAD.r, ax); g.stroke();
+  g.beginPath(); g.moveTo(ay, h - PAD.b); g.lineTo(ay, PAD.t); g.stroke();
+  g.beginPath(); g.moveTo(w - PAD.r, ax); g.lineTo(w - PAD.r - 9, ax - 5); g.lineTo(w - PAD.r - 9, ax + 5); g.fill();
+  g.beginPath(); g.moveTo(ay, PAD.t); g.lineTo(ay - 5, PAD.t + 9); g.lineTo(ay + 5, PAD.t + 9); g.fill();
+  g.font = 'italic 600 16px "STIX Two Text", serif'; g.textAlign = 'right'; g.textBaseline = 'bottom';
+  g.fillText('x', w - PAD.r - 4, ax - 6); g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('y', ay + 8, PAD.t);
+  const stepX = (x1 - x0) > 16 ? 2 : 1, stepY = (y1 - y0) > 16 ? 2 : 1;
+  g.fillStyle = C('--muted'); g.font = '500 12px Lexend, system-ui, sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  for (let x = Math.ceil(x0); x <= x1; x++) if (x !== 0 && x % stepX === 0) { g.fillText(fmt(x), X(x), Math.min(ax + 6, h - PAD.b - 14)); g.fillRect(X(x) - .75, ax - 4, 1.5, 8); }
+  g.textAlign = 'right'; g.textBaseline = 'middle';
+  for (let y = Math.ceil(y0); y <= y1; y++) if (y !== 0 && y % stepY === 0) { g.fillText(fmt(y), Math.max(ay - 8, 26), Y(y)); g.fillRect(ay - 4, Y(y) - .75, 8, 1.5); }
+  g.textAlign = 'right'; g.textBaseline = 'top'; g.fillText('0', ay - 6, ax + 5);
+  if (G.prog > 0) {
+    const F = state.F;
+    g.save(); g.beginPath(); g.rect(PAD.l, PAD.t, w - PAD.l - PAD.r, h - PAD.t - PAD.b); g.clip();
+    const xEnd = x0 + (x1 - x0) * G.prog;
+    g.strokeStyle = C('--accent'); g.lineWidth = 4; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.shadowColor = C('--accent'); g.shadowBlur = 8;
+    g.beginPath(); let first = true;
+    for (let x = x0; x <= xEnd + 1e-9; x += (x1 - x0) / 400) { const y = F.a * x * x + F.b * x + F.c; first ? g.moveTo(X(x), Y(y)) : g.lineTo(X(x), Y(y)); first = false; }
+    g.stroke(); g.restore();
+  }
+  if (G.hover && !G.done) {
+    const hx = X(G.hover.x), hy = Y(G.hover.y);
+    g.strokeStyle = C('--accent'); g.globalAlpha = .45; g.lineWidth = 1.5; g.setLineDash([4, 4]);
+    g.beginPath(); g.moveTo(hx, ax); g.lineTo(hx, hy); g.lineTo(ay, hy); g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+    g.beginPath(); g.arc(hx, hy, 9, 0, Math.PI * 2); g.strokeStyle = C('--accent'); g.lineWidth = 2.5; g.stroke();
+  }
+  G.tasks.forEach(t => {
+    if (!t.done) return;
+    const px = X(t.x), py = Y(t.y);
+    g.beginPath(); g.arc(px, py, 13, 0, Math.PI * 2); g.fillStyle = C(t.col); g.globalAlpha = .2; g.fill(); g.globalAlpha = 1;
+    g.beginPath(); g.arc(px, py, 7, 0, Math.PI * 2); g.fillStyle = C(t.col); g.fill(); g.strokeStyle = C('--paper'); g.lineWidth = 2; g.stroke();
+    const label = pt(t.x, t.y);
+    g.font = '700 14px "Baloo 2", system-ui, sans-serif';
+    const tw = g.measureText(label).width + 12; let lx = px + 12, ly = py - 30;
+    if (lx + tw > w - PAD.r) lx = px - 12 - tw; if (ly < PAD.t) ly = py + 12;
+    g.fillStyle = C('--paper'); g.strokeStyle = C(t.col); g.lineWidth = 1.5;
+    g.beginPath(); g.roundRect ? g.roundRect(lx, ly, tw, 22, 7) : g.rect(lx, ly, tw, 22); g.fill(); g.stroke();
+    g.fillStyle = C(t.col); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(label, lx + 6, ly + 11.5);
+  });
+  if (G.miss) {
+    const mx = X(G.miss.x), my = Y(G.miss.y); g.strokeStyle = C('--bad'); g.lineWidth = 3.5; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(mx - 8, my - 8); g.lineTo(mx + 8, my + 8); g.moveTo(mx + 8, my - 8); g.lineTo(mx - 8, my + 8); g.stroke();
+  }
+}
+function onPlotClick(e) {
+  if (G.done) return;
+  const s = snap(e), t = G.tasks[G.cur];
+  if (near(s.x, t.x) && near(s.y, t.y)) {
+    t.done = true; Sound.sfx.point();
+    const first = t.tries === 0, n = pointValue(t);
+    state.totalItems++;
+    if (first) { state.firstOk++; state.streak++; state.maxStreak = Math.max(state.maxStreak, state.streak); comboCheck(); } else state.streak = 0;
+    addScore(n); pop({ x: e.clientX, y: e.clientY }, n); updateStreak();
+    $('#gfb').innerHTML = '';
+    G.cur = G.tasks.findIndex(x => !x.done);
+    G.miss = null; renderTasks(); drawPlot();
+    if (G.cur === -1) finishGraph();
+    return;
+  }
+  const other = G.tasks.find(x => !x.done && x !== t && near(x.x, s.x) && near(x.y, s.y));
+  if (other) { Sound.sfx.click(); $('#gfb').innerHTML = `<div class="m info">Esse ponto é o <b>${other.label}</b>. Ele está certo, mas agora procure: <b>${t.label}</b>.</div>`; return; }
+  t.tries++; Sound.sfx.wrong();
+  penalize({ x: e.clientX, y: e.clientY }, PTS.pWrong);
+  G.miss = s; drawPlot(); setTimeout(() => { G.miss = null; drawPlot(); }, 900);
+  renderTasks();
+  let msg = `Você marcou <b>${pt(s.x, s.y)}</b>, que não é o ${t.label}. Você perdeu ${Math.abs(PTS.pWrong)} pontos, e agora esse ponto vale <b>+${pointValue(t)}</b>.`;
+  if (near(s.x, t.y) && near(s.y, t.x)) msg += '<br>Você trocou a ordem! Primeiro vem o x (horizontal), depois o y (vertical).';
+  if (t.tries >= 2) msg += `<br><b>Dica:</b> ${t.hint}`;
+  $('#gfb').innerHTML = `<div class="m bad">${msg}</div>`;
+}
+function finishGraph() {
+  G.done = true; G.hover = null;
+  const start = performance.now(), dur = reduceMotion ? 1 : 1600;
+  const anim = now => { G.prog = Math.min(1, (now - start) / dur); drawPlot(); if (G.prog < 1) requestAnimationFrame(anim); else graphDone(); };
+  requestAnimationFrame(anim);
+}
+function graphDone() {
+  const F = state.F, { a, c, D, xv, yv } = F;
+  addScore(PTS.stage); Sound.sfx.fanfare(); confetti(160); pop($('#score'), '+' + PTS.stage, 'g');
+  const ck = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
+  $('#stageClear').innerHTML = `<section class="part done"><header><h3>Gráfico concluído!</h3></header><div class="btn-row"><button class="btn go big" id="btnFinish">Ver meu resultado e o ranking</button></div></section>`;
+  $('#btnFinish').onclick = finishMission;
+  setTimeout(() => $('#stageClear').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' }), 200);
+}
+
+/* ================= RANKING ================= */
+const RK = 'labFuncoes.ranking.v2';
+function loadRank() { try { return JSON.parse(localStorage.getItem(RK)) || []; } catch (e) { return []; } }
+function saveRank(r) { try { localStorage.setItem(RK, JSON.stringify(r)); } catch (e) {} }
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+function rankList(r, meId) {
+  if (!r.length) return '<p class="rank-empty">Ninguém no ranking ainda. Seja o primeiro!</p>';
+  return `<ol class="rank">${r.slice(0, 10).map(e => `<li class="${e.id === meId ? 'me' : ''}"><span class="nm">${esc(e.name)}</span><span class="pt">${e.score}</span></li>`).join('')}</ol>`;
+}
+function renderIntroRank() {
+  const r = loadRank();
+  $('#introRank').innerHTML = `<h3>Ranking da turma neste aparelho</h3>${rankList(r.slice(0, 5))}`;
+}
+
+/* ================= FLOW ================= */
+function startMission(name) {
+  state = newState(name);
+  $('#scoreN').textContent = '0'; updateStreak();
+  renderNotes(); show('#scrMission'); renderStage();
+}
+function finishMission() {
+  const acc = state.totalItems ? state.firstOk / state.totalItems : 0;
+  if (window.GAMIFICA && GAMIFICA.enviar(state.firstOk, state.totalItems, state.score)) GAMIFICA.aviso('📤 Nota enviada ao professor: ' + state.firstOk + ' de ' + state.totalItems + ' acertos de primeira');
+  const stars = acc >= .85 ? 3 : acc >= .6 ? 2 : 1;
+  const entry = { id: Date.now(), name: state.name, score: state.score, stars, date: new Date().toLocaleDateString('pt-BR') };
+  const r = loadRank(); r.push(entry); r.sort((x, y) => y.score - x.score); saveRank(r.slice(0, 100));
+  const pos = r.findIndex(e => e.id === entry.id) + 1;
+  const star = on => `<svg class="${on ? 'on' : ''}" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 16.9 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z"/></svg>`;
+  const msg = stars === 3 ? 'Desempenho de cientista! Você dominou a função do 2º grau.' : stars === 2 ? 'Muito bom! Revise as etapas em que errou e tente bater seu recorde.' : 'Você completou a missão! Cada nova tentativa deixa tudo mais fácil.';
+  $('#finalMain').innerHTML = `<span class="kicker">Missão concluída</span><h1>Parabéns, ${esc(state.name)}!</h1>
+    <div class="stars">${star(true)}${star(stars >= 2)}${star(stars >= 3)}</div>
+    <div class="bigscore">${state.score}<span style="font-size:.35em;color:var(--muted)"> pontos</span></div>
+    <p>${msg} Você ficou em <b>${pos}º lugar</b> no ranking.</p>
+    <div class="stats">
+      <div class="stat"><b class="cb">${state.firstOk}/${state.totalItems}</b><span>acertos de primeira</span></div>
+      <div class="stat"><b class="cc">${state.wrongs}</b><span>tentativas erradas</span></div>
+      <div class="stat"><b class="cd">${state.hints}</b><span>dicas pedidas</span></div>
+      <div class="stat"><b class="ca">${state.maxStreak}</b><span>maior sequência</span></div>
+    </div>
+    <h3>Ficha da sua função</h3>
+    <div class="mx" style="font-size:1.3rem;margin:6px 0">${fnHTML(state.F)}</div>
+    <dl class="ficha">${NOTE_ROWS.filter(([k]) => state.notes[k] !== undefined).map(([k, l]) => `<dt>${l}</dt><dd>${state.notes[k]}</dd>`).join('')}</dl>
+    <div class="btn-row"><button class="btn" id="btnAgain">Nova missão</button><button class="btn ghost" id="btnSwap">Trocar estudante</button></div>`;
+  renderFinalRank(entry.id);
+  show('#scrFinal'); confetti(120);
+  $('#btnAgain').onclick = () => { Sound.sfx.click(); startMission(state.name); };
+  $('#btnSwap').onclick = () => { Sound.sfx.click(); $('#playerName').value = ''; $('#hudFn').innerHTML = ''; renderIntroRank(); show('#scrIntro'); };
+}
+function renderFinalRank(meId) {
+  $('#finalRank').innerHTML = `<span class="kicker">Ranking da turma</span><h2 style="font-size:1.8rem;margin-top:4px">Melhores pesquisadores</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin:4px 0 0">Pontuações salvas neste aparelho.</p>${rankList(loadRank(), meId)}
+    <div id="resetBox"><button class="link" id="btnReset">Professor: zerar ranking</button></div>`;
+  $('#btnReset').onclick = () => {
+    $('#resetBox').innerHTML = `<div class="confirm">Apagar todas as pontuações? <button class="btn ghost" id="rkNo">Cancelar</button><button class="btn" id="rkYes" style="background:var(--bad);box-shadow:none">Apagar</button></div>`;
+    $('#rkNo').onclick = () => renderFinalRank(meId);
+    $('#rkYes').onclick = () => { saveRank([]); renderFinalRank(meId); };
+  };
+}
+
+/* ================= EVENTS ================= */
+$('#btnStart').onclick = () => {
+  const n = $('#playerName').value.trim();
+  if (!n) { const el = $('#playerName'); el.classList.remove('err'); void el.offsetWidth; el.classList.add('err'); $('#nameErr').textContent = 'Digite seu nome para entrar no ranking.'; el.focus(); return; }
+  $('#nameErr').textContent = '';
+  Sound.start(); Sound.sfx.stage();
+  startMission(n);
+};
+$('#playerName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btnStart').click(); });
+$('#stage').addEventListener('click', e => {
+  const c = e.target.closest('.choice'); if (c) return choose(c);
+  const k = e.target.closest('.check-btn'); if (k) return checkPart(+k.dataset.p);
+  const h = e.target.closest('.hint-btn'); if (h && h.dataset.p !== undefined) { Sound.sfx.click(); return showHint(+h.dataset.p, false); }
+});
+$('#stage').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.classList.contains('cell')) return;
+  e.preventDefault();
+  const part = e.target.closest('.part'); const cells = [...part.querySelectorAll('input.cell:not(:disabled)')];
+  const idx = cells.indexOf(e.target);
+  if (idx < cells.length - 1 && !cells[idx + 1].value) cells[idx + 1].focus();
+  else checkPart(+part.id.split('-')[1]);
+});
+$('#stage').addEventListener('input', e => { if (e.target.classList.contains('cell')) e.target.classList.remove('bad', 'empty'); });
+$('#btnMusic').onclick = e => { const on = Sound.toggleMusic(); e.currentTarget.classList.toggle('off', !on); };
+$('#btnSfx').onclick = e => { const on = Sound.toggleSfx(); e.currentTarget.classList.toggle('off', !on); };
+$('#btnFull').onclick = () => {
+  try {
+    const d = document, el = d.documentElement;
+    if (!d.fullscreenElement && !d.webkitFullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen).call(el)?.catch?.(() => toast('Tela cheia indisponível aqui')); }
+    else (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+  } catch (err) { toast('Tela cheia indisponível aqui'); }
+};
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => drawPlot());
+new MutationObserver(() => drawPlot()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+if (document.fonts) document.fonts.ready.then(() => drawPlot());
+renderIntroRank();
+
+// test hook
+window.__lab = { pickFunction, buildStages, parseNum, fmt };
+})();
+</script>
+<script>
+/* Portal da turma: envio da nota ao professor */
+GAMIFICA.preencherNome('#playerName', 24);
+</script>
+</body>
+</html>

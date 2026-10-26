@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<script src="ponte-portal.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê Geométrico: Quem Sou Eu?</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Oswald:wght@500;700&display=swap');
+
+        :root {
+            --bg-color: #1a1a1a;
+            --dossier-bg: #f4ecd8;
+            --text-dark: #2c3e50;
+            --accent-red: #c0392b;
+            --accent-green: #27ae60;
+            --accent-blue: #2980b9;
+            --accent-gold: #f39c12;
+            --accent-purple: #8e44ad;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier Prime', monospace;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #2a2a2a 0%, #111 100%);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== BARRA SUPERIOR ===== */
+        .top-bar {
+            width: 100%;
+            background: #000;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-bottom: 2px solid #333;
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+
+        .btn-controle {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 15px;
+            font-family: 'Oswald', sans-serif;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s, color 0.3s;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .btn-controle:hover { background: #fff; color: #000; }
+        .btn-controle:focus-visible { outline: 2px solid var(--accent-gold); }
+
+        /* ===== TELAS ===== */
+        #telaInicial, #telaFinal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #telaFinal { display: none; }
+
+        h1.titulo-jogo {
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(2em, 6vw, 4em);
+            color: var(--dossier-bg);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .instrucoes {
+            font-size: 1.1em;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .modo-selecao {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-iniciar {
+            font-size: 1.3em;
+            padding: 15px 30px;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            border-radius: 5px;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 5px 15px rgba(192, 57, 43, 0.4);
+        }
+
+        .btn-iniciar:hover { transform: scale(1.05); background: #e74c3c; }
+        .btn-iniciar:focus-visible { outline: 3px solid var(--accent-gold); }
+
+        .btn-dupla {
+            background: var(--accent-blue);
+            box-shadow: 0 5px 15px rgba(41,128,185,0.4);
+        }
+        .btn-dupla:hover { background: #3498db; }
+
+        .btn-exportar {
+            background: var(--text-dark);
+            font-size: 1.1em;
+            padding: 12px 25px;
+        }
+        .btn-exportar:hover { background: #1a242f; }
+
+        .recorde {
+            margin-top: 25px;
+            font-family: 'Oswald', sans-serif;
+            color: var(--accent-gold);
+            font-size: 1.2em;
+            letter-spacing: 1px;
+        }
+
+        /* ===== ÁREA DO JOGO ===== */
+        .game-container {
+            display: none;
+            width: 100%;
+            max-width: 700px;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .info-superior {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .placar-container {
+            background: #000;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2em;
+            border: 2px solid #333;
+            transition: transform 0.2s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .placar-container.turno-ativo {
+            border-color: var(--accent-gold);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
+        }
+
+        .pontos { color: var(--accent-green); font-weight: bold; }
+        .pontos.alerta { color: var(--accent-red); }
+
+        #placarP2 .pontos { color: var(--accent-purple); }
+
+        .contador-casos {
+            background: #000;
+            color: var(--accent-gold);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1em;
+            border: 2px solid #333;
+        }
+
+        /* Barra de progresso de casos */
+        .barra-progresso {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .barra-progresso-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        /* ===== DOSSIÊ ===== */
+        article.card-misterio {
+            background: var(--dossier-bg);
+            width: 100%;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            padding: 40px 30px;
+            position: relative;
+            transition: border 0.3s;
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
+        }
+
+        article.card-misterio.acertou { border-left: 10px solid var(--accent-green); }
+
+        article.card-misterio::before {
+            content: "CONFIDENCIAL";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-family: 'Oswald', sans-serif;
+            color: rgba(192, 57, 43, 0.3);
+            font-size: clamp(1.3em, 4vw, 3em);
+            transform: rotate(-15deg);
+            pointer-events: none;
+            border: 5px solid rgba(192, 57, 43, 0.3);
+            padding: 5px 10px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .cabecalho-dossie {
+            border-bottom: 2px solid var(--text-dark);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .info-turno {
+            display: none;
+            margin-top: 6px;
+            font-size: 0.95em;
+        }
+
+        /* ===== TIMER ===== */
+        .timer-container {
+            margin-bottom: 20px;
+            font-family: 'Oswald', sans-serif;
+        }
+
+        .timer-texto {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.95em;
+        }
+
+        .barra-tempo {
+            width: 100%;
+            height: 8px;
+            background: #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .barra-tempo-fill {
+            height: 100%;
+            background: var(--accent-blue);
+            transition: width 1s linear, background 0.3s;
+            border-radius: 4px;
+        }
+
+        .timer-critico {
+            background: var(--accent-red) !important;
+            animation: pulseTimer 0.6s infinite alternate;
+        }
+
+        @keyframes pulseTimer {
+            from { opacity: 1; }
+            to { opacity: 0.5; }
+        }
+
+        /* ===== PISTAS ===== */
+        .lista-pistas {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        details {
+            background: rgba(255,255,255,0.5);
+            border: 1px solid #ccc;
+            border-left: 5px solid var(--text-dark);
+            padding: 10px;
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        details[open] {
+            background: #fff;
+            border-left-color: var(--accent-red);
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        }
+
+        summary {
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            list-style: none;
+            padding: 5px;
+        }
+
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: "▸"; transition: transform 0.3s; font-size: 1.3em; }
+        details[open] summary::after { transform: rotate(90deg); }
+        summary:hover { color: var(--accent-red); }
+        summary:focus-visible { outline: 2px solid var(--accent-blue); }
+
+        details p {
+            margin: 15px 0 0;
+            font-size: 1.2em;
+            line-height: 1.5;
+            border-top: 1px dashed #ccc;
+            background: #ffffeb;
+            padding: 15px;
+            animation: revelarPista 0.4s ease-out;
+        }
+
+        @keyframes revelarPista {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tag-custo {
+            color: var(--accent-red);
+            font-family: 'Oswald', sans-serif;
+            background: rgba(192,57,43,0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        /* ===== RESPOSTA ===== */
+        .area-resposta {
+            background: #e2d7be;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        label {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            font-family: 'Courier Prime', monospace;
+            border: 2px solid var(--text-dark);
+            background: #fff;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        select:focus-visible { outline: 3px solid var(--accent-blue); }
+        select:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .grupo-botoes { display: flex; flex-direction: column; gap: 10px; }
+
+        button.btn-adivinhar {
+            background: var(--text-dark);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            font-size: 1.15em;
+            font-family: 'Oswald', sans-serif;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            text-transform: uppercase;
+        }
+
+        button.btn-adivinhar:hover { background: #000; }
+        button.btn-adivinhar:active { transform: scale(0.98); }
+        button.btn-adivinhar:focus-visible { outline: 3px solid var(--accent-gold); }
+
+        .btn-proximo { background: var(--accent-blue); }
+        .btn-proximo:hover { background: #1f618d; }
+
+        .btn-pular { background: transparent; color: var(--text-dark); border: 2px solid var(--text-dark); font-size: 0.95em; }
+        .btn-pular:hover { background: rgba(0,0,0,0.05); }
+        .btn-pular:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .feedback {
+            margin-top: 15px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.25em;
+            text-align: center;
+            min-height: 30px;
+            line-height: 1.4;
+        }
+
+        .acerto { color: var(--accent-green); animation: pop 0.4s ease; }
+        .erro { color: var(--accent-red); animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* ===== ANIMAÇÃO DE PONTOS ===== */
+        .ponto-flutuante {
+            position: fixed;
+            color: var(--accent-red);
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8em;
+            font-weight: bold;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+            text-shadow: 2px 2px 0 #fff;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.4); }
+        }
+
+        /* ===== CONFETE ===== */
+        .confete {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            z-index: 200;
+            pointer-events: none;
+            animation: cair 1.5s ease-in forwards;
+        }
+
+        @keyframes cair {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(300px) rotate(360deg); }
+        }
+
+        /* ===== RESULTADO FINAL (dupla) ===== */
+        .resultado-dupla div { margin: 6px 0; }
+
+        /* ===== RESPONSIVIDADE ===== */
+        @media (max-width: 600px) {
+            .top-bar { padding: 8px 10px; }
+            .btn-controle { padding: 6px 10px; font-size: 0.75em; }
+            article.card-misterio { padding: 30px 15px; }
+            article.card-misterio::before { font-size: 1.1em; padding: 3px 6px; }
+            .placar-container { font-size: 1em; padding: 8px 12px; }
+            .contador-casos { font-size: 0.9em; padding: 8px 10px; }
+            .modo-selecao { flex-direction: column; width: 100%; }
+            .btn-iniciar { width: 100%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01s !important; transition-duration: 0.01s !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="musicaFundo" src="https://actions.google.com/sounds/v1/science_fiction/sci_fi_suspense.ogg" loop preload="auto"></audio>
+
+    <!-- BARRA SUPERIOR -->
+    <div class="top-bar">
+        <button class="btn-controle" id="btnFs" aria-label="Alternar tela cheia">⛶ Tela Cheia</button>
+        <button class="btn-controle" id="btnMute" aria-label="Alternar som" aria-pressed="false">🔊 Som: Ligado</button>
+    </div>
+
+    <!-- TELA INICIAL -->
+    <div id="telaInicial" role="dialog" aria-label="Tela inicial do jogo">
+        <h1 class="titulo-jogo">🕵️ DOSSIÊ GEOMÉTRICO</h1>
+        <p class="instrucoes">
+            Você é o investigador chefe. Descubra qual é a figura geométrica abrindo as pistas.<br><br>
+            <strong>Atenção:</strong> Cada pista custa pontos, cada erro custa <strong>15 pts</strong>,
+            e você tem <strong>60 segundos</strong> por caso! Jogue sozinho ou desafie um amigo.
+        </p>
+        <div class="modo-selecao">
+            <button class="btn-iniciar" id="btnSolo">🕵️ Investigador Solo</button>
+            <button class="btn-iniciar btn-dupla" id="btnDupla">🕵️‍♂️🕵️‍♀️ Dupla de Detetives</button>
+        </div>
+        <p class="recorde" id="recordeInicial" style="display: none;"></p>
+    </div>
+
+    <!-- TELA FINAL -->
+    <div id="telaFinal" role="dialog" aria-label="Tela final do jogo">
+        <h1 class="titulo-jogo" style="color: var(--accent-green);">CASOS ENCERRADOS!</h1>
+        <div style="font-size: 1.3em; font-family: 'Oswald', sans-serif;" id="msgFinal"></div>
+        <div class="modo-selecao" style="margin-top: 20px;">
+            <button class="btn-iniciar btn-exportar" id="btnExportar">📄 Exportar Relatório</button>
+            <button class="btn-iniciar" id="btnReiniciar">NOVA INVESTIGAÇÃO</button>
+        </div>
+    </div>
+
+    <!-- CONTAINER DO JOGO -->
+    <div class="game-container" id="gameContainer">
+
+        <div class="info-superior">
+            <div class="placar-container" id="placarP1">
+                <span id="labelP1">REPUTAÇÃO</span>: <span class="pontos" id="displayPontosP1">100</span> PTS
+            </div>
+            <div class="placar-container" id="placarP2" style="display:none;">
+                JOGADOR 2: <span class="pontos" id="displayPontosP2">100</span> PTS
+            </div>
+            <div class="contador-casos">
+                📁 CASO <span id="displayCaso">1</span>/<span id="totalCasos">8</span>
+            </div>
+        </div>
+
+        <div class="barra-progresso" role="progressbar" aria-valuemin="0" aria-valuemax="8" aria-valuenow="1">
+            <div class="barra-progresso-fill" id="barraFill" style="width: 12.5%;"></div>
+        </div>
+
+        <article class="card-misterio" id="cardMisterio">
+            <div class="cabecalho-dossie">
+                ARQUIVO DE INVESTIGAÇÃO #<span id="displayFicha">1</span><br>
+                STATUS: EM ABERTO
+                <div class="info-turno" id="infoTurno"></div>
+            </div>
+
+            <div class="timer-container">
+                <div class="timer-texto">
+                    <span>⏱️ Tempo restante</span>
+                    <span><strong id="displayTimer">60</strong>s</span>
+                </div>
+                <div class="barra-tempo">
+                    <div class="barra-tempo-fill" id="timerFill" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="lista-pistas" id="containerPistas"></div>
+
+            <div class="area-resposta">
+                <label for="selectSuspeitos">Identifique o Suspeito:</label>
+                <select id="selectSuspeitos">
+                    <option value="">-- Selecione um suspeito --</option>
+                </select>
+
+                <div class="grupo-botoes">
+                    <button id="btnAdivinhar" class="btn-adivinhar">ACUSAR SUSPEITO</button>
+                    <button id="btnPular" class="btn-adivinhar btn-pular">ARQUIVAR CASO SEM RESOLVER (-10 PTS)</button>
+                    <button id="btnProximo" class="btn-adivinhar btn-proximo" style="display: none;">PRÓXIMO ARQUIVO ➔</button>
+                </div>
+
+                <div class="feedback" id="displayFeedback" aria-live="assertive"></div>
+            </div>
+        </article>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ==========================================
+        // BANCO DE DADOS (8 figuras)
+        // ==========================================
+        const bancoDeFiguras = [
+            {
+                nome: "Hexágono Regular",
+                pistas: [
+                    { texto: "Sou um polígono plano e convexo.", custo: 5 },
+                    { texto: "Possuo o mesmo número de lados e de vértices, totalizando 6 de cada.", custo: 10 },
+                    { texto: "Pode-me encontrar facilmente na natureza, especialmente em colmeias de abelhas.", custo: 15 },
+                    { texto: "A soma dos meus ângulos internos resulta exatamente em 720°.", custo: 20 }
+                ]
+            },
+            {
+                nome: "Cubo (Hexaedro Regular)",
+                pistas: [
+                    { texto: "Eu não sou um polígono, sou um poliedro (figura tridimensional).", custo: 5 },
+                    { texto: "Pela relação de Euler (V - A + F = 2), possuo 8 vértices e 12 arestas.", custo: 10 },
+                    { texto: "Sou classificado como um dos cinco Sólidos de Platão.", custo: 15 },
+                    { texto: "Minha superfície é formada por 6 faces que são quadrados idênticos.", custo: 20 }
+                ]
+            },
+            {
+                nome: "Trapézio Isósceles",
+                pistas: [
+                    { texto: "Sou um polígono plano pertencente à família dos quadriláteros.", custo: 5 },
+                    { texto: "Diferente do retângulo, possuo apenas um único par de lados paralelos.", custo: 10 },
+                    { texto: "Minhas duas diagonais possuem exatamente a mesma medida (são congruentes).", custo: 15 },
+                    { texto: "Meus dois lados não paralelos possuem a mesma inclinação e o mesmo tamanho.", custo: 20 }
+                ]
+            },
+            {
+                nome: "Icosaedro Regular",
+                pistas: [
+                    { texto: "Sou uma figura geométrica espacial fechada (Poliedro).", custo: 5 },
+                    { texto: "Possuo 12 vértices e 30 arestas.", custo: 10 },
+                    { texto: "Todas as minhas faces são formadas por Triângulos Equiláteros congruentes.", custo: 15 },
+                    { texto: "Sou o Sólido de Platão com o maior número de faces, possuindo exatamente 20.", custo: 20 }
+                ]
+            },
+            {
+                nome: "Pentágono Regular",
+                pistas: [
+                    { texto: "Sou um polígono plano e convexo.", custo: 5 },
+                    { texto: "Possuo exatamente 5 lados e 5 vértices.", custo: 10 },
+                    { texto: "A soma dos meus ângulos internos é igual a 540°.", custo: 15 },
+                    { texto: "Meu contorno é famoso por representar o quartel-general de defesa dos EUA.", custo: 20 }
+                ]
+            },
+            {
+                nome: "Pirâmide de Base Quadrada",
+                pistas: [
+                    { texto: "Sou um poliedro, não uma figura plana.", custo: 5 },
+                    { texto: "Minha base é um quadrilátero, mas minhas faces laterais são triangulares.", custo: 10 },
+                    { texto: "Possuo 5 vértices e 8 arestas.", custo: 15 },
+                    { texto: "Sou a forma clássica das grandes construções egípcias de Gizé.", custo: 20 }
+                ]
+            },
+            {
+                nome: "Tetraedro Regular",
+                pistas: [
+                    { texto: "Sou o mais simples de todos os Sólidos de Platão.", custo: 5 },
+                    { texto: "Possuo apenas 4 faces, todas Triângulos Equiláteros.", custo: 10 },
+                    { texto: "Tenho exatamente 4 vértices e 6 arestas.", custo: 15 },
+                    { texto: "Em cada um dos meus vértices se encontram exatamente 3 faces.", custo: 20 }
+                ]
+            },
+            {
+                nome: "Octaedro Regular",
+                pistas: [
+                    { texto: "Sou classificado como um Sólido de Platão.", custo: 5 },
+                    { texto: "Possuo 8 faces triangulares equiláteras.", custo: 10 },
+                    { texto: "Tenho 6 vértices e 12 arestas.", custo: 15 },
+                    { texto: "Posso ser visto como duas pirâmides de base quadrada unidas pela base.", custo: 20 }
+                ]
+            }
+        ];
+
+        const todosSuspeitos = [
+            "Hexágono Regular", "Cubo (Hexaedro Regular)", "Trapézio Isósceles", "Icosaedro Regular",
+            "Pentágono Regular", "Pirâmide de Base Quadrada", "Tetraedro Regular", "Octaedro Regular",
+            "Retângulo", "Losango", "Cilindro", "Dodecaedro Regular"
+        ].sort();
+
+        const PENALIDADE_ERRO = 15;
+        const PENALIDADE_PULAR = 10;
+        const PENALIDADE_TEMPO = 20;
+        const TEMPO_POR_CASO = 60; // segundos
+
+        // ==========================================
+        // ESTADO
+        // ==========================================
+        let modoJogo = 'solo'; // 'solo' | 'dupla'
+        let pontuacoes = { 1: 100, 2: 100 };
+        let jogadorAtual = 1;
+        let figuraAtualIndex = 0;
+        let casoResolvido = false;
+        let casosCertos = 0;
+        let isMuted = false;
+        let audioCtx = null;
+        let timerInterval = null;
+        let tempoRestante = TEMPO_POR_CASO;
+
+        // ==========================================
+        // REFERÊNCIAS DOM
+        // ==========================================
+        const $ = (id) => document.getElementById(id);
+        const el = {
+            musica: $('musicaFundo'),
+            btnFs: $('btnFs'),
+            btnMute: $('btnMute'),
+            telaInicial: $('telaInicial'),
+            telaFinal: $('telaFinal'),
+            btnSolo: $('btnSolo'),
+            btnDupla: $('btnDupla'),
+            btnReiniciar: $('btnReiniciar'),
+            btnExportar: $('btnExportar'),
+            gameContainer: $('gameContainer'),
+            placarP1: $('placarP1'),
+            placarP2: $('placarP2'),
+            labelP1: $('labelP1'),
+            displayPontosP1: $('displayPontosP1'),
+            displayPontosP2: $('displayPontosP2'),
+            displayCaso: $('displayCaso'),
+            totalCasos: $('totalCasos'),
+            barraFill: $('barraFill'),
+            cardMisterio: $('cardMisterio'),
+            displayFicha: $('displayFicha'),
+            infoTurno: $('infoTurno'),
+            displayTimer: $('displayTimer'),
+            timerFill: $('timerFill'),
+            containerPistas: $('containerPistas'),
+            selectSuspeitos: $('selectSuspeitos'),
+            btnAdivinhar: $('btnAdivinhar'),
+            btnPular: $('btnPular'),
+            btnProximo: $('btnProximo'),
+            displayFeedback: $('displayFeedback'),
+            msgFinal: $('msgFinal'),
+            recordeInicial: $('recordeInicial')
+        };
+
+        // ==========================================
+        // ÁUDIO (Web Audio API)
+        // ==========================================
+        function initAudio() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                return true;
+            } catch (e) {
+                console.warn('Web Audio não suportado:', e);
+                return false;
+            }
+        }
+
+        function tocarFrequencias(tipo, notas, duracaoNota, volume) {
+            if (isMuted || !initAudio()) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = tipo;
+            notas.forEach((freq, i) => {
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * duracaoNota);
+            });
+            const duracaoTotal = notas.length * duracaoNota;
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duracaoTotal);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duracaoTotal);
+        }
+
+        const tocarClick  = () => tocarFrequencias('sine', [800, 300], 0.05, 0.15);
+        const tocarPapel  = () => tocarFrequencias('sawtooth', [150, 50], 0.1, 0.25);
+        const tocarAcerto = () => tocarFrequencias('square', [440, 554.37, 659.25], 0.12, 0.15);
+        const tocarErro   = () => tocarFrequencias('sawtooth', [120], 0.3, 0.25);
+        const tocarTick   = () => tocarFrequencias('sine', [600], 0.04, 0.08);
+
+        // ==========================================
+        // CONTROLES
+        // ==========================================
+        function toggleFullscreen() {
+            tocarClick();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                el.btnFs.textContent = "⛶ Sair Tela Cheia";
+            } else {
+                document.exitFullscreen();
+                el.btnFs.textContent = "⛶ Tela Cheia";
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            el.btnMute.textContent = isMuted ? "🔇 Som: Desligado" : "🔊 Som: Ligado";
+            el.btnMute.setAttribute('aria-pressed', String(isMuted));
+            el.musica.muted = isMuted;
+            if (!isMuted) tocarClick();
+        }
+
+        // ==========================================
+        // RECORDE (localStorage) — apenas modo solo
+        // ==========================================
+        function salvarRecorde(pontos) {
+            try {
+                const recorde = parseInt(localStorage.getItem('dossie-recorde') || '0', 10);
+                if (pontos > recorde) {
+                    localStorage.setItem('dossie-recorde', String(pontos));
+                    return true;
+                }
+            } catch (e) { /* localStorage indisponível */ }
+            return false;
+        }
+
+        function mostrarRecordeInicial() {
+            try {
+                const recorde = parseInt(localStorage.getItem('dossie-recorde') || '0', 10);
+                if (recorde > 0) {
+                    el.recordeInicial.textContent = `🏅 MELHOR REPUTAÇÃO (SOLO): ${recorde} PONTOS`;
+                    el.recordeInicial.style.display = 'block';
+                }
+            } catch (e) { /* ignora */ }
+        }
+
+        // ==========================================
+        // LÓGICA PRINCIPAL DO JOGO
+        // ==========================================
+        function iniciarJogo(modo) {
+            modoJogo = modo;
+            initAudio();
+            el.musica.volume = 0.4;
+            el.musica.play().catch(() => console.log("Áudio bloqueado pelo navegador."));
+
+            el.telaInicial.style.display = "none";
+            el.gameContainer.style.display = "flex";
+
+            pontuacoes = { 1: 100, 2: 100 };
+            jogadorAtual = 1;
+            figuraAtualIndex = 0;
+            casosCertos = 0;
+            el.totalCasos.textContent = bancoDeFiguras.length;
+
+            preencherSelect();
+            atualizarPlacar();
+            carregarFigura();
+        }
+
+        function preencherSelect() {
+            el.selectSuspeitos.innerHTML = '<option value="">-- Selecione um suspeito --</option>';
+            const fragmento = document.createDocumentFragment();
+            todosSuspeitos.forEach(suspeito => {
+                const opt = document.createElement('option');
+                opt.value = suspeito;
+                opt.textContent = suspeito;
+                fragmento.appendChild(opt);
+            });
+            el.selectSuspeitos.appendChild(fragmento);
+        }
+
+        function carregarFigura() {
+            const figura = bancoDeFiguras[figuraAtualIndex];
+            el.containerPistas.innerHTML = "";
+            el.displayFicha.textContent = figuraAtualIndex + 1;
+            el.displayCaso.textContent = figuraAtualIndex + 1;
+            el.barraFill.style.width = ((figuraAtualIndex + 1) / bancoDeFiguras.length * 100) + "%";
+            document.querySelector('.barra-progresso').setAttribute('aria-valuenow', figuraAtualIndex + 1);
+            document.querySelector('.barra-progresso').setAttribute('aria-valuemax', bancoDeFiguras.length);
+
+            el.displayFeedback.textContent = "";
+            el.displayFeedback.className = "feedback";
+            el.selectSuspeitos.value = "";
+            el.selectSuspeitos.disabled = false;
+
+            el.btnAdivinhar.style.display = "block";
+            el.btnPular.style.display = "block";
+            el.btnPular.disabled = false;
+            el.btnProximo.style.display = "none";
+
+            el.cardMisterio.classList.remove('acertou');
+
+            const fragmento = document.createDocumentFragment();
+
+            figura.pistas.forEach((pista, index) => {
+                const details = document.createElement("details");
+                details.dataset.aberto = "false";
+                details.dataset.custo = pista.custo;
+
+                const summary = document.createElement("summary");
+                const labelPista = document.createElement("span");
+                labelPista.textContent = `[PISTA ${index + 1}]`;
+                const tagCusto = document.createElement("span");
+                tagCusto.className = "tag-custo";
+                tagCusto.textContent = `-${pista.custo} PTS`;
+                summary.append(labelPista, tagCusto);
+
+                const p = document.createElement("p");
+                p.textContent = pista.texto;
+
+                details.append(summary, p);
+                fragmento.appendChild(details);
+
+                details.addEventListener("toggle", () => {
+                    if (details.open && details.dataset.aberto === "false" && !casoResolvido) {
+                        tocarPapel();
+                        descontarPontos(pista.custo, details);
+                        details.dataset.aberto = "true";
+                    }
+                });
+            });
+
+            el.containerPistas.appendChild(fragmento);
+            casoResolvido = false;
+
+            atualizarInfoTurno();
+            atualizarPlacar();
+            iniciarTimer();
+        }
+
+        // ==========================================
+        // TIMER
+        // ==========================================
+        function iniciarTimer() {
+            clearInterval(timerInterval);
+            tempoRestante = TEMPO_POR_CASO;
+            atualizarDisplayTimer();
+            timerInterval = setInterval(() => {
+                tempoRestante--;
+                atualizarDisplayTimer();
+                if (tempoRestante <= 5 && tempoRestante > 0) tocarTick();
+                if (tempoRestante <= 0) {
+                    clearInterval(timerInterval);
+                    tempoEsgotado();
+                }
+            }, 1000);
+        }
+
+        function pararTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function atualizarDisplayTimer() {
+            el.displayTimer.textContent = Math.max(0, tempoRestante);
+            const pct = Math.max(0, (tempoRestante / TEMPO_POR_CASO) * 100);
+            el.timerFill.style.width = pct + "%";
+            el.timerFill.classList.toggle('timer-critico', tempoRestante <= 10);
+        }
+
+        function tempoEsgotado() {
+            if (casoResolvido) return;
+            const figuraCorreta = bancoDeFiguras[figuraAtualIndex].nome;
+            tocarErro();
+            mostrarFeedback(`⏰ TEMPO ESGOTADO! ERA O ${figuraCorreta.toUpperCase()}. -${PENALIDADE_TEMPO} PTS`, "erro");
+            descontarPontos(PENALIDADE_TEMPO, el.displayTimer);
+            finalizarCaso(false);
+        }
+
+        // ==========================================
+        // PLACAR / TURNOS
+        // ==========================================
+        function atualizarPlacar() {
+            el.displayPontosP1.textContent = pontuacoes[1];
+            el.displayPontosP1.classList.toggle('alerta', pontuacoes[1] <= 30);
+
+            if (modoJogo === 'dupla') {
+                el.labelP1.textContent = 'JOGADOR 1';
+                el.placarP2.style.display = 'flex';
+                el.displayPontosP2.textContent = pontuacoes[2];
+                el.displayPontosP2.classList.toggle('alerta', pontuacoes[2] <= 30);
+                el.placarP1.classList.toggle('turno-ativo', jogadorAtual === 1);
+                el.placarP2.classList.toggle('turno-ativo', jogadorAtual === 2);
+            } else {
+                el.labelP1.textContent = 'REPUTAÇÃO';
+                el.placarP2.style.display = 'none';
+                el.placarP1.classList.remove('turno-ativo');
+            }
+        }
+
+        function atualizarInfoTurno() {
+            if (modoJogo === 'dupla') {
+                el.infoTurno.style.display = 'block';
+                el.infoTurno.textContent = `🎯 VEZ DO JOGADOR ${jogadorAtual}`;
+                el.infoTurno.style.color = jogadorAtual === 1 ? 'var(--accent-blue)' : 'var(--accent-purple)';
+            } else {
+                el.infoTurno.style.display = 'none';
+            }
+        }
+
+        function descontarPontos(valor, elementoOrigem) {
+            pontuacoes[jogadorAtual] = Math.max(0, pontuacoes[jogadorAtual] - valor);
+            atualizarPlacar();
+
+            const span = document.createElement("span");
+            span.className = "ponto-flutuante";
+            span.textContent = `-${valor}`;
+
+            const rect = elementoOrigem.getBoundingClientRect();
+            span.style.left = Math.max(10, rect.right - 80) + "px";
+            span.style.top = Math.max(10, rect.top - 10) + "px";
+
+            document.body.appendChild(span);
+            setTimeout(() => span.remove(), 1000);
+        }
+
+        function soltarConfete() {
+            const cores = ['#27ae60', '#f39c12', '#2980b9', '#c0392b', '#fff'];
+            const btnRect = el.btnAdivinhar.getBoundingClientRect();
+            for (let i = 0; i < 20; i++) {
+                const c = document.createElement('div');
+                c.className = 'confete';
+                c.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+                c.style.left = (btnRect.left + Math.random() * btnRect.width) + 'px';
+                c.style.top = btnRect.top + 'px';
+                c.style.animationDelay = (Math.random() * 0.3) + 's';
+                c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 2000);
+            }
+        }
+
+        // ==========================================
+        // AÇÕES DO JOGADOR
+        // ==========================================
+        function verificarPalpite() {
+            if (casoResolvido) return;
+
+            const palpite = el.selectSuspeitos.value;
+            const figuraCorreta = bancoDeFiguras[figuraAtualIndex].nome;
+
+            if (palpite === "") {
+                tocarErro();
+                mostrarFeedback("ESCOLHA UM SUSPEITO NA LISTA!", "erro");
+                return;
+            }
+
+            if (palpite === figuraCorreta) {
+                tocarAcerto();
+                soltarConfete();
+                mostrarFeedback(`✅ CORRETO! O SUSPEITO É O ${figuraCorreta.toUpperCase()}.`, "acerto");
+                finalizarCaso(true);
+            } else {
+                tocarErro();
+                mostrarFeedback(`❌ INCORRETO! NÃO É O ${palpite.toUpperCase()}. -${PENALIDADE_ERRO} PTS`, "erro");
+                descontarPontos(PENALIDADE_ERRO, el.btnAdivinhar);
+            }
+        }
+
+        function pularCaso() {
+            if (casoResolvido) return;
+            const figuraCorreta = bancoDeFiguras[figuraAtualIndex].nome;
+            tocarErro();
+            mostrarFeedback(`📁 CASO ARQUIVADO. ERA O ${figuraCorreta.toUpperCase()}.`, "erro");
+            descontarPontos(PENALIDADE_PULAR, el.btnPular);
+            finalizarCaso(false);
+        }
+
+        function finalizarCaso(acertou) {
+            casoResolvido = true;
+            pararTimer();
+            if (acertou) { el.cardMisterio.classList.add('acertou'); casosCertos++; }
+            el.selectSuspeitos.disabled = true;
+            el.btnAdivinhar.style.display = "none";
+            el.btnPular.style.display = "none";
+            el.btnProximo.style.display = "block";
+            el.containerPistas.querySelectorAll("details").forEach(det => det.open = true);
+        }
+
+        function mostrarFeedback(texto, tipo) {
+            el.displayFeedback.textContent = texto;
+            el.displayFeedback.className = "feedback " + tipo;
+        }
+
+        function obterRanking(pontos) {
+            if (pontos >= 80) return "DETETIVE LENDÁRIO 🏆";
+            if (pontos >= 60) return "INVESTIGADOR VETERANO 🌟";
+            if (pontos >= 40) return "DETETIVE PROMISSOR 🔍";
+            if (pontos >= 20) return "ESTAGIÁRIO DEDICADO 📋";
+            return "PRECISA DE MAIS TREINO 💼";
+        }
+
+        function carregarProximaFigura() {
+            tocarClick();
+            figuraAtualIndex++;
+            if (modoJogo === 'dupla') {
+                jogadorAtual = jogadorAtual === 1 ? 2 : 1;
+            }
+            if (figuraAtualIndex < bancoDeFiguras.length) {
+                carregarFigura();
+            } else {
+                finalizarJogo();
+            }
+        }
+
+        function finalizarJogo() {
+            pararTimer();
+            el.gameContainer.style.display = "none";
+
+            if (modoJogo === 'solo') {
+                if (window.GAMIFICA && GAMIFICA.enviar(casosCertos, bancoDeFiguras.length, pontuacoes[1])) GAMIFICA.aviso('📤 Nota enviada ao professor: ' + casosCertos + ' de ' + bancoDeFiguras.length + ' casos resolvidos');
+                const novoRecorde = salvarRecorde(pontuacoes[1]);
+                el.msgFinal.innerHTML = `
+                    O chefe de polícia analisou seu relatório.<br>
+                    Sua reputação final: <strong style="color:#27ae60; font-size: 1.4em;">${pontuacoes[1]} PONTOS</strong><br><br>
+                    Classificação: <strong>${obterRanking(pontuacoes[1])}</strong>
+                    ${novoRecorde ? `<br><br><span style="color: var(--accent-gold);">🏅 NOVO RECORDE PESSOAL!</span>` : ""}
+                `;
+            } else {
+                const p1 = pontuacoes[1], p2 = pontuacoes[2];
+                let resultado;
+                if (p1 === p2) resultado = "🤝 EMPATE TÉCNICO!";
+                else resultado = p1 > p2 ? "🏆 JOGADOR 1 VENCEU A INVESTIGAÇÃO!" : "🏆 JOGADOR 2 VENCEU A INVESTIGAÇÃO!";
+
+                el.msgFinal.innerHTML = `
+                    <div class="resultado-dupla">
+                        <div>JOGADOR 1: <strong style="color:var(--accent-blue)">${p1} pts</strong> — ${obterRanking(p1)}</div>
+                        <div>JOGADOR 2: <strong style="color:var(--accent-purple)">${p2} pts</strong> — ${obterRanking(p2)}</div>
+                        <div style="font-size:1.2em; margin-top:15px;">${resultado}</div>
+                    </div>
+                `;
+            }
+
+            el.telaFinal.style.display = "flex";
+        }
+
+        // ==========================================
+        // EXPORTAR RELATÓRIO
+        // ==========================================
+        function gerarRelatorio() {
+            const data = new Date().toLocaleString('pt-BR');
+            let texto = `========================================\n`;
+            texto += `   RELATÓRIO DE INVESTIGAÇÃO GEOMÉTRICA\n`;
+            texto += `========================================\n`;
+            texto += `Data: ${data}\n`;
+            texto += `Modo: ${modoJogo === 'solo' ? 'Investigador Solo' : 'Dupla de Detetives'}\n`;
+            texto += `Casos resolvidos: ${bancoDeFiguras.length}\n\n`;
+
+            if (modoJogo === 'solo') {
+                texto += `Reputação Final: ${pontuacoes[1]} pontos\n`;
+                texto += `Classificação: ${obterRanking(pontuacoes[1])}\n`;
+            } else {
+                texto += `Jogador 1: ${pontuacoes[1]} pontos — ${obterRanking(pontuacoes[1])}\n`;
+                texto += `Jogador 2: ${pontuacoes[2]} pontos — ${obterRanking(pontuacoes[2])}\n\n`;
+                const vencedor = pontuacoes[1] === pontuacoes[2]
+                    ? 'EMPATE TÉCNICO'
+                    : (pontuacoes[1] > pontuacoes[2] ? 'Jogador 1 venceu!' : 'Jogador 2 venceu!');
+                texto += `Resultado: ${vencedor}\n`;
+            }
+
+            texto += `\n========================================\n`;
+            texto += `Gerado pelo Dossiê Geométrico 🕵️\n`;
+            return texto;
+        }
+
+        function baixarArquivo(texto) {
+            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio-investigacao-${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportarRelatorio() {
+            tocarClick();
+            const texto = gerarRelatorio();
+            if (navigator.share) {
+                navigator.share({ title: 'Relatório de Investigação', text: texto })
+                    .catch(() => baixarArquivo(texto));
+            } else {
+                baixarArquivo(texto);
+            }
+        }
+
+        // ==========================================
+        // EVENT LISTENERS
+        // ==========================================
+        el.btnFs.addEventListener('click', toggleFullscreen);
+        el.btnMute.addEventListener('click', toggleMute);
+        el.btnSolo.addEventListener('click', () => iniciarJogo('solo'));
+        el.btnDupla.addEventListener('click', () => iniciarJogo('dupla'));
+        el.btnReiniciar.addEventListener('click', () => location.reload());
+        el.btnExportar.addEventListener('click', exportarRelatorio);
+        el.btnAdivinhar.addEventListener('click', verificarPalpite);
+        el.btnPular.addEventListener('click', pularCaso);
+        el.btnProximo.addEventListener('click', carregarProximaFigura);
+        el.selectSuspeitos.addEventListener('change', tocarClick);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && el.gameContainer.style.display === 'flex' && !casoResolvido) {
+                verificarPalpite();
+            }
+        });
+
+        // Inicialização
+        mostrarRecordeInicial();
+    })();
+    </script>
+<script>
+/* Portal da turma: envio da nota ao professor */
+if (GAMIFICA.noPortal) { var b = document.getElementById('btnDupla'); if (b) b.style.display = 'none'; }
+</script>
+</body>
+</html>
