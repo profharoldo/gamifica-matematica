@@ -4,21 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Atividade · Gamefica Ação Matemática</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
 <style>
   :root{--ink:#1b2440;--muted:#5d6785;--line:#e1e6f0;--primary:#4f46e5;--ok:#16a34a;--bad:#dc2626}
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
-  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:linear-gradient(160deg,#312e81,#4f46e5 55%,#7c3aed);display:flex;flex-direction:column}
+  body{font-family:'Nunito',system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background-color:#1d2b53;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:26px 26px;display:flex;flex-direction:column}
   .centro{flex:1;display:flex;align-items:center;justify-content:center;padding:16px}
-  .cartao{background:#fff;border-radius:22px;padding:24px;width:100%;max-width:440px;box-shadow:0 16px 50px rgba(10,10,60,.35);animation:sobe .4s ease}
+  .cartao{background:#fff;border-radius:22px;padding:0 0 24px;overflow:hidden;width:100%;max-width:440px;box-shadow:0 16px 50px rgba(10,10,60,.35);animation:sobe .4s ease}
   @keyframes sobe{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  h1{margin:0 0 4px;font-size:1.35rem}
+  .cartao>*:not(.post){margin-left:24px;margin-right:24px}
+  .cartao>.post+*{margin-top:18px}
+  .cartao>:first-child:not(.post){margin-top:24px}
+  .post{height:130px;display:grid;place-items:center;font-size:64px;position:relative;background:var(--n,#ffe27a)}
+  .post .tema{position:absolute;left:14px;top:12px;font-size:12px;font-weight:800;background:rgba(255,255,255,.65);padding:2px 10px;border-radius:99px;color:#1d2b53}
+  h1{margin:0 0 4px;font-size:1.45rem;font-family:'Fredoka','Nunito',system-ui,sans-serif;font-weight:600}
   p{margin:6px 0}
   .muted{color:var(--muted);font-size:.95rem}
   label{display:block;font-weight:700;font-size:.92rem;margin:14px 0 5px}
   input{width:100%;padding:14px;border:2px solid var(--line);border-radius:14px;font-size:1.05rem}
   input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(79,70,229,.15)}
-  button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:14px 18px;font-weight:800;font-size:1.05rem;background:var(--primary);color:#fff;width:100%;margin-top:16px}
+  button{font:inherit;cursor:pointer;border:2px solid #e0ad00;border-radius:14px;padding:14px 18px;font-weight:800;font-size:1.1rem;background:#ffd23f;color:#1d2b53;box-shadow:0 3px 0 #e0ad00;width:100%;margin-top:16px}
   button.sec{background:#eef0fb;color:var(--primary)}
   button:disabled{opacity:.6}
   .msg{padding:10px 12px;border-radius:12px;margin-top:12px;font-size:.95rem}
@@ -31,7 +37,7 @@
   .barra #barra-status{white-space:nowrap;font-weight:700}
   .barra #barra-status.st-ok{color:#86efac}
   .barra #barra-status.st-erro{color:#fca5a5}
-  .barra button{width:auto;margin:0;padding:5px 10px;font-size:.85rem;border-radius:9px;background:#4f46e5}
+  .barra button{width:auto;margin:0;padding:5px 10px;font-size:.85rem;border-radius:9px;box-shadow:none}
   iframe{display:none;flex:1;width:100%;border:0;background:#fff}
   body.jogando .barra{display:flex}
   body.jogando iframe{display:block}
@@ -113,7 +119,9 @@ function telaNome(){
     el('label', {for:'nome'}, 'Seu nome'), nome,
     el('label', {for:'turma'}, 'Sua turma'), turma,
     el('button', {type:'submit'}, '🚀 Começar'), aviso);
-  mostrar(el('div', {class:'emoji'}, window.JOGOS[atividade.jogo].emoji || '🎮'),
+  var J = window.JOGOS[atividade.jogo];
+  var cores = {amarelo:'#ffe27a', coral:'#ffb4a6', verde:'#a6e4c6', azul:'#b9d4ff', lilas:'#d8c9ff', laranja:'#ffc88a'};
+  mostrar(el('div', {class:'post', style:'--n:' + (cores[J.cor] || cores.amarelo)}, J.tema ? el('span', {class:'tema'}, J.tema) : null, J.emoji || '🎮'),
     el('h1', {}, atividade.titulo),
     el('p', {class:'muted'}, 'Digite seus dados. Ao terminar, sua nota é enviada automaticamente ao professor.'),
     form);
