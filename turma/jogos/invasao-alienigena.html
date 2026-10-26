@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050816">
+<title>Invasão Alienígena: Missão Porcentagem 2.0</title>
+<style>
+:root{--cyan:#35f2ff;--blue:#2388ff;--purple:#9b5cff;--pink:#ff3cad;--green:#57ff9a;--red:#ff4664;--yellow:#ffe66d;--panel:rgba(8,16,43,.84);--line:rgba(87,236,255,.28)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:Inter,"Segoe UI",Arial,sans-serif;background:#030617;color:#fff}
+body{overflow-x:hidden;background:radial-gradient(circle at 50% -10%,#1e286a 0,#090d2a 35%,#030617 72%)}
+button,input{font:inherit}.hidden{display:none!important}
+#space{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.7;animation:fall linear infinite}
+@keyframes fall{from{transform:translateY(-10vh)}to{transform:translateY(110vh)}}
+.app{position:relative;z-index:1;min-height:100vh;max-width:1180px;margin:auto;padding:18px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:10px}.brand-icon{font-size:34px;filter:drop-shadow(0 0 12px var(--cyan))}
+.brand h1{font-size:clamp(18px,3vw,29px);letter-spacing:.04em}.brand span{color:var(--cyan)}.brand small{color:#9ab7d8}
+.icon-btn,.primary,.secondary,.answer-btn,.power{border:0;cursor:pointer;color:#fff;transition:.2s ease}
+.icon-btn{width:46px;height:46px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:20px}
+.top-actions{display:flex;gap:8px}.icon-btn.off{opacity:.45}
+.icon-btn:hover,.secondary:hover,.power:hover:not(:disabled){transform:translateY(-2px);border-color:var(--cyan)}
+.hud{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.hud-card{background:linear-gradient(145deg,rgba(18,30,75,.92),rgba(7,13,38,.82));border:1px solid var(--line);border-radius:16px;padding:10px 12px;box-shadow:0 12px 30px rgba(0,0,0,.22)}
+.hud-label{color:#9ab7d8;font-size:12px;text-transform:uppercase;letter-spacing:.09em}.hud-value{font-size:clamp(17px,2.5vw,24px);font-weight:800;margin-top:3px}
+.progress{height:7px;border-radius:999px;background:#172345;overflow:hidden;margin-top:7px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:.4s}
+.game-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.85fr);gap:12px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 48px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.04);backdrop-filter:blur(10px)}
+.arena{position:relative;min-height:430px;overflow:hidden;background:radial-gradient(circle at 50% 32%,rgba(64,55,170,.28),transparent 44%),linear-gradient(#080d2d,#05091e);isolation:isolate}
+.planet{position:absolute;left:5%;bottom:-44px;font-size:clamp(105px,17vw,180px);filter:drop-shadow(0 0 30px #278eff);z-index:2}
+.shield{position:absolute;left:2.2%;bottom:-55px;width:clamp(145px,22vw,230px);aspect-ratio:1;border:4px solid rgba(63,238,255,.55);border-radius:50%;box-shadow:0 0 24px var(--cyan),inset 0 0 24px rgba(53,242,255,.25);z-index:3;transition:.25s}
+.shield.hit{border-color:var(--red);box-shadow:0 0 45px var(--red);transform:scale(.92)}
+.ship{position:absolute;left:26%;bottom:83px;font-size:clamp(54px,8vw,84px);z-index:4;filter:drop-shadow(0 0 15px var(--cyan));animation:hover 2.2s ease-in-out infinite}
+@keyframes hover{50%{transform:translateY(-8px)}}
+.enemy{position:absolute;right:9%;top:24%;font-size:clamp(70px,11vw,118px);z-index:4;filter:drop-shadow(0 0 18px var(--purple));transition:right .35s ease}
+.enemy.advance-1{right:18%}.enemy.advance-2{right:28%}.enemy.advance-3{right:38%}
+.enemy.spawn{animation:spawn .5s ease-out}
+@keyframes spawn{from{opacity:0;transform:scale(.3) translateY(-40px)}}
+.enemy.boss{font-size:clamp(100px,16vw,165px);top:18%;filter:drop-shadow(0 0 26px var(--red));animation:bossPulse 1.1s ease-in-out infinite alternate}
+@keyframes bossPulse{to{transform:scale(1.06);filter:drop-shadow(0 0 40px var(--red))}}
+.enemy.dead,.enemy.boss.dead{animation:die .55s forwards}
+@keyframes die{to{opacity:0;transform:scale(.3) rotate(30deg)}}
+.enemy-health{position:absolute;right:6%;top:12%;width:min(260px,44%);z-index:5}
+.enemy-name{text-align:center;color:#f5c9ff;font-weight:900;font-size:13px;margin-bottom:5px}
+.hp-track{height:11px;border-radius:999px;background:#33152c;border:1px solid #71365d;overflow:hidden}.hp-fill{height:100%;width:100%;background:linear-gradient(90deg,var(--red),var(--pink));transition:.3s}
+.laser{position:absolute;left:31%;bottom:130px;height:6px;width:0;z-index:5;border-radius:999px;background:#fff;box-shadow:0 0 5px #fff,0 0 16px var(--cyan),0 0 30px var(--blue);transform-origin:left;transition:width .17s}.laser.fire{width:55%}
+.blast{position:absolute;right:12%;top:31%;font-size:80px;z-index:6;opacity:0;transform:scale(.2)}.blast.go{animation:blast .55s ease-out}
+@keyframes blast{35%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(1.8)}}
+.pop{position:absolute;right:16%;top:44%;z-index:7;font-weight:900;font-size:30px;color:var(--yellow);text-shadow:0 0 14px rgba(255,230,109,.7);animation:pop 1.1s ease-out forwards;pointer-events:none}
+@keyframes pop{to{transform:translateY(-70px);opacity:0}}
+.alert{position:absolute;left:50%;top:14px;transform:translateX(-50%);padding:8px 15px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(3,7,24,.75);font-size:13px;color:#c6e9ff;white-space:nowrap;z-index:6}
+.danger{animation:shake .35s}@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.side{padding:18px;display:flex;flex-direction:column;gap:12px}
+.mission-tag{color:var(--cyan);font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.question{font-size:clamp(17px,2.2vw,22px);font-weight:700;line-height:1.4}.question b{color:var(--yellow)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.answer-btn{min-height:54px;border-radius:14px;background:linear-gradient(145deg,#162a5c,#101b42);border:1px solid #2b4f88;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:flex-start;padding:6px 10px;text-align:left}
+.answer-btn:hover:not(:disabled),.answer-btn:focus-visible{background:linear-gradient(145deg,#1c4f82,#17336a);border-color:var(--cyan);transform:translateY(-2px);outline:none}
+.answer-btn:disabled{cursor:default}
+.answer-btn.correct{background:#12633f;border-color:var(--green);opacity:1}.answer-btn.wrong{background:#6f1d37;border-color:var(--red);opacity:1}
+.answer-btn.removed{opacity:.25;text-decoration:line-through}
+.answer-number{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;margin-right:10px;border-radius:50%;background:rgba(255,255,255,.14);font-size:13px;color:#bceeff}
+.answer-btn .fraction{font-size:18px}
+.fraction{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.05;margin:0 3px}
+.fraction .top{border-bottom:2px solid currentColor;padding:0 4px 2px}.fraction .bottom{padding:2px 4px 0}
+.powers{display:flex;gap:8px}
+.power{flex:1;padding:10px;border-radius:12px;background:#111c42;border:1px solid #2a477a;font-weight:800;font-size:14px}
+.power:disabled{opacity:.38;cursor:not-allowed}
+.hint-box{padding:10px 12px;border-radius:12px;background:rgba(255,230,109,.08);border:1px dashed var(--yellow);color:#ffeeb0;font-size:14px;line-height:1.5}
+.feedback{min-height:70px;padding:12px;border-radius:15px;background:rgba(2,7,24,.55);border:1px solid rgba(117,171,224,.18);font-size:14px;line-height:1.5}
+.feedback strong{color:var(--yellow)}
+.calc-steps{margin-top:8px;padding:9px 11px;border-left:3px solid var(--cyan);background:rgba(53,242,255,.06);border-radius:8px;line-height:1.9}
+.calc-steps.alt{border-left-color:var(--purple);background:rgba(155,92,255,.08)}
+.why{display:block;margin:8px 0 2px;padding:8px 10px;border-radius:10px;background:rgba(255,70,100,.12);border:1px solid rgba(255,70,100,.35);color:#ffd0d8}
+.level-up{margin-top:10px;padding:10px;border-radius:12px;background:rgba(87,255,154,.1);border:1px solid rgba(87,255,154,.4);color:#c9ffe0}
+.pbar-wrap{margin-top:-2px}
+.pbar{display:flex;height:30px;border-radius:10px;background:#16224a;border:1px solid #2b4f88;overflow:hidden}
+.seg{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;animation:grow .7s ease-out}
+@keyframes grow{from{max-width:0}to{max-width:100%}}
+.seg-a{background:linear-gradient(90deg,var(--cyan),var(--blue));color:#02122a}.seg-pay{background:#1f9d62}.seg-off{background:#c4314f}.seg-base{background:#2a5fd0}.seg-plus{background:#d4a514;color:#1b1400}
+.pbar-labels{display:flex;justify-content:space-between;font-size:12px;color:#9ab7d8;margin-top:4px}
+.combo{color:var(--yellow);font-weight:900}.tip{font-size:12px;color:#8faecf;text-align:center}
+.primary{padding:13px 20px;border-radius:14px;background:linear-gradient(90deg,#087aff,#8e46ff);font-weight:900;box-shadow:0 0 25px rgba(78,111,255,.35)}
+.primary:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.secondary{padding:11px 15px;border-radius:13px;background:#111c42;border:1px solid #2a477a;font-weight:800}
+.overlay{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(1,3,15,.88);backdrop-filter:blur(12px)}
+.modal{width:min(700px,100%);max-height:92vh;overflow:auto;padding:28px;border-radius:26px;background:linear-gradient(155deg,#121c4c,#070b25);border:1px solid rgba(75,236,255,.35);box-shadow:0 0 70px rgba(54,67,255,.25);text-align:center}
+.logo{font-size:72px;filter:drop-shadow(0 0 25px var(--cyan));margin-bottom:8px}
+.modal h2{font-size:clamp(26px,5vw,44px);line-height:1.08}.modal h2 span{color:var(--cyan)}
+.modal p{color:#bed0e5;line-height:1.55;margin:12px 0}
+.feature-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:18px 0}
+.feature{padding:12px 7px;background:rgba(15,30,73,.8);border:1px solid var(--line);border-radius:15px;font-size:13px;line-height:1.5}
+.feature strong{font-size:20px;color:var(--yellow)}
+.modal-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.name-input{width:min(370px,100%);padding:14px;border-radius:14px;border:1px solid #345188;background:#080f30;color:#fff;text-align:center;font-size:17px;margin:7px 0 15px}
+.brief-tag{color:var(--cyan);font-weight:900;letter-spacing:.14em;font-size:13px}
+.brief-card{text-align:left;background:rgba(15,30,73,.8);border:1px solid var(--line);border-radius:16px;padding:14px 18px;margin:14px 0;line-height:1.7;color:#e3eefc}
+.brief-card ul,.brief-card ol{margin:6px 0 6px 22px}
+.brief-card p{margin:6px 0;color:#e3eefc}
+.example,.tipbox,.warn{margin-top:10px;padding:9px 12px;border-radius:12px}
+.example{background:rgba(53,242,255,.08);border:1px solid rgba(53,242,255,.35)}
+.tipbox{background:rgba(155,92,255,.1);border:1px solid rgba(155,92,255,.4)}
+.warn{background:rgba(255,70,100,.1);border:1px solid rgba(255,70,100,.4);color:#ffd5dc}
+.eq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.eq{background:#0c1740;border:1px solid #2b4f88;border-radius:10px;padding:8px;text-align:center;font-weight:800}
+.boss-warning{color:var(--red);font-weight:900;text-shadow:0 0 16px var(--red)}
+.rank-list{margin:14px 0;text-align:left}
+.rank-row{display:grid;grid-template-columns:38px 1fr auto;gap:8px;padding:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.rank-row.me{background:rgba(45,243,255,.1);border-radius:10px}.medal{font-size:22px}
+.perf{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:14px}
+.perf th,.perf td{padding:8px;border-bottom:1px solid rgba(255,255,255,.08)}.perf th{color:#9ab7d8;font-weight:700}
+.perf td:first-child,.perf th:first-child{text-align:left}
+.err-list{text-align:left;margin-top:10px}
+.err-item{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px;line-height:1.6}
+.sound-hint{display:block;margin:0 auto 10px;padding:9px 16px;border-radius:999px;border:1px solid var(--yellow);background:rgba(255,230,109,.1);color:#ffeeb0;font-weight:800;cursor:pointer;animation:pulseHint 1.4s ease-in-out infinite}
+@keyframes pulseHint{50%{transform:scale(1.05);box-shadow:0 0 18px rgba(255,230,109,.45)}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;background:#12633f;border:1px solid var(--green);padding:10px 16px;border-radius:12px;font-weight:700}
+@media(max-width:860px){.hud{grid-template-columns:repeat(3,1fr)}.game-grid{grid-template-columns:1fr}.arena{min-height:300px}}
+@media(max-width:520px){.top-actions{gap:5px}.icon-btn{width:38px;height:38px;font-size:16px;border-radius:11px}.brand-icon{font-size:26px}.app{padding:10px}.brand small{display:none}.hud{gap:6px}.hud-card{padding:8px}.hud-label{font-size:9px}.hud-value{font-size:15px}
+.arena{min-height:220px}.planet{bottom:-30px;font-size:95px}.shield{width:130px;bottom:-40px}.ship{left:24%;bottom:52px;font-size:46px}.laser{left:33%;bottom:78px}
+.enemy{font-size:62px;top:32%}.enemy.boss{font-size:88px;top:26%}.enemy-health{top:16%}.alert{font-size:10px;top:8px}
+.modal{padding:22px 16px}.answers{gap:7px}.answer-btn{min-height:50px;font-size:15px}.eq-grid{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){.star,.ship,.enemy.boss{animation:none!important}.seg{animation:none}}
+</style>
+</head>
+<body>
+<div id="space" aria-hidden="true"></div>
+<main class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-icon">🚀</div><div><h1>INVASÃO <span>ALIENÍGENA</span></h1><small>Missão Porcentagem 2.0</small></div></div>
+    <div class="top-actions"><button class="icon-btn" id="musicBtn" title="Ligar ou desligar a música de fundo" aria-label="Música">🎵</button><button class="icon-btn" id="soundBtn" title="Ativar ou desativar efeitos sonoros" aria-label="Efeitos sonoros">🔊</button><button class="icon-btn" id="fsBtn" title="Tela cheia" aria-label="Tela cheia">⛶</button><button class="icon-btn" id="rankBtn" title="Ranking local" aria-label="Ranking">🏆</button></div>
+  </header>
+  <section class="hud">
+    <div class="hud-card"><div class="hud-label">Pontuação</div><div class="hud-value" id="score">0</div></div>
+    <div class="hud-card"><div class="hud-label">Energia da Terra</div><div class="hud-value" id="lives">❤️❤️❤️❤️❤️</div></div>
+    <div class="hud-card"><div class="hud-label">Missão</div><div class="hud-value" id="level">1/5</div><div class="progress"><div id="levelProgress"></div></div></div>
+    <div class="hud-card"><div class="hud-label">Combo</div><div class="hud-value combo" id="combo">x1</div></div>
+    <div class="hud-card"><div class="hud-label">Recorde local</div><div class="hud-value" id="best">0</div></div>
+  </section>
+  <section class="game-grid">
+    <div class="panel arena" id="arena">
+      <div class="alert" id="alert">Defenda a Terra resolvendo os desafios!</div>
+      <div class="enemy-health"><div class="enemy-name" id="enemyName">—</div><div class="hp-track"><div class="hp-fill" id="hpFill"></div></div></div>
+      <div class="planet">🌍</div><div class="shield" id="shield"></div><div class="ship">🛸</div>
+      <div class="laser" id="laser"></div><div class="enemy" id="enemy">👾</div><div class="blast" id="blast">💥</div>
+    </div>
+    <aside class="panel side">
+      <div class="mission-tag" id="missionTag">MISSÃO 1</div>
+      <div class="question" id="question">Prepare-se para a missão.</div>
+      <div id="bar"></div>
+      <div class="answers" id="answers"></div>
+      <div class="powers">
+        <button class="power" id="hintBtn" title="Mostra uma dica (o acerto vale metade dos pontos)">💡 Dica</button>
+        <button class="power" id="radarBtn" title="Elimina duas alternativas erradas">📡 Radar (3)</button>
+      </div>
+      <div class="hint-box hidden" id="hintBox"></div>
+      <div class="feedback" id="feedback" aria-live="polite">Escolha uma alternativa.</div>
+      <button class="primary hidden" id="nextBtn">Próxima ameaça ➜</button>
+      <div class="tip">Teclas <b>A, B, C, D</b> respondem • <b>Enter</b> avança • <b>M</b> música • <b>F</b> tela cheia</div>
+    </aside>
+  </section>
+</main>
+
+<!-- TELA INICIAL -->
+<div class="overlay" id="startOverlay">
+  <div class="modal"><div class="logo">👾🚀</div><h2>INVASÃO ALIENÍGENA<br><span>MISSÃO PORCENTAGEM</span></h2>
+    <p>A frota alienígena se aproxima! Resolva porcentagens, dispare o laser e derrote os chefões antes que a energia da Terra acabe.</p>
+    <div class="feature-row">
+      <div class="feature">🎯<br>5 missões com treino antes</div>
+      <div class="feature">💡<br>Dicas e radar de ajuda</div>
+      <div class="feature">👑<br>2 chefões</div>
+      <div class="feature">📊<br>Relatório no final</div>
+    </div>
+    <input class="name-input" id="playerName" maxlength="18" placeholder="Digite seu nome ou apelido" autocomplete="off">
+    <div class="modal-actions"><button class="primary" id="startBtn">🚀 Iniciar missão</button><button class="secondary" id="howBtn">Como jogar</button><button class="secondary" id="fsStart">⛶ Tela cheia</button></div>
+    <div id="howText" class="brief-card hidden">
+      <ol>
+        <li>Antes de cada missão, leia o <b>treinamento</b> com os atalhos.</li>
+        <li>Escolha a alternativa <b>A, B, C ou D</b>. Acertou? O laser atinge o inimigo!</li>
+        <li>Errou? O inimigo avança e a Terra perde ❤️. Leia a explicação para aprender com o erro.</li>
+        <li><b>💡 Dica</b>: mostra o caminho (o acerto vale metade dos pontos).</li>
+        <li><b>📡 Radar</b>: elimina 2 alternativas erradas (uso limitado).</li>
+        <li>Acertos seguidos formam <b>combo</b> e multiplicam seus pontos. Ao completar uma missão, você recupera ❤️.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- BRIEFING DA MISSÃO -->
+<div class="overlay hidden" id="briefOverlay">
+  <div class="modal"><div class="logo" id="briefIcon">🎯</div><div class="brief-tag" id="briefTag">MISSÃO 1 DE 5</div><h2 id="briefTitle">—</h2>
+    <div class="brief-card" id="briefBody"></div>
+    <div class="modal-actions"><button class="primary" id="briefGo">Entendi, vamos lá! ➜</button></div>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div class="overlay hidden" id="rankOverlay"><div class="modal"><h2>🏆 Ranking local</h2><p>Os melhores pilotos salvos neste aparelho.</p><div class="rank-list" id="rankList"></div><div class="modal-actions"><button class="secondary" id="closeRank">Fechar</button><button class="secondary" id="clearRank">Limpar ranking</button></div></div></div>
+
+<!-- FIM -->
+<div class="overlay hidden" id="endOverlay"><div class="modal">
+  <div class="logo" id="endLogo">🌍</div><h2 id="endTitle">Fim da missão</h2><p id="endText"></p>
+  <div class="feature-row">
+    <div class="feature">Pontos<br><strong id="finalScore">0</strong></div>
+    <div class="feature">Acertos<br><strong id="finalHits">0</strong></div>
+    <div class="feature">Aproveitamento<br><strong id="finalAcc">0%</strong></div>
+    <div class="feature">Maior combo<br><strong id="finalCombo">0</strong></div>
+  </div>
+  <div class="brief-card"><b>📊 Desempenho por missão</b><table class="perf" id="perfTable"></table></div>
+  <div class="modal-actions">
+    <button class="primary" id="restartBtn">Jogar novamente</button>
+    <button class="secondary" id="reviewBtn">📖 Revisar meus erros</button>
+    <button class="secondary" id="copyBtn">📋 Copiar resultado</button>
+    <button class="secondary" id="endRankBtn">🏆 Ranking</button>
+  </div>
+  <div class="err-list hidden" id="errList"></div>
+</div></div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const LET=['A','B','C','D'];
+
+/* ---------- utilidades ---------- */
+function frac(a,b){return `<span class="fraction"><span class="top">${a}</span><span class="bottom">${b}</span></span>`}
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+function fmt(n){n=Math.round(n*100)/100;return n.toLocaleString('pt-BR',{maximumFractionDigits:2})}
+function money(n){return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+/* ---------- missões ---------- */
+const MISSIONS=[
+ {name:'Porcentagens-chave',icon:'🎯',perc:[10,20,25,50],range:[20,300],enemies:6,boss:0,types:['calc'],
+  brief:`<p><b>Porcentagem</b> quer dizer <b>“por cento”</b>, ou seja, <b>de cada 100</b>.</p>
+  <ul><li><b>50%</b> é a <b>metade</b> → divida por 2</li><li><b>25%</b> é a <b>metade da metade</b> → divida por 4</li><li><b>10%</b> → divida por 10</li><li><b>20%</b> → ache 10% e multiplique por 2</li></ul>
+  <div class="example">🧪 <b>Exemplo:</b> 20% de 70<br>10% de 70 = 70 ÷ 10 = 7<br>20% = 2 × 7 = <b>14</b></div>`},
+ {name:'Setor das frações',icon:'🧩',perc:[5,10,20,25,30,40,50,60,75,80],range:[20,400],enemies:6,boss:0,types:['calc','frac','fracRev','dec','comp'],
+  brief:`<p>Toda porcentagem é uma <b>fração com denominador 100</b>.</p>
+  <div class="eq-grid"><div class="eq">50% = ${frac(1,2)}</div><div class="eq">25% = ${frac(1,4)}</div><div class="eq">75% = ${frac(3,4)}</div><div class="eq">10% = ${frac(1,10)}</div><div class="eq">20% = ${frac(1,5)}</div><div class="eq">5% = ${frac(1,20)}</div><div class="eq">30% = ${frac(3,10)}</div><div class="eq">40% = ${frac(2,5)}</div><div class="eq">80% = ${frac(4,5)}</div></div>
+  <div class="example">🧪 <b>Exemplo:</b> 75% de 80<br>75% = ${frac(3,4)} → 80 ÷ 4 = 20 → 3 × 20 = <b>60</b></div>
+  <div class="tipbox">🔢 Também dá para escrever em <b>decimal</b> (divida por 100):<br>25% = 0,25 &nbsp;•&nbsp; 40% = 0,4 &nbsp;•&nbsp; 5% = 0,05</div>
+  <div class="warn">⚠ Erro comum: 25% <b>não é</b> ${frac(1,25)}. É ${frac(25,100)} = ${frac(1,4)}.</div>`},
+ {name:'Descontos cósmicos',icon:'🏷️',perc:[5,10,15,20,25,30,40,50,60],range:[40,900],enemies:5,boss:3,types:['desc','desc','econ'],
+  brief:`<p>No <b>desconto</b>, o preço <b>diminui</b>.</p>
+  <ol><li>Calcule o <b>valor do desconto</b> (quanto você economiza).</li><li><b>Subtraia</b> do preço original para achar o preço final.</li></ol>
+  <div class="example">🧪 <b>Exemplo:</b> R$ 200,00 com 10% de desconto<br>Desconto: 10% de 200 = 20 → você economiza R$ 20,00<br>Preço final: 200 − 20 = <b>R$ 180,00</b></div>
+  <div class="tipbox">⚡ <b>Atalho:</b> com 10% de desconto, você paga 90% do preço.</div>
+  <div class="warn">⚠ Leia com atenção: a pergunta quer o <b>preço final</b> ou o <b>valor do desconto</b>?</div>
+  <p class="boss-warning">👹 No fim desta missão: CHEFÃO (3 acertos para vencer)!</p>`},
+ {name:'Aumentos estelares',icon:'📈',perc:[5,10,15,20,25,30,40,50],range:[100,1500],enemies:6,boss:0,types:['aum','aum','aum','comp'],
+  brief:`<p>No <b>aumento</b>, o valor <b>cresce</b>.</p>
+  <ol><li>Calcule o <b>valor do aumento</b>.</li><li><b>Some</b> ao valor inicial.</li></ol>
+  <div class="example">🧪 <b>Exemplo:</b> 300 com aumento de 20%<br>20% de 300 = 60 → 300 + 60 = <b>360</b></div>
+  <div class="tipbox">⚡ <b>Atalho turbo:</b> 100% + 20% = 120% → 300 × 1,2 = 360</div>
+  <div class="warn">⚠ Erro comum: calcular só o aumento e esquecer de somar.</div>`},
+ {name:'Batalha final',icon:'🐲',perc:[8,12,15,18,25,30,35,40,45,60],range:[100,2500],enemies:6,boss:4,types:['calc','desc','aum','taxa','taxa','inv','descPct'],
+  brief:`<p>Agora vale <b>tudo</b>: cálculo direto, desconto, aumento… e três habilidades novas!</p>
+  <p>🔎 <b>Descobrir a porcentagem:</b> monte a fração ${frac('parte','total')} e transforme em “de cada 100”.<br>Ex.: 30 de 120 → ${frac(30,120)} = ${frac(1,4)} = ${frac(25,100)} = <b>25%</b></p>
+  <p>🔁 <b>Achar o total:</b> se 20% de um número é 30, então 100% é 5 vezes mais: 30 × 5 = <b>150</b>.</p>
+  <p>🏷️ <b>Desconto em %:</b> de R$ 200,00 para R$ 150,00 → desconto de R$ 50,00 → ${frac(50,200)} = ${frac(1,4)} = <b>25%</b></p>
+  <div class="tipbox">⚡ Porcentagens “quebradas”: <b>12%</b> = 10% + 1% + 1% &nbsp;•&nbsp; <b>35%</b> = 3 × 10% + 5%<br>(1% é dividir por 100)</div>
+  <p class="boss-warning">🐲 CHEFÃO FINAL no fim (4 acertos para vencer)!</p>`}
+];
+const ENEMIES=[['👾','Batedor Zeta'],['👽','Drone Nebuloso'],['🤖','Sentinela Solar'],['🦑','Caçador Quasar'],['👾','Guarda do Vazio']];
+const BOSSES={3:['👹','CHEFÃO: IMPERADOR ÔMEGA'],5:['🐲','CHEFÃO FINAL: DEVORADOR CÓSMICO']};
+const FR={5:[1,20],10:[1,10],20:[1,5],25:[1,4],30:[3,10],40:[2,5],50:[1,2],60:[3,5],75:[3,4],80:[4,5]};
+
+const state={name:'Piloto',score:0,lives:5,level:1,hits:0,misses:0,combo:0,maxCombo:0,defeated:0,enemyHP:1,enemyMaxHP:1,enemyStep:0,isBoss:false,
+ locked:true,running:false,sound:true,radar:3,hintUsed:false,radarUsed:false,pending:null,q:null,stats:[],errors:[],runId:0};
+const mission=()=>MISSIONS[state.level-1];
+
+/* ---------- sons (Web Audio, sem arquivos externos) ---------- */
+let actx;
+function ac(){if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;actx=new A()}if(actx.state==='suspended')actx.resume();return actx}
+function tone(f,d,type='sine',delay=0,vol=.07,f2){const c=ac();if(!c)return;const t=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.03)}
+function sfx(k){if(!state.sound)return;try{switch(k){
+ case'laser':tone(900,.22,'sawtooth',0,.045,150);break;
+ case'correct':tone(1046.5,.45,'sine',0,.10);tone(1568,.55,'sine',.09,.08);tone(2093,.6,'sine',.18,.05);break; // “plim” de acerto
+ case'hit':tone(160,.3,'triangle',0,.05,60);break;
+ case'explode':tone(130,.45,'square',0,.05,40);break;
+ case'wrong':tone(196,.17,'square',0,.055);tone(147,.38,'square',.18,.055,110);break; // “ãããh” de erro
+ case'level':[523,659,784,1047].forEach((f,i)=>tone(f,.2,'triangle',i*.12));break;
+ case'boss':tone(110,.45,'sawtooth',0,.05,230);tone(110,.45,'sawtooth',.5,.05,230);break;
+ case'click':tone(520,.07,'sine',0,.04);break;
+ case'start':tone(392,.12,'triangle');tone(523,.12,'triangle',.1);tone(784,.22,'triangle',.2);break;
+ case'lose':[392,330,262,196].forEach((f,i)=>tone(f,.25,'sine',i*.18,.07));break}}catch(e){}}
+
+/* ---------- música de fundo (sintetizada no navegador, sem arquivos) ---------- */
+const MUSIC_VOL=.5; // volume da música de fundo (0 a 1)
+const music={on:true,timer:null,step:0,next:0,gain:null,boss:false};
+try{music.on=localStorage.getItem('invasaoMusica')!=='off'}catch(e){}
+const NOTE=n=>440*Math.pow(2,(n-69)/12);
+// Trilha de SUSPENSE: Lá menor – Fá – Ré menor – Mi maior (o Sol# do Mi cria tensão)
+const PROG=[[57,60,64],[53,57,60],[50,53,57],[52,56,59]];
+const EERIE=[81,84,83,80,88,77]; // notas agudas "misteriosas"
+function musicStart(){if(!music.on||music.timer)return;const c=ac();if(!c)return;
+ if(!music.gain){music.gain=c.createGain();music.gain.connect(c.destination)}
+ const g=music.gain.gain;g.cancelScheduledValues(c.currentTime);g.setValueAtTime(.0001,c.currentTime);g.exponentialRampToValueAtTime(MUSIC_VOL,c.currentTime+2.5);
+ music.next=c.currentTime+.1;music.step=0;music.timer=setInterval(schedule,25)}
+function musicStop(){if(!music.timer)return;clearInterval(music.timer);music.timer=null;const c=actx;if(c&&music.gain){const g=music.gain.gain;g.cancelScheduledValues(c.currentTime);g.setValueAtTime(g.value||.3,c.currentTime);g.linearRampToValueAtTime(0,c.currentTime+.6)}}
+function mNote(f,t,d,type,vol,f2){const c=actx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(music.gain);o.start(t);o.stop(t+d+.05)}
+// acorde de fundo escuro: ondas "serrote" abafadas por filtro, entrando e saindo devagar
+function mPad(freqs,t,d,vol){const c=actx,f=c.createBiquadFilter(),g=c.createGain();f.type='lowpass';f.frequency.setValueAtTime(380,t);f.frequency.linearRampToValueAtTime(900,t+d/2);f.frequency.linearRampToValueAtTime(380,t+d);
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+d*.35);g.gain.linearRampToValueAtTime(.0001,t+d);f.connect(g);g.connect(music.gain);
+ freqs.forEach((fr,i)=>{const o=c.createOscillator();o.type='sawtooth';o.frequency.value=fr;o.detune.value=(i-1)*7;o.connect(f);o.start(t);o.stop(t+d+.05)})}
+// nota aguda com "tremor" (vibrato) — som de mistério
+function mEerie(fr,t,d,vol){const c=actx,o=c.createOscillator(),l=c.createOscillator(),lg=c.createGain(),g=c.createGain();o.type='sine';o.frequency.value=fr;l.frequency.value=5.5;lg.gain.value=fr*.012;l.connect(lg);lg.connect(o.frequency);
+ g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+d*.3);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(music.gain);o.start(t);l.start(t);o.stop(t+d+.05);l.stop(t+d+.05)}
+let noiseBuf;
+function tick(t,vol){const c=actx;if(!noiseBuf){noiseBuf=c.createBuffer(1,Math.floor(c.sampleRate*.04),c.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+ const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=noiseBuf;f.type='bandpass';f.frequency.value=3200;f.Q.value=4;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+.04);s.connect(f);f.connect(g);g.connect(music.gain);s.start(t)}
+function heart(t,vol){mNote(62,t,.22,'sine',vol,40)}                     // batida de coração
+function schedule(){const c=actx;if(c.state!=='running'){music.next=c.currentTime+.1;return}
+ const boss=music.boss,dt=60/(boss?96:70)/4;
+ while(music.next<c.currentTime+.15){const s=music.step%16,bar=Math.floor(music.step/16),ch=PROG[bar%4],t=music.next;
+  if(s===0)mPad(ch.map(n=>NOTE(n-12)),t,dt*16.5,boss?.05:.04);                    // acorde sombrio
+  if(s===0)mNote(NOTE(ch[0]-24),t,dt*15,'sine',.09);                              // grave contínuo
+  if(s===0||s===3||(boss&&(s===8||s===11)))heart(t,s%8===0?.16:.11);              // tum-tum do coração
+  if(s%4===0)tick(t,boss?.05:.03);                                                // relógio "tic-tac"
+  if(boss&&s%2===1)mNote(NOTE(ch[0]-12),t,dt*.9,'sawtooth',.018);                 // pulsação acelerada do chefão
+  if(!boss&&bar%2===1&&(s===6||s===13))mEerie(NOTE(pick(EERIE)),t,dt*7,.022);      // notas de mistério
+  if(boss&&(s===4||s===12))mEerie(NOTE(pick(EERIE)+1),t,dt*3,.02);                // dissonância do chefão
+  music.next+=dt;music.step++}}
+function toggleMusic(){music.on=!music.on;try{localStorage.setItem('invasaoMusica',music.on?'on':'off')}catch(e){}
+ if(music.on){if(music.started)musicStart()}else musicStop();updateMusicBtn()}
+function updateMusicBtn(){const b=$('#musicBtn');b.classList.toggle('off',!music.on);b.title=music.on?'Desligar a música de fundo':'Ligar a música de fundo'}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)musicStop();else if(music.started)musicStart()});
+
+/* ---------- tela cheia ---------- */
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function toggleFS(){const d=document.documentElement;
+ try{if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
+  const r=d.requestFullscreen||d.webkitRequestFullscreen;
+  if(!r)return toast('No iPhone, use Compartilhar → “Adicionar à Tela de Início” para jogar em tela cheia.');
+  const p=r.call(d);if(p&&p.catch)p.catch(()=>toast('A tela cheia não está disponível neste aparelho.'))}
+ catch(e){toast('A tela cheia não está disponível neste aparelho.')}}
+function fsUpdate(){const on=!!fsEl();$('#fsBtn').textContent=on?'🗗':'⛶';$('#fsBtn').title=on?'Sair da tela cheia':'Tela cheia';const s=$('#fsStart');if(s)s.textContent=on?'🗗 Sair da tela cheia':'⛶ Tela cheia'}
+document.addEventListener('fullscreenchange',fsUpdate);document.addEventListener('webkitfullscreenchange',fsUpdate);
+
+/* ---------- escolha de números "amigáveis" ---------- */
+function goodBase(p,b){if((b*p)%100)return false;const u=p%10;if(p===25||p===75||u===5)return b%20===0;if(u!==0)return b%100===0;return b%10===0}
+function pickBase(p,[min,max]){for(let i=0;i<400;i++){const b=rnd(Math.ceil(min/10),Math.floor(max/10))*10;if(goodBase(p,b))return b}return 200}
+
+/* ---------- atalhos mentais ---------- */
+function mental(p,b){
+ const r=b*p/100,ten=b/10,t=Math.floor(p/10),u=p%10,one=b/100;
+ if(p===50)return `50% é a metade: ${fmt(b)} ÷ 2 = <b>${fmt(r)}</b>`;
+ if(p===25)return `25% é a metade da metade: ${fmt(b)} ÷ 4 = <b>${fmt(r)}</b>`;
+ if(p===75)return `75% = 50% + 25% → ${fmt(b/2)} + ${fmt(b/4)} = <b>${fmt(r)}</b>`;
+ if(p===10)return `10% é dividir por 10: ${fmt(b)} ÷ 10 = <b>${fmt(r)}</b>`;
+ const tenLine=`10% de ${fmt(b)} = ${fmt(b)} ÷ 10 = ${fmt(ten)}`;
+ if(u===0)return `${tenLine}<br>${p}% = ${t} × ${fmt(ten)} = <b>${fmt(r)}</b>`;
+ if(t===0&&u===5)return `${tenLine}<br>5% é a metade de 10%: ${fmt(ten)} ÷ 2 = <b>${fmt(r)}</b>`;
+ if(t===0)return `1% de ${fmt(b)} = ${fmt(b)} ÷ 100 = ${fmt(one)}<br>${p}% = ${u} × ${fmt(one)} = <b>${fmt(r)}</b>`;
+ const s=[tenLine],parts=[];
+ if(t===1)parts.push(fmt(ten));else{s.push(`${t*10}% = ${t} × ${fmt(ten)} = ${fmt(t*ten)}`);parts.push(fmt(t*ten))}
+ if(u===5){s.push(`5% = metade de 10% = ${fmt(ten/2)}`);parts.push(fmt(ten/2))}
+ else{s.push(`1% = ${fmt(b)} ÷ 100 = ${fmt(one)} → ${u}% = ${u} × ${fmt(one)} = ${fmt(u*one)}`);parts.push(fmt(u*one))}
+ s.push(`${p}% = ${parts.join(' + ')} = <b>${fmt(r)}</b>`);return s.join('<br>');
+}
+function hintFor(p){
+ const t=Math.floor(p/10),u=p%10;
+ if(p===50)return 'Divida por 2 (é a metade).';
+ if(p===25)return 'Divida por 4 (metade da metade).';
+ if(p===75)return 'Ache 50% e 25% e depois some.';
+ if(p===10)return 'Divida por 10.';
+ if(u===0)return `Ache 10% (divida por 10) e multiplique por ${t}.`;
+ if(t===0&&u===5)return 'Ache 10% (divida por 10) e pegue a metade.';
+ if(t===0)return `Ache 1% (divida por 100) e multiplique por ${u}.`;
+ return `Separe: ${p}% = ${t*10}% + ${u}%. Calcule cada parte e some.`;
+}
+
+/* ---------- alternativas com erros comuns ---------- */
+function numOptions(correct,errs,F,max=Infinity){
+ const used=new Set([correct]),out=[{label:F(correct),ok:true}];
+ shuffle(errs.slice()).forEach(e=>{const v=Math.round(e.v*100)/100;if(out.length<4&&v>0&&v<=max&&Number.isInteger(v)&&!used.has(v)){used.add(v);out.push({label:F(v),ok:false,why:e.why})}});
+ const step=Math.max(1,Math.round(correct*.1));
+ for(const k of shuffle([-2,-1,1,2,3,-3,4,5,6,-4,7,8])){if(out.length>=4)break;const v=correct+k*step;if(v>0&&v<=max&&!used.has(v)){used.add(v);out.push({label:F(v),ok:false,why:'Esse valor não confere. Refaça a conta com calma, um passo de cada vez.'})}}
+ return shuffle(out);
+}
+function labelOptions(correct,wrongs){
+ const used=new Set([correct]),out=[{label:correct,ok:true}];
+ shuffle(wrongs.slice()).forEach(w=>{if(out.length<4&&!used.has(w.label)){used.add(w.label);out.push({label:w.label,ok:false,why:w.why})}});
+ return shuffle(out);
+}
+
+/* ---------- banco de contextos ---------- */
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const FEM=new Set(['Ana','Júlia','Maria','Beatriz','Larissa','Sofia','Helena','Valentina','Laura']);
+const NOMES=['Ana','Pedro','Júlia','Lucas','Maria','Gabriel','Beatriz','Rafael','Larissa','Mateus','Sofia','Davi','Helena','Enzo','Valentina','Arthur','Laura','Miguel'];
+// cálculo direto: {t:(p,b)=>texto, m:true se é dinheiro, max: maior valor que faz sentido}
+const CALC_T=[
+ {t:(p,b)=>`Quanto é <b>${p}%</b> de <b>${fmt(b)}</b>?`},
+ {t:(p,b)=>`Calcule <b>${p}%</b> de <b>${fmt(b)}</b>.`},
+ {t:(p,b)=>`A frota inimiga tem <b>${fmt(b)}</b> naves. <b>${p}%</b> delas são batedoras. Quantas naves batedoras existem?`},
+ {t:(p,b)=>`O escudo inimigo tem <b>${fmt(b)}</b> pontos. Seu laser remove <b>${p}%</b>. Quantos pontos o laser remove?`},
+ {t:(p,b)=>`A base tem <b>${fmt(b)}</b> litros de combustível. A missão gasta <b>${p}%</b>. Quantos litros a missão gasta?`},
+ {t:(p,b)=>`Uma estação espacial tem <b>${fmt(b)}</b> tripulantes. <b>${p}%</b> deles são cientistas. Quantos cientistas há na estação?`},
+ {t:(p,b)=>`O radar detectou <b>${fmt(b)}</b> meteoros. <b>${p}%</b> deles vêm em direção à Terra. Quantos meteoros vêm em nossa direção?`},
+ {t:(p,b)=>`A nave percorreu <b>${fmt(b)}</b> km. <b>${p}%</b> do caminho foi no piloto automático. Quantos km foram no piloto automático?`},
+ {t:(p,b)=>`Um robô coletou <b>${fmt(b)}</b> pedras lunares. <b>${p}%</b> delas são raras. Quantas pedras raras ele coletou?`},
+ {t:(p,b)=>`O planeta Zórion tem <b>${fmt(b)}</b> crateras. <b>${p}%</b> delas têm gelo. Quantas crateras têm gelo?`},
+ {t:(p,b)=>`Uma escola tem <b>${fmt(b)}</b> alunos. <b>${p}%</b> deles vão de ônibus. Quantos alunos vão de ônibus?`},
+ {t:(p,b)=>`Num jogo havia <b>${fmt(b)}</b> torcedores no estádio. <b>${p}%</b> usavam a camisa do time. Quantos torcedores usavam a camisa?`},
+ {t:(p,b)=>`O celular de ${pick(NOMES)} tem <b>${fmt(b)}</b> fotos. <b>${p}%</b> são selfies. Quantas selfies há no celular?`},
+ {t:(p,b)=>`Uma pesquisa ouviu <b>${fmt(b)}</b> pessoas. <b>${p}%</b> preferem pizza. Quantas pessoas preferem pizza?`},
+ {t:(p,b)=>`Um livro tem <b>${fmt(b)}</b> páginas. ${pick(NOMES)} já leu <b>${p}%</b> dele. Quantas páginas já foram lidas?`,max:800},
+ {t:(p,b)=>`Uma caixa d'água tem <b>${fmt(b)}</b> litros. Hoje foram usados <b>${p}%</b> da água. Quantos litros foram usados?`},
+ {t:(p,b)=>`Um vídeo teve <b>${fmt(b)}</b> visualizações. <b>${p}%</b> das pessoas curtiram. Quantas curtidas o vídeo recebeu?`},
+ {t:(p,b)=>`Uma plantação tem <b>${fmt(b)}</b> pés de milho. <b>${p}%</b> já foram colhidos. Quantos pés foram colhidos?`},
+ {t:(p,b)=>`${pick(NOMES)} recebe <b>${money(b)}</b> de mesada e gasta <b>${p}%</b> com lanches. Quanto gasta com lanches?`,m:true,max:500},
+ {t:(p,b)=>`A conta do restaurante deu <b>${money(b)}</b>. A gorjeta é de <b>${p}%</b>. Qual é o valor da gorjeta?`,m:true,max:900},
+ {t:(p,b)=>`${pick(NOMES)} ganha <b>${money(b)}</b> por mês e guarda <b>${p}%</b> na poupança. Quanto guarda por mês?`,m:true},
+ {t:(p,b)=>`Um ônibus vai percorrer <b>${fmt(b)}</b> km. Já percorreu <b>${p}%</b> do caminho. Quantos km já foram percorridos?`},
+ {t:(p,b)=>`Um show recebeu <b>${fmt(b)}</b> pessoas. <b>${p}%</b> compraram o ingresso pela internet. Quantas compraram pela internet?`},
+ {t:(p,b)=>`Um mercado recebeu <b>${fmt(b)}</b> ovos. <b>${p}%</b> chegaram quebrados. Quantos ovos chegaram quebrados?`},
+ {t:(p,b)=>`Uma corrida tem <b>${fmt(b)}</b> metros. ${pick(NOMES)} já correu <b>${p}%</b> do percurso. Quantos metros já correu?`},
+ {t:(p,b)=>`Um aplicativo de jogos foi baixado <b>${fmt(b)}</b> vezes. <b>${p}%</b> dos downloads foram feitos à noite. Quantos downloads foram à noite?`},
+ {t:(p,b)=>`Um álbum tem <b>${fmt(b)}</b> figurinhas. <b>${p}%</b> delas são brilhantes. Quantas figurinhas são brilhantes?`,max:800},
+ {t:(p,b)=>`Uma biblioteca tem <b>${fmt(b)}</b> livros. <b>${p}%</b> estão emprestados. Quantos livros estão emprestados?`},
+ {t:(p,b)=>`O tanque da nave comporta <b>${fmt(b)}</b> litros de oxigênio. O alarme toca quando restam <b>${p}%</b>. Com quantos litros o alarme toca?`},
+ {t:(p,b)=>`Uma padaria fez <b>${fmt(b)}</b> pães. <b>${p}%</b> foram vendidos antes das 8h. Quantos pães foram vendidos até as 8h?`},
+ {t:(p,b)=>`O exército alienígena tem <b>${fmt(b)}</b> soldados. <b>${p}%</b> fugiram com medo do seu laser. Quantos soldados fugiram?`}
+];
+const ITENS=['um tênis','uma mochila','um fone de ouvido','uma bicicleta','um videogame','uma camiseta do time','um capacete espacial','um traje de astronauta','um kit de reparos','um telescópio','um skate','uma bola de futebol','um relógio','uma jaqueta','um robô de brinquedo','uma caixa de som','um patinete','um radar de bolso','uma luminária','um jogo de tabuleiro','um carrinho de controle remoto','uma barraca de camping','um tablet','uma cadeira gamer','um drone','uma guitarra'];
+const DESC_T=[
+ (it,B,p)=>`${cap(it)} custa <b>${B}</b> e está com <b>${p}% de desconto</b>. Qual é o preço final?`,
+ (it,B,p)=>`Na Black Friday, ${it} que custava <b>${B}</b> ganhou <b>${p}% de desconto</b>. Quanto vai custar agora?`,
+ (it,B,p)=>`Pagando à vista, ${it} de <b>${B}</b> tem <b>${p}% de desconto</b>. Qual é o preço à vista?`,
+ (it,B,p)=>`Na loja da estação espacial, ${it} sai por <b>${B}</b>. Com um cupom de <b>${p}% de desconto</b>, quanto você vai pagar?`,
+ (it,B,p)=>`${cap(it)} de <b>${B}</b> entrou em promoção com <b>${p}% de desconto</b>. Qual é o novo preço?`,
+ (it,B,p)=>{const n=pick(NOMES);return `${n} quer comprar ${it} de <b>${B}</b>. A loja deu <b>${p}% de desconto</b>. Quanto ${FEM.has(n)?'ela':'ele'} vai pagar?`},
+ (it,B,p)=>`No feirão de fim de ano, ${it} de <b>${B}</b> está com <b>${p}% de desconto</b>. Qual é o valor com desconto?`
+];
+const ECON_T=[
+ (it,B,p)=>`${cap(it)} custa <b>${B}</b> e está com <b>${p}% de desconto</b>. Quantos reais você vai <b>economizar</b>?`,
+ (it,B,p)=>`Na promoção, ${it} de <b>${B}</b> tem <b>${p}% de desconto</b>. Qual é o <b>valor do desconto</b> em reais?`,
+ (it,B,p)=>`Com um cupom de <b>${p}%</b>, quanto você <b>deixa de pagar</b> em ${it} que custa <b>${B}</b>?`,
+ (it,B,p)=>`Na Black Friday, ${it} de <b>${B}</b> teve <b>${p}% de desconto</b>. De quantos reais foi o <b>desconto</b>?`
+];
+const AUM_T=[
+ {t:(B,p)=>`A energia da nave era <b>${B}</b> unidades e aumentou <b>${p}%</b>. Qual é a nova energia?`},
+ {t:(B,p)=>`A base lunar tinha <b>${B}</b> robôs e esse número aumentou <b>${p}%</b>. Quantos robôs há agora?`},
+ {t:(B,p)=>`O combustível espacial custava <b>${B}</b> e subiu <b>${p}%</b>. Qual é o novo preço?`,m:true},
+ {t:(B,p)=>`O preço ${pick(['do ingresso do show','da mensalidade da academia','da conta de luz','da bicicleta','do celular','do videogame','do curso de inglês','da passagem de avião'])} era <b>${B}</b> e teve aumento de <b>${p}%</b>. Qual é o novo preço?`,m:true},
+ {t:(B,p)=>`O salário de ${pick(NOMES)} era <b>${B}</b> e teve um aumento de <b>${p}%</b>. Qual é o novo salário?`,m:true},
+ {t:(B,p)=>`Uma cidade tinha <b>${B}</b> habitantes e a população cresceu <b>${p}%</b>. Quantos habitantes tem agora?`},
+ {t:(B,p)=>`Um canal de vídeos tinha <b>${B}</b> inscritos e cresceu <b>${p}%</b> no mês. Quantos inscritos tem agora?`},
+ {t:(B,p)=>`A nave voava a <b>${B}</b> km/h e acelerou <b>${p}%</b>. Qual é a nova velocidade?`},
+ {t:(B,p)=>`Uma sorveteria vendeu <b>${B}</b> sorvetes em maio e <b>${p}%</b> a mais em junho. Quantos sorvetes vendeu em junho?`},
+ {t:(B,p)=>`Uma escola tinha <b>${B}</b> alunos e as matrículas cresceram <b>${p}%</b>. Quantos alunos a escola tem agora?`},
+ {t:(B,p)=>`Uma fazenda colheu <b>${B}</b> kg de café e no ano seguinte colheu <b>${p}%</b> a mais. Quantos kg colheu no ano seguinte?`},
+ {t:(B,p)=>`O planeta Zórion tinha <b>${B}</b> alienígenas e a população aumentou <b>${p}%</b>. Quantos alienígenas há agora?`},
+ {t:(B,p)=>`O escudo do chefão tinha <b>${B}</b> pontos e ele se fortaleceu <b>${p}%</b>. Com quantos pontos o escudo ficou?`},
+ {t:(B,p)=>`Um aplicativo tinha <b>${B}</b> usuários e ganhou <b>${p}%</b> a mais na semana. Quantos usuários tem agora?`}
+];
+const TAXA_T=[
+ (part,b)=>`Uma frota de <b>${b}</b> naves atacou. Você destruiu <b>${part}</b>. Que porcentagem da frota você destruiu?`,
+ (part,b)=>`Dos <b>${b}</b> tripulantes da estação, <b>${part}</b> são pilotos. Qual é a porcentagem de pilotos?`,
+ (part,b)=>`O chefão lançou <b>${b}</b> meteoros e o escudo bloqueou <b>${part}</b>. Que porcentagem foi bloqueada?`,
+ (part,b)=>`Numa pesquisa com <b>${b}</b> pessoas, <b>${part}</b> disseram que gostam de Matemática. Qual é essa porcentagem?`,
+ (part,b)=>`Um álbum tem <b>${b}</b> figurinhas e você já colou <b>${part}</b>. Que porcentagem do álbum está completa?`,
+ (part,b)=>`De <b>${b}</b> sementes plantadas, <b>${part}</b> germinaram. Que porcentagem das sementes germinou?`,
+ (part,b)=>`Uma escola tem <b>${b}</b> alunos e <b>${part}</b> usam óculos. Que porcentagem dos alunos usa óculos?`,
+ (part,b)=>`Um robô fez <b>${b}</b> tarefas e errou <b>${part}</b>. Em que porcentagem das tarefas ele errou?`,
+ (part,b)=>`Das <b>${b}</b> lâmpadas da nave, <b>${part}</b> queimaram. Que porcentagem das lâmpadas queimou?`,
+ (part,b)=>`Um jogo tem <b>${b}</b> fases e você já passou <b>${part}</b>. Que porcentagem do jogo você completou?`,
+ (part,b)=>`Uma loja recebeu <b>${b}</b> camisetas e já vendeu <b>${part}</b>. Que porcentagem foi vendida?`,
+ (part,b)=>`Um ônibus tem <b>${b}</b> lugares e <b>${part}</b> estão ocupados. Que porcentagem dos lugares está ocupada?`
+];
+const FRAC_T=[
+ p=>`Qual fração é igual a <b>${p}%</b>?`,
+ p=>`<b>${p}%</b> da tripulação está dormindo. Que fração da tripulação é essa?`,
+ p=>`O radar mostra que <b>${p}%</b> do planeta foi mapeado. Que fração foi mapeada?`,
+ p=>`Você comeu <b>${p}%</b> de uma pizza. Que fração da pizza você comeu?`,
+ p=>`A barra de carregamento do jogo está em <b>${p}%</b>. Que fração já carregou?`,
+ p=>`<b>${p}%</b> dos alunos da escola gostam de futebol. Que fração dos alunos é essa?`,
+ p=>`A bateria do celular está em <b>${p}%</b>. Que fração da bateria ainda resta?`
+];
+const FRACREV_T=[
+ F=>`A fração ${F} é igual a qual porcentagem?`,
+ F=>`Você já percorreu ${F} do caminho até Marte. Que porcentagem do caminho é essa?`,
+ F=>`${F} da bateria da nave está carregada. Qual é a porcentagem de carga?`,
+ F=>`Uma pizza foi dividida igualmente e você comeu ${F} dela. Que porcentagem da pizza você comeu?`,
+ F=>`${F} dos alunos de uma escola vão a pé. Qual é a porcentagem de alunos que vão a pé?`,
+ F=>`O escudo perdeu ${F} da sua força. Que porcentagem da força foi perdida?`
+];
+
+/* ---------- geradores de questões ---------- */
+function pickT(list,b){const ok=list.filter(x=>!x.max||b<=x.max);return ok.length?pick(ok):list[0]}
+function genCalc(M){
+ const p=pick(M.perc),b=pickBase(p,M.range),r=b*p/100,T=(state.level===1&&Math.random()<.3)?CALC_T[0]:pickT(CALC_T,b),F=T.m?money:fmt;
+ return {key:`calc|${p}|${b}`,text:T.t(p,b),bar:{mode:'calc',p,base:F(b)},hint:hintFor(p),
+  options:numOptions(r,[
+   {v:b*p/10,why:'Cuidado com a casa decimal: porcentagem é dividir por <b>100</b>, não por 10.'},
+   {v:b-r,why:`Esse valor é o que <b>sobra</b> (${100-p}%), não os ${p}% pedidos.`},
+   {v:p,why:`${p}% não é o número ${p}! São ${p} partes de cada 100.`},
+   {v:b/p,why:`Você dividiu por ${p}. O certo é dividir por 100 e multiplicar por ${p} (ou usar o atalho).`},
+   {v:r*2,why:'Confira o atalho: você dobrou o resultado sem precisar.'}],F),
+  explain:`<div class="calc-steps"><b>📘 Jeito do livro:</b><br>${frac(p,100)} × ${fmt(b)} = ${frac(`${p} × ${fmt(b)}`,100)} = ${frac(fmt(p*b),100)} = <b>${F(r)}</b></div><div class="calc-steps alt"><b>⚡ Atalho mental:</b><br>${mental(p,b)}</div>`};
+}
+function genFrac(M){
+ const p=pick(M.perc.filter(x=>FR[x])),[n,d]=FR[p],g=gcd(p,100),key=n+'/'+d;
+ const opts=[{label:frac(n,d),ok:true}],used=new Set([key]);
+ if(!used.has('1/'+p)){used.add('1/'+p);opts.push({label:frac(1,p),ok:false,why:`${p}% não é ${frac(1,p)}! Lembre: ${p}% = ${frac(p,100)}.`})}
+ shuffle(Object.entries(FR)).forEach(([k,[a,c]])=>{const kk=a+'/'+c;if(opts.length<4&&+k!==p&&!used.has(kk)){used.add(kk);opts.push({label:frac(a,c),ok:false,why:`${frac(a,c)} é igual a ${k}%, e não a ${p}%.`})}});
+ const ti=rnd(0,FRAC_T.length-1);
+ return {key:`frac|${p}|${ti}`,text:FRAC_T[ti](p),bar:{mode:'frac',p,base:'o todo'},hint:`Escreva ${p}% como ${frac(p,100)} e simplifique (divida em cima e embaixo pelo mesmo número).`,options:shuffle(opts),
+  explain:`<div class="calc-steps"><b>📘 Passo a passo:</b><br>${p}% = ${frac(p,100)} = ${frac(n,d)}<br><small>(dividimos o numerador e o denominador por ${g})</small><br>Ou seja: de cada <b>${d}</b> partes, pegamos <b>${n}</b>.</div>`};
+}
+function genFracRev(M){
+ const p=pick(M.perc.filter(x=>FR[x])),[n,d]=FR[p],k=100/d,ti=rnd(0,FRACREV_T.length-1),glued=+(`${n}${d}`);
+ return {key:`frev|${p}|${ti}`,text:FRACREV_T[ti](frac(n,d)),bar:null,hint:`Descubra por quanto multiplicar o denominador ${d} para chegar em 100. Multiplique o numerador pelo mesmo número.`,
+  options:numOptions(p,[
+   {v:d,why:`Não é ${d}%! O ${d} só mostra em quantas partes o todo foi dividido.`},
+   {v:glued,why:'Não dá para “juntar” numerador e denominador. Transforme a fração em “de cada 100”.'},
+   {v:100-p,why:`Essa é a parte que <b>falta</b> para completar o todo, não a fração ${frac(n,d)}.`},
+   {v:n*10,why:`Cuidado: multiplique o numerador por ${k}, que é o número que transforma ${d} em 100.`}],v=>v+'%',100),
+  explain:`<div class="calc-steps"><b>📘 Passo a passo:</b><br>${frac(n,d)} = ${frac(`${n} × ${k}`,`${d} × ${k}`)} = ${frac(p,100)} = <b>${p}%</b></div><div class="calc-steps alt"><b>⚡ Outro jeito:</b> ${n} ÷ ${d} = ${fmt(p/100)} → ${fmt(p/100)} × 100 = <b>${p}%</b></div>`};
+}
+function genDec(M){
+ const p=pick(M.perc),D=fmt(p/100),dir=Math.random()<.5,ti=rnd(0,3);
+ const expl=`<div class="calc-steps"><b>📘 Porcentagem é dividir por 100:</b><br>${p}% = ${frac(p,100)} = ${p} ÷ 100 = <b>${D}</b></div><div class="calc-steps alt"><b>⚡ Truque:</b> para tirar o %, ande <b>2 casas</b> com a vírgula para a esquerda. Para voltar ao %, ande 2 casas para a direita.</div>`;
+ if(dir){const T=[`Como se escreve <b>${p}%</b> em número decimal?`,`<b>${p}%</b> dos sensores da nave estão ligados. Como escrever ${p}% em decimal?`,`Na calculadora, para calcular <b>${p}%</b> você multiplica por qual número decimal?`,`Qual número decimal é igual a <b>${p}%</b>?`];
+  return {key:`dec1|${p}|${ti}`,text:T[ti],bar:{mode:'calc',p,base:'1 inteiro'},hint:'Divida por 100: ande 2 casas com a vírgula para a esquerda.',
+   options:labelOptions(D,[{label:fmt(p/10),why:'Você andou só 1 casa com a vírgula. Porcentagem é dividir por <b>100</b> (2 casas).'},{label:fmt(p),why:`${p} sem o % é ${p} inteiros, muito mais que ${p}%!`},{label:fmt(p/1000),why:'Você andou 3 casas. Para dividir por 100, ande só <b>2</b>.'}]),explain:expl}}
+ const T=[`O número decimal <b>${D}</b> corresponde a qual porcentagem?`,`O combustível da nave está em <b>${D}</b> do tanque. Em porcentagem, isso é:`,`A probabilidade de chover amanhã é <b>${D}</b>. Qual é essa chance em porcentagem?`,`Um time venceu <b>${D}</b> das partidas. Em porcentagem, quanto é isso?`];
+ return {key:`dec2|${p}|${ti}`,text:T[ti],bar:null,hint:'Multiplique por 100: ande 2 casas com a vírgula para a direita.',
+  options:labelOptions(p+'%',[{label:fmt(p/10)+'%',why:'Você andou só 1 casa. Multiplique por <b>100</b> (2 casas para a direita).'},{label:fmt(p*10)+'%',why:'Você andou 3 casas. Para multiplicar por 100, ande só <b>2</b>.'},{label:D+'%',why:`Só colocar o símbolo % não basta: ${D} = ${D} × 100% = ${p}%.`}]),explain:expl};
+}
+function genComp(M){
+ const big=Math.random()<.6,pairs=[],res=new Set();let guard=0;
+ while(pairs.length<4&&guard++<300){const p=pick(M.perc),b=pickBase(p,[M.range[0],Math.min(M.range[1],800)]),r=b*p/100;if(!res.has(r)){res.add(r);pairs.push({p,b,r})}}
+ const best=pairs.reduce((a,x)=>big?(x.r>a.r?x:a):(x.r<a.r?x:a));
+ const ti=rnd(0,2),word=big?'MAIOR':'MENOR';
+ const T=[`Qual destas contas dá o <b>${word}</b> resultado?`,`Seu canhão pode escolher um ataque. Qual destes destrói ${big?'<b>MAIS</b>':'<b>MENOS</b>'} naves?`,`Compare com atenção: qual destas porcentagens vale ${big?'<b>MAIS</b>':'<b>MENOS</b>'}?`];
+ const opts=shuffle(pairs.map(x=>({label:`${x.p}% de ${fmt(x.b)}`,ok:x===best,why:`${x.p}% de ${fmt(x.b)} = ${fmt(x.r)}, que é ${big?'menor':'maior'} que ${fmt(best.r)}.`})));
+ return {key:`comp|${pairs.map(x=>x.p+'-'+x.b).sort().join(',')}`,text:T[ti],bar:null,hint:'Calcule cada uma (use os atalhos!) e depois compare os resultados.',options:opts,
+  explain:`<div class="calc-steps"><b>📘 Calculando cada uma:</b><br>${pairs.slice().sort((a,b)=>b.r-a.r).map(x=>`${x.p}% de ${fmt(x.b)} = ${x===best?'<b>'+fmt(x.r)+'</b> ✔':fmt(x.r)}`).join('<br>')}</div><div class="calc-steps alt"><b>⚡ Lembre:</b> uma porcentagem maior nem sempre dá um resultado maior. Depende também do valor total!</div>`};
+}
+function genDesc(M){
+ const p=pick(M.perc),b=pickBase(p,[M.range[0],Math.min(M.range[1],1500)]),d=b*p/100,f=b-d,it=pick(ITENS),ti=rnd(0,DESC_T.length-1);
+ return {key:`desc|${p}|${b}`,text:DESC_T[ti](it,money(b),p),bar:{mode:'desc',p,base:money(b)},
+  hint:hintFor(p)+' Depois, <b>tire</b> esse valor do preço.',
+  options:numOptions(f,[
+   {v:d,why:`${money(d)} é só o <b>desconto</b>. Falta tirar do preço: ${money(b)} − ${money(d)}.`},
+   {v:b+d,why:'Você somou o desconto! Desconto faz o preço <b>diminuir</b>.'},
+   {v:b-p,why:`Você tirou ${p} reais, mas o desconto é de ${p} <b>por cento</b>.`},
+   {v:b-b*p/10,why:'Cuidado com a casa decimal ao calcular o desconto: divida por 100.'}],money),
+  explain:`<div class="calc-steps"><b>Passo 1 — desconto:</b> ${frac(p,100)} × ${money(b)} = ${money(d)}<br><small>${mental(p,b)}</small><br><b>Passo 2 — preço final:</b> ${money(b)} − ${money(d)} = <b>${money(f)}</b></div><div class="calc-steps alt"><b>⚡ Atalho:</b> com ${p}% de desconto, você paga ${100-p}% do preço.</div>`};
+}
+function genEcon(M){
+ const p=pick(M.perc),b=pickBase(p,M.range),d=b*p/100,it=pick(ITENS),ti=rnd(0,ECON_T.length-1);
+ return {key:`econ|${p}|${b}`,text:ECON_T[ti](it,money(b),p),bar:{mode:'desc',p,base:money(b)},hint:hintFor(p)+' A pergunta quer só o valor do desconto.',
+  options:numOptions(d,[
+   {v:b-d,why:`${money(b-d)} é o <b>preço final</b>. A pergunta quer só quanto você economiza.`},
+   {v:b*p/10,why:'Cuidado com a casa decimal: porcentagem é dividir por <b>100</b>.'},
+   {v:p,why:`O desconto é de ${p}%, e não de ${p} reais. Calcule ${p}% de ${money(b)}.`},
+   {v:b+d,why:'Esse seria o preço com <b>aumento</b>. A pergunta quer o valor do desconto.'}],money),
+  explain:`<div class="calc-steps"><b>📘 Valor do desconto:</b><br>${frac(p,100)} × ${money(b)} = <b>${money(d)}</b><br><small>${mental(p,b)}</small></div><div class="calc-steps alt">💡 Se a pergunta fosse o preço final, faríamos ${money(b)} − ${money(d)} = ${money(b-d)}.</div>`};
+}
+function genAum(M){
+ const p=pick(M.perc),b=pickBase(p,M.range),a=b*p/100,n=b+a,C=pick(AUM_T),F=C.m?money:fmt;
+ return {key:`aum|${p}|${b}`,text:C.t(F(b),p),bar:{mode:'aum',p,base:F(b)},hint:hintFor(p)+' Depois, <b>some</b> ao valor inicial.',
+  options:numOptions(n,[
+   {v:a,why:`${F(a)} é só o <b>aumento</b>. Falta somar ao valor inicial.`},
+   {v:b-a,why:'Você subtraiu! Aumento faz o valor <b>crescer</b>.'},
+   {v:b+p,why:`Você somou ${p}, mas o aumento é de ${p} <b>por cento</b>.`},
+   {v:b+a*10,why:'Cuidado com a casa decimal ao calcular o aumento: divida por 100.'}],F),
+  explain:`<div class="calc-steps"><b>Passo 1 — aumento:</b> ${frac(p,100)} × ${F(b)} = ${F(a)}<br><small>${mental(p,b)}</small><br><b>Passo 2 — novo valor:</b> ${F(b)} + ${F(a)} = <b>${F(n)}</b></div><div class="calc-steps alt"><b>⚡ Atalho turbo:</b> 100% + ${p}% = ${100+p}% → ${fmt(b)} × ${fmt(1+p/100)} = ${fmt(n)}</div>`};
+}
+function genTaxa(){
+ const p=pick([5,10,15,20,25,30,40,50,60,70,75,80]),b=pickBase(p,[20,400]),part=b*p/100,g=gcd(part,b),ti=rnd(0,TAXA_T.length-1);
+ return {key:`taxa|${p}|${b}`,text:TAXA_T[ti](part,b),bar:null,hint:`Monte a fração ${frac('parte','total')} = ${frac(part,b)}, simplifique e transforme em “de cada 100”.`,
+  options:numOptions(p,[
+   {v:part,why:`${part} é a <b>quantidade</b>, não a porcentagem. Compare com o total: ${frac(part,b)}.`},
+   {v:100-p,why:'Essa é a porcentagem da parte que <b>sobrou</b>, não da parte pedida.'},
+   {v:p+10,why:`Confira a simplificação de ${frac(part,b)}.`},{v:p-5,why:`Confira a simplificação de ${frac(part,b)}.`}],v=>v+'%',100),
+  explain:`<div class="calc-steps"><b>📘 Passo a passo:</b><br>${frac(part,b)} = ${frac(part/g,b/g)} = ${frac(p,100)} = <b>${p}%</b></div><div class="calc-steps alt"><b>⚡ Outro jeito:</b> ${part} ÷ ${b} = ${fmt(p/100)} → ${fmt(p/100)} × 100 = <b>${p}%</b></div>`};
+}
+function genInv(){
+ const p=pick([10,20,25,50]),k=100/p,N=rnd(2,40)*20,part=N*p/100,ti=rnd(0,4),nm=pick(NOMES);
+ const T=[`<b>${p}%</b> de um número é <b>${part}</b>. Qual é esse número?`,
+  `Você já destruiu <b>${part}</b> naves, que são <b>${p}%</b> da frota. Quantas naves tem a frota inteira?`,
+  `${nm} já leu <b>${part}</b> páginas, que são <b>${p}%</b> do livro. Quantas páginas tem o livro?`,
+  `${nm} já juntou <b>${money(part)}</b>, que é <b>${p}%</b> do preço de um videogame. Quanto custa o videogame?`,
+  `<b>${part}</b> alunos foram à excursão, o que representa <b>${p}%</b> da escola. Quantos alunos tem a escola?`];
+ const F=ti===3?money:fmt;
+ return {key:`inv|${p}|${N}`,text:T[ti],bar:null,hint:`100% é ${k} vezes ${p}%. Então multiplique ${F(part)} por ${k}.`,
+  options:numOptions(N,[
+   {v:part*p/100,why:`Você calculou ${p}% de ${F(part)}. Mas ${F(part)} já é a parte! Queremos o <b>total</b> (100%).`},
+   {v:part+p,why:'Não se soma a porcentagem ao valor. Pense: se a parte é pequena, o todo é quantas vezes maior?'},
+   {v:part*p,why:`Você multiplicou por ${p}. O certo é multiplicar por ${k}, porque 100% é ${k} vezes ${p}%.`},
+   {v:part*(k-1),why:`Quase! Mas 100% são ${k} partes de ${p}%, então multiplique por ${k}.`}],F),
+  explain:`<div class="calc-steps"><b>📘 Passo a passo:</b><br>${p}% → ${F(part)}<br>100% = ${k} × ${p}% → ${k} × ${F(part)} = <b>${F(N)}</b></div><div class="calc-steps alt"><b>✔ Conferindo:</b> ${p}% de ${F(N)} = ${F(part)}</div>`};
+}
+function genDescPct(){
+ const p=pick([5,10,15,20,25,30,40,50]),b=pickBase(p,[60,1000]),d=b*p/100,nw=b-d,g=gcd(d,b),it=pick(ITENS),ti=rnd(0,2);
+ const T=[`${cap(it)} custava <b>${money(b)}</b> e agora custa <b>${money(nw)}</b>. Qual foi a porcentagem de desconto?`,
+  `Na promoção, o preço de ${it} caiu de <b>${money(b)}</b> para <b>${money(nw)}</b>. De quantos por cento foi o desconto?`,
+  `${pick(NOMES)} pagou <b>${money(nw)}</b> em ${it} que custava <b>${money(b)}</b>. Qual foi o desconto em porcentagem?`];
+ return {key:`dpct|${p}|${b}`,text:T[ti],bar:null,hint:`Descubra quantos reais de desconto houve. Depois monte a fração ${frac('desconto','preço original')}.`,
+  options:numOptions(p,[
+   {v:d,why:`${d} é o desconto em <b>reais</b>. Precisamos comparar com o preço original: ${frac(d,b)}.`},
+   {v:100-p,why:`Essa é a porcentagem que você <b>pagou</b>, não o desconto.`},
+   {v:p+5,why:`Confira a fração ${frac(d,b)}.`},{v:p*2,why:`Confira a fração ${frac(d,b)}.`}],v=>v+'%',100),
+  explain:`<div class="calc-steps"><b>Passo 1 — desconto em reais:</b> ${money(b)} − ${money(nw)} = ${money(d)}<br><b>Passo 2 — fração:</b> ${frac(fmt(d),fmt(b))} = ${frac(d/g,b/g)} = ${frac(p,100)} = <b>${p}%</b></div>`};
+}
+const GEN={calc:genCalc,frac:genFrac,fracRev:genFracRev,dec:genDec,comp:genComp,desc:genDesc,econ:genEcon,aum:genAum,taxa:genTaxa,inv:genInv,descPct:genDescPct};
+
+/* ---------- memória anti-repetição ---------- */
+let SEEN_LIST=[];try{SEEN_LIST=JSON.parse(localStorage.getItem('invasaoVistas')||'[]')}catch(e){}
+const SEEN=new Set(SEEN_LIST);
+function markSeen(k){SEEN.add(k);SEEN_LIST.push(k);if(SEEN_LIST.length>1500)SEEN.delete(SEEN_LIST.shift());try{localStorage.setItem('invasaoVistas',JSON.stringify(SEEN_LIST))}catch(e){}}
+
+/* ---------- barra visual de 100% ---------- */
+function barHTML(q){
+ if(!q.bar)return'';const {mode,p,base}=q.bar;
+ if(mode==='calc'||mode==='frac')return `<div class="pbar-wrap"><div class="pbar"><div class="seg seg-a" style="width:${p}%">${p}%</div></div><div class="pbar-labels"><span>0%</span><span>100% = ${base}</span></div></div>`;
+ if(mode==='desc')return `<div class="pbar-wrap"><div class="pbar"><div class="seg seg-pay" style="width:${100-p}%">paga ${100-p}%</div><div class="seg seg-off" style="width:${p}%">−${p}%</div></div><div class="pbar-labels"><span>preço: 100% = ${base}</span><span>🟥 desconto</span></div></div>`;
+ const w=100/(100+p)*100;
+ return `<div class="pbar-wrap"><div class="pbar"><div class="seg seg-base" style="width:${w}%">100%</div><div class="seg seg-plus" style="width:${100-w}%">+${p}%</div></div><div class="pbar-labels"><span>início: 100% = ${base}</span><span>🟨 aumento</span></div></div>`;
+}
+
+/* ---------- fluxo do jogo ---------- */
+let lastType='';
+function makeQuestion(){
+ const M=mission();let q;
+ for(let tries=0;tries<80;tries++){let t=pick(M.types);if(t===lastType&&new Set(M.types).size>1&&tries<10)t=pick(M.types);q=GEN[t](M);q.type=t;if(!SEEN.has(q.key))break}
+ lastType=q.type;markSeen(q.key);
+ state.q=q;state.hintUsed=false;state.radarUsed=false;state.locked=false;
+ $('#question').innerHTML=q.text;$('#bar').innerHTML=barHTML(q);$('#hintBox').classList.add('hidden');
+ $('#answers').innerHTML=q.options.map((o,i)=>`<button class="answer-btn" data-i="${i}"><span class="answer-number">${LET[i]}</span><span>${o.label}</span></button>`).join('');
+ $$('.answer-btn').forEach(b=>b.onclick=()=>answer(+b.dataset.i,b));
+ $('#feedback').innerHTML='Escolha a alternativa correta para disparar o laser. 🎯';
+ $('#nextBtn').classList.add('hidden');updatePowers();
+}
+function answer(i,btn){
+ if(state.locked||!state.running||btn.disabled)return;
+ state.locked=true;const q=state.q,o=q.options[i],st=state.stats[state.level-1];
+ $$('.answer-btn').forEach(b=>b.disabled=true);
+ if(o.ok){
+  btn.classList.add('correct');sfx('correct');state.hits++;st.hit++;state.combo++;state.maxCombo=Math.max(state.maxCombo,state.combo);
+  let pts=100*state.level*Math.min(state.combo,5);if(state.hintUsed)pts=Math.round(pts/2);if(state.radarUsed)pts=Math.round(pts/2);
+  state.score+=pts;popPoints(pts);fire();state.enemyHP--;updateHP();
+  $('#feedback').innerHTML=`✅ <strong>${pick(['Acertou!','Mandou bem!','Na mosca!','Laser certeiro!','Excelente!'])}</strong> +${pts} pontos${state.combo>=3?` • 🔥 Combo x${Math.min(state.combo,5)}`:''}${q.explain}`;
+  if(state.enemyHP<=0)setTimeout(enemyDefeated,650);else{$('#alert').textContent=`Chefão atingido! Faltam ${state.enemyHP} acerto(s).`;showNext('Atacar de novo ➜')}
+ }else{
+  btn.classList.add('wrong');q.options.forEach((x,j)=>{if(x.ok)$$('.answer-btn')[j].classList.add('correct')});
+  state.misses++;st.miss++;state.combo=0;state.lives--;advance();
+  const right=q.options.find(x=>x.ok).label;
+  state.errors.push({m:state.level,text:q.text,chosen:o.label,right,why:o.why});
+  $('#feedback').innerHTML=`❌ <strong>Quase!</strong> A resposta certa é <strong>${right}</strong>.<span class="why">💬 ${o.why}</span>${q.explain}`;
+  if(state.lives<=0){state.pending='lose';showNext('Ver resultado ➜')}else showNext('Tentar outra ➜');
+ }
+ updatePowers();updateHUD();
+}
+function enemyDefeated(){
+ state.defeated++;const M=mission(),total=M.enemies+(M.boss?1:0);
+ sfx('explode');$('#enemy').classList.add('dead');
+ if(state.defeated>=total){
+  if(state.level===5){state.pending='win';sfx('level');showNext('🏆 Ver resultado final')}
+  else{const healed=state.lives<5;state.lives=Math.min(5,state.lives+1);state.radar++;sfx('level');
+   $('#feedback').insertAdjacentHTML('beforeend',`<div class="level-up">🌟 <b>Missão ${state.level} concluída!</b><br>${healed?'❤️ +1 de energia recuperada • ':''}📡 +1 radar</div>`);
+   $('#alert').textContent='Setor liberado! 🌟';state.pending='level';showNext(`Ir para a Missão ${state.level+1} ➜`)}
+ }else{
+  state.pending='enemy';const bossNext=M.boss&&state.defeated===M.enemies;
+  if(bossNext)$('#alert').innerHTML='<span class="boss-warning">⚠ CHEFÃO SE APROXIMANDO!</span>';else $('#alert').textContent='Inimigo destruído! 💥';
+  showNext(bossNext?'Enfrentar o chefão ⚠':'Próxima ameaça ➜');
+ }
+ updateHUD();
+}
+function next(){
+ $('#nextBtn').classList.add('hidden');const p=state.pending;state.pending=null;
+ if(p==='win')return end(true);if(p==='lose')return end(false);
+ if(p==='level'){state.level++;state.defeated=0;updateHUD();return showBriefing()}
+ if(p==='enemy')setEnemy();
+ makeQuestion();
+}
+function showNext(label){const b=$('#nextBtn');b.textContent=label;b.classList.remove('hidden');setTimeout(()=>b.focus({preventScroll:true}),60)}
+function setEnemy(){
+ const M=mission();state.isBoss=!!(M.boss&&state.defeated===M.enemies);state.enemyMaxHP=state.isBoss?M.boss:1;state.enemyHP=state.enemyMaxHP;state.enemyStep=0;
+ const [ic,nm]=state.isBoss?BOSSES[state.level]:ENEMIES[state.level-1],el=$('#enemy');
+ el.className='enemy';el.textContent=ic;void el.offsetWidth;el.classList.add(state.isBoss?'boss':'spawn');
+ $('#enemyName').textContent=state.isBoss?nm:`${nm} • ${state.defeated+1}/${M.enemies}`;updateHP();music.boss=state.isBoss;
+ if(state.isBoss){$('#alert').innerHTML=`<span class="boss-warning">⚠ CHEFÃO! Acerte ${M.boss} vezes!</span>`;sfx('boss')}else $('#alert').textContent='Nova ameaça detectada!';
+}
+function fire(){setTimeout(()=>sfx('laser'),120);$('#laser').classList.add('fire');setTimeout(()=>{$('#blast').classList.add('go');sfx('hit')},260);setTimeout(()=>{$('#laser').classList.remove('fire');$('#blast').classList.remove('go')},620)}
+function advance(){sfx('wrong');const el=$('#enemy');state.enemyStep=Math.min(3,state.enemyStep+1);el.classList.remove('advance-1','advance-2','advance-3');el.classList.add('advance-'+state.enemyStep);$('#shield').classList.add('hit');$('#arena').classList.add('danger');$('#alert').textContent='⚠ O inimigo avançou! Escudo atingido!';setTimeout(()=>{$('#shield').classList.remove('hit');$('#arena').classList.remove('danger')},420)}
+function popPoints(n){const d=document.createElement('div');d.className='pop';d.textContent='+'+n;$('#arena').appendChild(d);setTimeout(()=>d.remove(),1150)}
+function updateHP(){$('#hpFill').style.width=(state.enemyHP/state.enemyMaxHP*100)+'%'}
+function updateHUD(){
+ const M=mission(),total=M.enemies+(M.boss?1:0);
+ $('#score').textContent=state.score.toLocaleString('pt-BR');
+ $('#lives').textContent='❤️'.repeat(Math.max(0,state.lives))+'🖤'.repeat(Math.max(0,5-state.lives));
+ $('#level').textContent=`${state.level}/5`;$('#combo').textContent='x'+Math.min(5,Math.max(1,state.combo));
+ $('#best').textContent=(getRanking()[0]?.score||0).toLocaleString('pt-BR');
+ $('#levelProgress').style.width=(state.defeated/total*100)+'%';
+ $('#missionTag').textContent=`MISSÃO ${state.level} • ${M.name.toUpperCase()}`;
+}
+
+/* ---------- ajudas ---------- */
+function useHint(){if(state.locked||!state.running||state.hintUsed)return;state.hintUsed=true;sfx('click');const h=$('#hintBox');h.innerHTML=`💡 <b>Dica:</b> ${state.q.hint}<br><small>(se acertar, vale metade dos pontos)</small>`;h.classList.remove('hidden');updatePowers()}
+function useRadar(){if(state.locked||!state.running||state.radarUsed||state.radar<=0)return;state.radar--;state.radarUsed=true;sfx('click');
+ const wrong=state.q.options.map((o,i)=>o.ok?-1:i).filter(i=>i>=0);shuffle(wrong).slice(0,2).forEach(i=>{const b=$$('.answer-btn')[i];b.disabled=true;b.classList.add('removed')});updatePowers()}
+function updatePowers(){$('#hintBtn').disabled=state.hintUsed||state.locked||!state.running;$('#radarBtn').disabled=state.radarUsed||state.radar<=0||state.locked||!state.running;$('#radarBtn').textContent=`📡 Radar (${state.radar})`}
+
+/* ---------- briefing, início e fim ---------- */
+function showBriefing(){state.running=false;const M=mission();$('#briefIcon').textContent=M.icon;$('#briefTag').textContent=`MISSÃO ${state.level} DE 5 • TREINAMENTO`;$('#briefTitle').textContent=M.name;$('#briefBody').innerHTML=M.brief;$('#briefOverlay').classList.remove('hidden');$('#briefOverlay .modal').scrollTop=0;setTimeout(()=>$('#briefGo').focus({preventScroll:true}),60)}
+function startMission(){$('#briefOverlay').classList.add('hidden');state.running=true;setEnemy();makeQuestion();updateHUD();sfx('start')}
+function start(){
+ ac();state.name=$('#playerName').value.trim()||'Piloto Anônimo';
+ Object.assign(state,{score:0,lives:5,level:1,hits:0,misses:0,combo:0,maxCombo:0,defeated:0,radar:3,pending:null,errors:[],stats:MISSIONS.map(()=>({hit:0,miss:0})),runId:Date.now()});
+ $('#startOverlay').classList.add('hidden');$('#endOverlay').classList.add('hidden');$('#errList').classList.add('hidden');
+ music.boss=false;music.started=true;musicStart();updateHUD();showBriefing();
+}
+function end(win){
+ state.running=false;state.locked=true;updatePowers();music.boss=false;
+ const total=state.hits+state.misses,acc=total?Math.round(state.hits/total*100):0;saveRanking(acc);
+ sfx(win?'level':'lose');
+ $('#endLogo').textContent=win?'🏆🌍':'👾💥';$('#endTitle').textContent=win?'Terra salva!':'A Terra foi conquistada…';
+ const msg=acc>=80?'Excelente domínio de porcentagem!':acc>=60?'Bom trabalho! Continue treinando os atalhos.':'Revise os erros abaixo e os treinamentos das missões. Você consegue!';
+ $('#endText').textContent=win?`${state.name}, você derrotou a frota alienígena e virou uma Lenda Interplanetária! ${msg}`:`${state.name}, sua jornada parou na Missão ${state.level}. ${msg}`;
+ $('#finalScore').textContent=state.score.toLocaleString('pt-BR');$('#finalHits').textContent=`${state.hits}/${total}`;$('#finalAcc').textContent=acc+'%';$('#finalCombo').textContent='x'+state.maxCombo;
+ const rows=state.stats.map((s,i)=>({s,i})).filter(x=>x.s.hit+x.s.miss>0);
+ $('#perfTable').innerHTML='<tr><th>Missão</th><th>✔</th><th>✘</th><th>%</th></tr>'+rows.map(({s,i})=>{const t=s.hit+s.miss,a=Math.round(s.hit/t*100);return `<tr><td>${MISSIONS[i].icon} ${i+1}. ${MISSIONS[i].name}</td><td>${s.hit}</td><td>${s.miss}</td><td style="color:${a>=70?'var(--green)':a>=50?'var(--yellow)':'var(--red)'}">${a}%</td></tr>`}).join('');
+ $('#errList').innerHTML=state.errors.length?state.errors.slice(-10).map(e=>`<div class="err-item"><b>Missão ${e.m}:</b> ${e.text}<br>Você marcou: <span style="color:#ff9aac">${e.chosen}</span> • Certa: <span style="color:var(--green)">${e.right}</span><br><small>💬 ${e.why}</small></div>`).join(''):'<p>🎉 Nenhum erro! Perfeito!</p>';
+ $('#endOverlay').classList.remove('hidden');updateHUD();
+ // Portal da turma: envia o resultado ao professor (só quando o jogo está dentro do portal)
+ try{if(window.parent&&window.parent!==window&&total>0)window.parent.postMessage({tipo:'gamifica-resultado',acertos:state.hits,total:total,pontos:state.score},'*')}catch(e){}
+}
+function resultText(){
+ const total=state.hits+state.misses,acc=total?Math.round(state.hits/total*100):0;
+ return ['🚀 Invasão Alienígena – Missão Porcentagem',`Aluno(a): ${state.name}`,`Data: ${new Date().toLocaleString('pt-BR')}`,`Pontuação: ${state.score.toLocaleString('pt-BR')}`,`Missão alcançada: ${state.level} de 5`,`Acertos: ${state.hits} | Erros: ${state.misses} | Aproveitamento: ${acc}%`,
+  ...state.stats.map((s,i)=>s.hit+s.miss?`  Missão ${i+1} (${MISSIONS[i].name}): ${s.hit} acertos, ${s.miss} erros`:null).filter(Boolean)].join('\n');
+}
+function copyResult(){const txt=resultText();const ok=()=>toast('✅ Resultado copiado! Cole no Classroom ou WhatsApp.');
+ if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(ok).catch(fallback);else fallback();
+ function fallback(){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok()}catch(e){toast('Não foi possível copiar.')}ta.remove()}}
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+
+/* ---------- ranking ---------- */
+function getRanking(){try{return JSON.parse(localStorage.getItem('invasaoRanking2')||'[]')}catch(e){return[]}}
+function saveRanking(acc){try{const r=getRanking();r.push({id:state.runId,name:state.name,score:state.score,level:state.level,acc,date:new Date().toLocaleDateString('pt-BR')});r.sort((a,b)=>b.score-a.score);localStorage.setItem('invasaoRanking2',JSON.stringify(r.slice(0,10)))}catch(e){}}
+function showRanking(){const r=getRanking();$('#rankList').innerHTML=r.length?r.map((x,i)=>`<div class="rank-row ${x.id===state.runId?'me':''}"><span class="medal">${['🥇','🥈','🥉'][i]||'🚀'}</span><span><strong>${escapeHTML(x.name)}</strong><br><small>Missão ${x.level} • ${x.acc??'–'}% de acertos • ${x.date}</small></span><strong>${x.score.toLocaleString('pt-BR')}</strong></div>`).join(''):'<p style="text-align:center">Ainda não há pilotos no ranking.</p>';$('#rankOverlay').classList.remove('hidden')}
+
+/* ---------- estrelas e eventos ---------- */
+function makeStars(){const box=$('#space');for(let i=0;i<85;i++){const s=document.createElement('i');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.opacity=.2+Math.random()*.8;s.style.animationDuration=5+Math.random()*13+'s';s.style.animationDelay=-Math.random()*13+'s';const z=1+Math.random()*2;s.style.width=s.style.height=z+'px';box.appendChild(s)}}
+$('#startBtn').onclick=start;$('#playerName').addEventListener('keydown',e=>{if(e.key==='Enter')start()});
+$('#howBtn').onclick=()=>$('#howText').classList.toggle('hidden');
+$('#briefGo').onclick=startMission;$('#nextBtn').onclick=next;
+$('#hintBtn').onclick=useHint;$('#radarBtn').onclick=useRadar;
+$('#rankBtn').onclick=showRanking;$('#closeRank').onclick=()=>$('#rankOverlay').classList.add('hidden');
+$('#clearRank').onclick=()=>{if(confirm('Apagar todo o ranking deste aparelho?')){try{localStorage.removeItem('invasaoRanking2')}catch(e){}showRanking();updateHUD()}};
+$('#soundBtn').onclick=()=>{state.sound=!state.sound;$('#soundBtn').textContent=state.sound?'🔊':'🔇';if(state.sound)sfx('click')};
+$('#musicBtn').onclick=toggleMusic;$('#fsBtn').onclick=toggleFS;$('#fsStart').onclick=toggleFS;
+$('#restartBtn').onclick=start;$('#endRankBtn').onclick=showRanking;$('#copyBtn').onclick=copyResult;
+$('#reviewBtn').onclick=()=>$('#errList').classList.toggle('hidden');
+document.addEventListener('keydown',e=>{
+ if(e.target.tagName==='INPUT')return;
+ const k=e.key.toLowerCase();if(k==='f')return toggleFS();if(k==='m')return toggleMusic();
+ const idx=['1','2','3','4'].indexOf(k)>=0?+k-1:['a','b','c','d'].indexOf(k); if(idx>=0&&state.running&&!state.locked){const b=$$('.answer-btn')[idx];if(b&&!b.disabled)b.click()}
+ if(e.key==='Enter'&&document.activeElement?.tagName!=='BUTTON'){if(!$('#nextBtn').classList.contains('hidden'))next();else if(!$('#briefOverlay').classList.contains('hidden'))startMission()}
+});
+// Portal da turma: o nome já vem do cadastro do aluno, então a caixa de nome fica travada
+window.addEventListener('message',ev=>{
+ if(ev.source!==window.parent)return;
+ const d=ev.data;if(!d||d.tipo!=='gamifica-aluno'||typeof d.nome!=='string')return;
+ const n=$('#playerName');n.value=d.nome.trim().split(/\s+/)[0].slice(0,18);n.readOnly=true;n.title='Nome informado ao abrir a atividade';
+});
+makeStars();state.stats=MISSIONS.map(()=>({hit:0,miss:0}));updateHUD();updatePowers();updateMusicBtn();
+
+</script>
+</body>
+</html>

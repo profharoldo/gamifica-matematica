@@ -27,18 +27,19 @@
   .emoji{font-size:2.6rem;line-height:1}
   .nota{font-size:3.4rem;font-weight:900;line-height:1.1;margin:6px 0}
   .barra{display:none;align-items:center;justify-content:space-between;gap:10px;background:#1e1b4b;color:#fff;padding:8px 14px;font-size:.9rem}
-  .barra b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .barra b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+  .barra #barra-status{white-space:nowrap;font-weight:700}
+  .barra #barra-status.st-ok{color:#86efac}
+  .barra #barra-status.st-erro{color:#fca5a5}
+  .barra button{width:auto;margin:0;padding:5px 10px;font-size:.85rem;border-radius:9px;background:#4f46e5}
   iframe{display:none;flex:1;width:100%;border:0;background:#fff}
   body.jogando .barra{display:flex}
   body.jogando iframe{display:block}
   body.jogando .centro{display:none}
-  body.fim .centro{display:flex}
-  body.fim iframe{display:none}
-  body.fim .barra{display:none}
 </style>
 </head>
 <body>
-<div class="barra"><b id="barra-titulo"></b><span id="barra-aluno"></span></div>
+<div class="barra"><b id="barra-titulo"></b><span id="barra-status" role="status" aria-live="polite"></span><button id="barra-reenviar" type="button" hidden>🔁 Reenviar</button></div>
 <div class="centro"><div class="cartao" id="cartao"><p>Carregando atividade…</p></div></div>
 <iframe id="quadro" title="Atividade" allow="autoplay; fullscreen"></iframe>
 
@@ -120,12 +121,20 @@ function telaNome(){
 
 function comecar(){
   document.getElementById('barra-titulo').textContent = atividade.titulo;
-  document.getElementById('barra-aluno').textContent = aluno.nome;
+  setStatus('', '');
   document.body.className = 'jogando';
   enviando = false; pendente = null;
   inicio = Date.now();
   quadro.src = window.JOGOS[atividade.jogo].arquivo + '?t=' + Date.now();
 }
+// O nome do aluno é entregue ao jogo por mensagem (não vai na URL).
+quadro.addEventListener('load', function(){
+  try{ quadro.contentWindow.postMessage({tipo:'gamifica-aluno', nome: aluno.nome}, '*'); }catch(e){}
+});
+var statusEl = document.getElementById('barra-status');
+var reenviarBtn = document.getElementById('barra-reenviar');
+function setStatus(texto, classe){ statusEl.textContent = texto; statusEl.className = classe || ''; }
+reenviarBtn.addEventListener('click', function(){ if(pendente) enviar(); });
 
 window.addEventListener('message', function(ev){
   if(ev.source !== quadro.contentWindow) return;
@@ -143,27 +152,17 @@ window.addEventListener('message', function(ev){
 });
 
 async function enviar(){
-  enviando = true;
-  document.body.className = 'fim';
-  mostrar(el('div', {class:'emoji'}, '📤'), el('h1', {}, 'Enviando seu resultado…'));
+  enviando = true; reenviarBtn.hidden = true;
+  setStatus('📤 Enviando nota…', '');
   var r = await sb.rpc('enviar_resultado', pendente);
+  enviando = false;
   if(r.error){
-    enviando = false;
-    var aviso = /encerrada/i.test(r.error.message) ? 'Esta atividade foi encerrada pelo professor.' : 'Não consegui enviar agora. Confira a internet e tente de novo — seu resultado está guardado aqui.';
-    mostrar(el('div', {class:'emoji'}, '⚠️'), el('h1', {}, 'Resultado não enviado'),
-      el('div', {class:'msg erro'}, aviso),
-      el('button', {onclick: enviar}, '🔁 Tentar enviar de novo'));
+    var enc = /encerrada/i.test(r.error.message);
+    setStatus(enc ? '⚠ Atividade encerrada pelo professor' : '⚠ Nota não enviada', 'st-erro');
+    reenviarBtn.hidden = enc;
     return;
   }
-  var nota = Number(r.data);
-  var bom = nota >= 6;
-  mostrar(
-    el('div', {class:'emoji'}, bom ? '🏆' : '💪'),
-    el('h1', {}, bom ? 'Muito bem, ' + aluno.nome.split(' ')[0] + '!' : 'Bom esforço, ' + aluno.nome.split(' ')[0] + '!'),
-    el('div', {class:'nota', style:'color:' + (bom ? 'var(--ok)' : 'var(--bad)')}, fmtNota(nota)),
-    el('p', {class:'muted'}, 'Você acertou ' + pendente.p_acertos + ' de ' + pendente.p_total + ' questões.'),
-    el('div', {class:'msg ok'}, '✔ Resultado enviado ao seu professor.'),
-    el('button', {class:'sec', onclick: comecar}, '🔄 Jogar de novo'));
+  setStatus('✔ Nota enviada: ' + fmtNota(Number(r.data)) + ' (' + pendente.p_acertos + '/' + pendente.p_total + ')', 'st-ok');
 }
 
 iniciar();
