@@ -133,7 +133,24 @@ function comecar(){
   document.body.className = 'jogando';
   enviando = false; pendente = null;
   inicio = Date.now();
-  quadro.src = window.JOGOS[atividade.jogo].arquivo + '?t=' + Date.now();
+  carregarJogo();
+}
+var urlJogo = null;
+async function carregarJogo(){
+  setStatus('⏳ Abrindo o jogo…', '');
+  try{
+    var r = await fetch(window.SUPABASE_URL + '/functions/v1/jogo', {method:'POST',
+      headers:{'Content-Type':'application/json', 'apikey': window.SUPABASE_KEY}, body: JSON.stringify({codigo: codigo})});
+    if(!r.ok){ var e = await r.json().catch(function(){ return {}; }); throw new Error(e.erro || 'Erro ' + r.status); }
+    var html = await r.text();
+    if(urlJogo) URL.revokeObjectURL(urlJogo);
+    urlJogo = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+    quadro.src = urlJogo;
+    setStatus('', '');
+  }catch(e){
+    document.body.className = '';
+    erroTela('Não foi possível abrir o jogo', (e.message || 'Verifique a internet') + '. Tente de novo em instantes.');
+  }
 }
 // O nome do aluno é entregue ao jogo por mensagem (não vai na URL).
 quadro.addEventListener('load', function(){

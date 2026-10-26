@@ -1,11 +1,13 @@
 /* Ponte entre os jogos e o portal da turma (Gamefica Ação Matemática).
    - Recebe do portal o nome e a turma do aluno.
    - Envia ao portal a nota quando o jogo termina.
-   Fora do portal (arquivo aberto sozinho) não faz nada. */
+   Fora do portal (arquivo aberto sozinho) ou no modo livre não faz nada. */
 (function(){
   'use strict';
   var noPortal = false;
   try { noPortal = window.parent && window.parent !== window; } catch(e){ noPortal = true; }
+  // Aberto pelo próprio portal (professor/assinante): jogo completo, sem envio de nota
+  if (/(^|#)livre\b/.test(location.hash || '')) noPortal = false;
 
   var ouvintes = [];
   var campos = [];
