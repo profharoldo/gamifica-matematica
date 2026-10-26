@@ -6,6 +6,11 @@ window.JOGOS = {
     arquivo: "jogos/invasao-alienigena.html",
     emoji: "👾"
   },
+  "estatistica-agrupados": {
+    nome: "Laboratório Estatístico: Dados Agrupados",
+    arquivo: "jogos/estatistica-agrupados.html",
+    emoji: "📊"
+  },
   "demo-porcentagem": {
     nome: "Quiz de porcentagem (jogo de teste)",
     arquivo: "jogos/demo-porcentagem.html",

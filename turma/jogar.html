@@ -129,7 +129,7 @@ function comecar(){
 }
 // O nome do aluno é entregue ao jogo por mensagem (não vai na URL).
 quadro.addEventListener('load', function(){
-  try{ quadro.contentWindow.postMessage({tipo:'gamifica-aluno', nome: aluno.nome}, '*'); }catch(e){}
+  try{ quadro.contentWindow.postMessage({tipo:'gamifica-aluno', nome: aluno.nome, turma: aluno.turma}, '*'); }catch(e){}
 });
 var statusEl = document.getElementById('barra-status');
 var reenviarBtn = document.getElementById('barra-reenviar');
