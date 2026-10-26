@@ -788,8 +788,6 @@ function desenharAdmin(){
   }, id:'buscaC'});
 
   app.replaceChildren(
-    el('div', {class:'card'}, el('h2', {}, '➕ Nova conta para quem comprou'),
-      el('p', {class:'sub'}, 'Crie o login e a senha e envie para a pessoa. Cada login funciona em um aparelho por vez.'), form, el('div', {id:'entrega'})),
     el('div', {class:'card'}, el('h2', {}, '👥 Contas'),
       contas.erro ? msg('erro', 'Erro ao carregar: ' + contas.erro) : null,
       el('div', {class:'resumo'},
@@ -798,7 +796,9 @@ function desenharAdmin(){
         el('div', {}, el('b', {}, online), 'usando agora')),
       el('div', {class:'linha', style:'margin-bottom:12px'}, busca,
         el('button', {class:'peq sec', onclick: async function(){ await carregarContas(); desenharAdmin(); }}, '🔄 Atualizar')),
-      lista.length ? el('div', {class:'contas'}, lista.map(cartaoConta)) : el('p', {class:'vazio'}, 'Nenhuma conta encontrada.')));
+      lista.length ? el('div', {class:'contas'}, lista.map(cartaoConta)) : el('p', {class:'vazio'}, 'Nenhuma conta encontrada.')),
+    el('div', {class:'card'}, el('h2', {}, '➕ Nova conta para quem comprou'),
+      el('p', {class:'sub'}, 'Crie o login e a senha e envie para a pessoa. Cada login funciona em um aparelho por vez.'), form, el('div', {id:'entrega'})));
 }
 function cartaoConta(c){
   var s = situacao(c), eu = c.id === sessao.user.id, extra = el('div');
