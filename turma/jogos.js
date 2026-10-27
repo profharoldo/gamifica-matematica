@@ -106,6 +106,12 @@ window.JOGOS = {
     desc: "Crie QR Codes com links ou textos e baixe a imagem em PNG.",
     emoji: "🔳", cor: "coral", ferramenta: true
   },
+  "derivada-integral": {
+    nome: "Derivada e Integral",
+    tema: "Cálculo",
+    desc: "Veja no gráfico a integral definida como área e a derivada como inclinação.",
+    emoji: "∫", cor: "azul", ferramenta: true
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",

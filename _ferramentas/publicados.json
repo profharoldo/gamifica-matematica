@@ -114,6 +114,11 @@
    "arquivo": "urna_eletronica_brasileira_simulador_oficial.html",
    "atividade": "Urna Eletrônica",
    "id": "urna-eletronica"
+  },
+  {
+   "arquivo": "Derivada e Integral - Representação Gráfica.html",
+   "atividade": "Derivada e Integral",
+   "id": "derivada-integral"
   }
  ]
 }
