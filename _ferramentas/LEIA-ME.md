@@ -24,4 +24,5 @@ Os alunos usam `turma/jogar.html?a=CÓDIGO` (link gerado na aba "Turmas e notas"
 ## Arquivos antigos
 - `portal-antigo-cifrado.html`: o portal anterior (login no navegador), guardado só como cópia de segurança.
 - `portal-fonte.html`, `construir.py`, `correio.mjs`: ferramentas do portal antigo (não usadas pelo site novo).
+- Ao mudar `turma/jogos.js`, troque o `?v=` na linha do `index.html` que carrega o jogos.js (evita cartão antigo no cache).
 - `publicados.json`: arquivos da pasta HTMLs do professor que já foram publicados.
