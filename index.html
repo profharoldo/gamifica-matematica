@@ -88,6 +88,9 @@
   .tag{font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;border:1.5px solid currentColor;color:var(--tinta2)}
   .tag.aberta{color:var(--verde)}
   .tag.enc{color:var(--coral)}
+  .qr-caixa{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px;border:2px dashed var(--linha);border-radius:12px;background:#fff}
+  .qr-caixa canvas{width:100%;max-width:200px;height:auto;image-rendering:pixelated}
+  .qr-caixa small{color:#444;font-weight:800;text-align:center}
   .link{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;background:var(--cartao2);border:1.5px solid var(--linha);border-radius:10px;padding:7px 10px;word-break:break-all}
 
   .msg{padding:10px 12px;border-radius:12px;margin:10px 0;font-size:.95rem;font-weight:700}
@@ -179,6 +182,7 @@
 <script src="https://cdn.jsdelivr.net/npm/docx@9.8.1/dist/index.iife.js"></script>
 <script src="turma/supabase-config.js"></script>
 <script src="turma/jogos.js"></script>
+<script src="turma/qr.js"></script>
 <script>
 (function(){
 'use strict';
@@ -543,6 +547,17 @@ function cartaoAtividade(a){
   var j = window.JOGOS[a.jogo] || {nome: a.jogo, emoji: '🎮'};
   var btnCopiar = el('button', {class:'peq'}, '📋 Copiar link');
   btnCopiar.addEventListener('click', function(){ copiar(link, btnCopiar); });
+  var qrCaixa = el('div');
+  var btnQr = el('button', {class:'peq sec', onclick: function(){
+    if(qrCaixa.firstChild){ qrCaixa.replaceChildren(); btnQr.textContent = '📱 Mostrar QR code'; return; }
+    try{
+      var cv = window.QRMini.canvas(link, 520), baixa = el('button', {class:'peq', onclick: function(){
+        cv.toBlob(function(b){ baixar(b, 'qr-' + slug(a.titulo) + '.png'); });
+      }}, '⬇ Baixar QR (PNG)');
+      qrCaixa.replaceChildren(el('div', {class:'qr-caixa'}, cv, el('small', {}, 'Aponte a câmera do celular para abrir a atividade'), baixa));
+      btnQr.textContent = '🙈 Ocultar QR code';
+    }catch(e){ qrCaixa.replaceChildren(msg('erro', 'Não foi possível gerar o QR code.')); }
+  }}, '📱 Mostrar QR code');
   var alunos = contagem[a.id] || 0;
   return el('div', {class:'ativ'},
     el('div', {class:'topo-ativ', style: corDe(a.jogo)}, el('span', {class:'em', 'aria-hidden':'true'}, j.emoji),
@@ -553,8 +568,9 @@ function cartaoAtividade(a){
         el('span', {class:'tag ' + (a.ativa ? 'aberta' : 'enc')}, a.ativa ? '● Aberta' : '⏸ Encerrada'),
         el('span', {class:'tag'}, '👥 ' + alunos + (alunos === 1 ? ' aluno' : ' alunos'))),
       el('div', {class:'link'}, link),
+      qrCaixa,
       el('div', {class:'linha'},
-        btnCopiar,
+        btnCopiar, btnQr,
         el('button', {class:'peq sec', onclick: function(){ abertaId = a.id; mostrarResultados(a.id, true); }}, '📊 Ver notas'),
         el('button', {class:'peq sec', onclick: async function(){
           var r = await sb.from('atividades').update({ativa: !a.ativa}).eq('id', a.id);
