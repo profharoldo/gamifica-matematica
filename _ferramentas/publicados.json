@@ -99,6 +99,26 @@
    "mtimeMs": 1792159500001,
    "atividade": "UNO de Frações e Decimais",
    "id": "cmvbaoj06d734c95"
+  },
+  {
+   "arquivo": "Probabilidade_-_moeda_-_dado_-_cartas.html",
+   "atividade": "Laboratório de Probabilidade",
+   "id": "laboratorio-probabilidade"
+  },
+  {
+   "arquivo": "Simulador_de_Lançamento_de_Dados_3D.html",
+   "atividade": "Dados 3D: Soma e Produto",
+   "id": "dados-3d"
+  },
+  {
+   "arquivo": "Gerador_de_QR_Code.html",
+   "atividade": "Gerador de QR Code",
+   "id": "gerador-qrcode"
+  },
+  {
+   "arquivo": "urna_eletronica_brasileira_simulador_oficial.html",
+   "atividade": "Urna Eletrônica",
+   "id": "urna-eletronica"
   }
  ]
 }

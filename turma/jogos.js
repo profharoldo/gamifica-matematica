@@ -94,6 +94,24 @@ window.JOGOS = {
     desc: "Simulador de votação com boletim de urna e zerésima.",
     emoji: "🗳️", cor: "amarelo", ferramenta: true
   },
+  "laboratorio-probabilidade": {
+    nome: "Laboratório de Probabilidade",
+    tema: "Probabilidade",
+    desc: "Lance dados e moedas, sorteie cartas e compare o observado com o teórico.",
+    emoji: "🎲", cor: "lilas", ferramenta: true
+  },
+  "dados-3d": {
+    nome: "Dados 3D: Soma e Produto",
+    tema: "Probabilidade",
+    desc: "Lance 1 ou 2 dados em 3D, repita 1000 vezes e veja o gráfico.",
+    emoji: "🎯", cor: "amarelo", ferramenta: true
+  },
+  "gerador-qrcode": {
+    nome: "Gerador de QR Code",
+    tema: "Ferramenta",
+    desc: "Crie QR Codes com links ou textos e baixe a imagem em PNG.",
+    emoji: "🔳", cor: "coral", ferramenta: true
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
