@@ -100,12 +100,6 @@ window.JOGOS = {
     desc: "Lance dados e moedas, sorteie cartas e compare o observado com o teórico.",
     emoji: "🎲", cor: "lilas", ferramenta: true
   },
-  "dados-3d": {
-    nome: "Dados 3D: Soma e Produto",
-    tema: "Probabilidade",
-    desc: "Lance 1 ou 2 dados em 3D, repita 1000 vezes e veja o gráfico.",
-    emoji: "🎯", cor: "amarelo", ferramenta: true
-  },
   "gerador-qrcode": {
     nome: "Gerador de QR Code",
     tema: "Ferramenta",

@@ -106,11 +106,6 @@
    "id": "laboratorio-probabilidade"
   },
   {
-   "arquivo": "Simulador_de_Lançamento_de_Dados_3D.html",
-   "atividade": "Dados 3D: Soma e Produto",
-   "id": "dados-3d"
-  },
-  {
    "arquivo": "Gerador_de_QR_Code.html",
    "atividade": "Gerador de QR Code",
    "id": "gerador-qrcode"
