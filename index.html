@@ -330,7 +330,7 @@ function entrarNoSite(){
     el('span', {}, (perfil.papel === 'admin' ? '🛡️ ' : '👤 ') + (perfil.nome || sessao.user.email)),
     el('button', {class:'sec peq', onclick: sair}, 'Sair'));
   var h = (location.hash || '').replace('#', '');
-  if(h === 'turmas' || h === 'jogos' || (h === 'admin' && perfil.papel === 'admin')) aba = h;
+  if(h === 'turmas' || h === 'atribuir' || h === 'jogos' || (h === 'admin' && perfil.papel === 'admin')) aba = h;
   iniciarVigia();
   desenharAbas(); mostrarAba();
 }
@@ -394,7 +394,7 @@ function desenharLogin(aviso){
 
 /* ---------- abas ---------- */
 function desenharAbas(){
-  var itens = [['jogos', '🎮 Jogos'], ['turmas', '👩‍🏫 Turmas e notas']];
+  var itens = [['jogos', '🎮 Jogos'], ['atribuir', '📝 Atribuir tarefas'], ['turmas', '👩‍🏫 Turmas e notas']];
   if(perfil.papel === 'admin') itens.push(['admin', '🛡️ Administração']);
   abasBox.replaceChildren.apply(abasBox, itens.map(function(it){
     return el('button', {'aria-current': aba === it[0] ? 'page' : 'false', onclick: function(){ aba = it[0]; history.replaceState(null, '', '#' + aba); desenharAbas(); mostrarAba(); }}, it[1]);
@@ -403,6 +403,7 @@ function desenharAbas(){
 }
 function mostrarAba(){
   if(aba === 'turmas') carregarAtividades().then(desenharTurmas);
+  else if(aba === 'atribuir') desenharAtribuir();
   else if(aba === 'admin') carregarContas().then(desenharAdmin);
   else desenharJogos();
   window.scrollTo(0, 0);
@@ -423,7 +424,7 @@ function desenharJogos(){
   app.replaceChildren(
     el('div', {class:'card'},
       el('div', {class:'ola'}, el('div', {}, el('h2', {}, 'Olá, ' + (perfil.nome || '').split(' ')[0] + '! 👋'),
-        el('p', {class:'sub', style:'margin:0'}, 'Toque em um jogo para abrir. Para mandar um jogo aos alunos e receber as notas, use a aba “Turmas e notas”.')), venc),
+        el('p', {class:'sub', style:'margin:0'}, 'Toque em um jogo para abrir. Para mandar um jogo aos alunos e receber as notas, use a aba “Atribuir tarefas”; as notas ficam em “Turmas e notas”.')), venc),
       el('div', {class:'secao-titulo', style:'margin-top:18px'}, '🎮 Jogos'),
       el('div', {class:'grade-jogos'}, jogos.map(function(id){ return cartaoJogo(id, function(){ abrirJogo(id); }); })),
       ferr.length ? el('div', {class:'secao-titulo', style:'margin-top:22px'}, '🧰 Ferramentas') : null,
@@ -467,7 +468,7 @@ async function abrirJogo(id){
 }
 document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && document.getElementById('player') && !document.fullscreenElement) fecharPlayer(); });
 
-/* ---------- aba Turmas e notas ---------- */
+/* ---------- aba Atribuir tarefas e aba Turmas e notas ---------- */
 async function carregarAtividades(){
   var a = await sb.from('atividades').select('*').eq('professor_id', sessao.user.id).order('criada_em', {ascending:false});
   atividades = a.error ? [] : a.data;
@@ -483,7 +484,7 @@ async function carregarAtividades(){
     });
   }
 }
-function desenharTurmas(){
+function desenharAtribuir(){
   var ids = Object.keys(window.JOGOS).filter(function(id){ return !window.JOGOS[id].ferramenta; });
   if(jogoEscolhido && ids.indexOf(jogoEscolhido) < 0) jogoEscolhido = null;
   var titulo = el('input', {type:'text', id:'titulo', maxlength:'120', placeholder:'Ex.: Porcentagem – lista 1'});
@@ -518,6 +519,7 @@ function desenharTurmas(){
     botao.disabled = false;
     if(r.error){ aviso.append(msg('erro', 'Não foi possível criar: ' + r.error.message)); return; }
     jogoEscolhido = null; abertaId = null;
+    aba = 'turmas'; history.replaceState(null, '', '#turmas'); desenharAbas();
     await carregarAtividades(); desenharTurmas();
     var lista = document.getElementById('minhas'); if(lista) lista.scrollIntoView({behavior:'smooth', block:'start'});
   }},
@@ -531,12 +533,15 @@ function desenharTurmas(){
     el('div', {class:'passo'}, el('b', {}, '3'), 'Gere o link e mande aos alunos'),
     botao, aviso);
   mostrarEscolha();
-  var lista = atividades.length === 0
-    ? el('p', {class:'vazio'}, 'Você ainda não criou nenhuma atividade. Escolha um jogo acima para criar a primeira.')
-    : el('div', {class:'grade-ativ'}, atividades.map(cartaoAtividade));
   app.replaceChildren(
     el('div', {class:'card'}, el('h2', {}, '✨ Nova atividade para a turma'),
-      el('p', {class:'sub'}, 'Os alunos abrem o link em qualquer lugar (celular ou computador), sem login, e a nota chega aqui sozinha.'), form),
+      el('p', {class:'sub'}, 'Escolha o jogo, dê um nome e gere o link. Os alunos abrem em qualquer lugar (celular ou computador), sem login, e a nota chega em “Turmas e notas”.'), form));
+}
+function desenharTurmas(){
+  var lista = atividades.length === 0
+    ? el('p', {class:'vazio'}, 'Você ainda não atribuiu nenhuma tarefa. Use a aba “Atribuir tarefas” para criar a primeira.')
+    : el('div', {class:'grade-ativ'}, atividades.map(cartaoAtividade));
+  app.replaceChildren(
     el('div', {class:'card', id:'minhas'}, el('h2', {}, '📚 Minhas atividades'),
       el('p', {class:'sub'}, 'Copie o link e cole na Sala do Futuro, no Classroom, no Moodle ou no WhatsApp.'), lista),
     el('div', {id:'area-resultados'}));
