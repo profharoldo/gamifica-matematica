@@ -8,7 +8,7 @@
 <style>
   :root{--ink:#1b2440;--muted:#5d6785;--line:#e1e6f0;--primary:#4f46e5;--ok:#16a34a;--bad:#dc2626}
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
+  html,body{margin:0;height:100%;overscroll-behavior:none}
   body{font-family:'Nunito',system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background-color:#1d2b53;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:26px 26px;display:flex;flex-direction:column}
   .centro{flex:1;display:flex;align-items:center;justify-content:center;padding:16px}
   .cartao{background:#fff;border-radius:22px;padding:0 0 24px;overflow:hidden;width:100%;max-width:440px;box-shadow:0 16px 50px rgba(10,10,60,.35);animation:sobe .4s ease}
@@ -42,11 +42,18 @@
   body.jogando .barra{display:flex}
   body.jogando iframe{display:block}
   body.jogando .centro{display:none}
+  .parabens{position:fixed;inset:0;z-index:50;background:rgba(20,18,60,.82);display:none;align-items:center;justify-content:center;padding:16px}
+  .parabens.on{display:flex}
+  .parabens .cx{background:#fff;border-radius:24px;max-width:440px;width:100%;padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.45);animation:sobe .45s ease}
+  .parabens .grande{font-size:4rem;line-height:1}
+  .parabens h2{font-family:'Fredoka','Nunito',system-ui,sans-serif;font-size:1.6rem;margin:8px 0 4px}
+  .parabens .nota{color:var(--primary)}
 </style>
 </head>
 <body>
 <div class="barra"><b id="barra-titulo"></b><span id="barra-status" role="status" aria-live="polite"></span><button id="barra-reenviar" type="button" hidden>🔁 Reenviar</button></div>
 <div class="centro"><div class="cartao" id="cartao"><p>Carregando atividade…</p></div></div>
+<div class="parabens" id="parabens" role="dialog" aria-modal="true" aria-live="polite"><div class="cx" id="parabens-cx"></div></div>
 <iframe id="quadro" title="Atividade" allow="autoplay; fullscreen"></iframe>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -88,6 +95,10 @@ function el(tag, props){
 function mostrar(){ cartao.replaceChildren.apply(cartao, arguments); }
 function guardar(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
 function ler(k){ try{ return localStorage.getItem(k) || ''; }catch(e){ return ''; } }
+function chaveProg(){ return 'gm_prog_' + codigo; }
+function lerProg(){ try{ return JSON.parse(localStorage.getItem(chaveProg()) || 'null'); }catch(e){ return null; } }
+function gravarProg(p){ try{ localStorage.setItem(chaveProg(), JSON.stringify(p)); }catch(e){} }
+var prog = null;
 function fmtNota(n){ return Number(n).toFixed(1).replace('.', ','); }
 
 async function iniciar(){
@@ -97,7 +108,41 @@ async function iniciar(){
   if(!r.data || r.data.length === 0){ return erroTela('Atividade não encontrada', 'Ela pode ter sido encerrada ou o link está incompleto. Fale com seu professor.'); }
   atividade = r.data[0];
   if(!window.JOGOS[atividade.jogo]){ return erroTela('Jogo indisponível', 'Este jogo ainda não está no portal. Avise seu professor.'); }
+  prog = lerProg();
+  if(prog && prog.nome && prog.estado === 'concluido') return telaConcluida();
+  if(prog && prog.nome && prog.estado === 'andamento') return telaRetomar();
   telaNome();
+}
+
+function telaRetomar(){
+  var J = window.JOGOS[atividade.jogo];
+  mostrar(el('div', {class:'emoji'}, '👋'),
+    el('h1', {}, 'Que bom ver você de novo, ' + prog.nome.split(' ')[0] + '!'),
+    el('p', {class:'muted'}, 'Você estava fazendo esta atividade: ' + atividade.titulo + '. ' + (prog.save ? 'Seu andamento foi guardado e o jogo continua de onde você parou.' : 'Seus dados foram mantidos.')),
+    el('button', {type:'button', onclick: function(){ aluno = {nome: prog.nome, turma: prog.turma || ''}; comecar(true); }}, '▶️ Continuar a atividade'),
+    el('button', {type:'button', class:'sec', onclick: function(){ prog = null; try{ localStorage.removeItem(chaveProg()); }catch(e){} telaNome(); }}, 'Não sou eu / começar do zero'));
+}
+function telaConcluida(){
+  mostrar(el('div', {class:'emoji'}, '🏆'),
+    el('h1', {}, 'Você já concluiu esta atividade!'),
+    el('p', {class:'muted'}, prog.nome + ', sua nota foi'), el('div', {class:'nota'}, fmtNota(prog.nota)),
+    el('p', {class:'muted'}, mensagemFinal(Number(prog.nota)).texto),
+    el('button', {type:'button', onclick: function(){ aluno = {nome: prog.nome, turma: prog.turma || ''}; prog = null; comecar(); }}, '🔁 Jogar de novo para melhorar'));
+}
+function mensagemFinal(n){
+  if(n >= 8) return {emoji:'🌟', titulo:'Arrasou', texto:'Você dominou este assunto. Continue assim, seu esforço está aparecendo!'};
+  if(n >= 6) return {emoji:'🎉', titulo:'Muito bem', texto:'Você está no caminho certo. Mais uma tentativa e você chega ainda mais longe!'};
+  return {emoji:'💪', titulo:'Parabéns por terminar', texto:'Terminar já é uma vitória. Errar faz parte de aprender: jogue de novo e veja como você melhora a cada tentativa!'};
+}
+function festa(nota){
+  var m = mensagemFinal(nota), primeiro = aluno.nome.split(' ')[0];
+  var box = document.getElementById('parabens-cx');
+  box.replaceChildren(el('div', {class:'grande'}, m.emoji), el('h2', {}, m.titulo + ', ' + primeiro + '!'),
+    el('p', {class:'muted'}, 'Você terminou a atividade. Sua nota:'), el('div', {class:'nota'}, fmtNota(nota)),
+    el('p', {}, m.texto),
+    el('button', {type:'button', onclick: function(){ document.getElementById('parabens').classList.remove('on'); }}, '👍 Fechar'),
+    el('button', {type:'button', class:'sec', onclick: function(){ document.getElementById('parabens').classList.remove('on'); prog = null; comecar(); }}, '🔁 Jogar de novo'));
+  document.getElementById('parabens').classList.add('on');
 }
 
 function erroTela(titulo, texto){
@@ -127,12 +172,14 @@ function telaNome(){
     form);
 }
 
-function comecar(){
+function comecar(retomando){
   document.getElementById('barra-titulo').textContent = atividade.titulo;
   setStatus('', '');
   document.body.className = 'jogando';
   enviando = false; pendente = null;
-  inicio = Date.now();
+  var antigo = lerProg();
+  inicio = (retomando && antigo && antigo.inicio) ? antigo.inicio : Date.now();
+  gravarProg({nome: aluno.nome, turma: aluno.turma, estado: 'andamento', inicio: inicio, save: (retomando && antigo) ? antigo.save : null});
   carregarJogo();
 }
 var urlJogo = null;
@@ -154,7 +201,8 @@ async function carregarJogo(){
 }
 // O nome do aluno é entregue ao jogo por mensagem (não vai na URL).
 quadro.addEventListener('load', function(){
-  try{ quadro.contentWindow.postMessage({tipo:'gamifica-aluno', nome: aluno.nome, turma: aluno.turma}, '*'); }catch(e){}
+  try{ var pg = lerProg();
+    quadro.contentWindow.postMessage({tipo:'gamifica-aluno', nome: aluno.nome, turma: aluno.turma, estado: (pg && pg.save) || null}, '*'); }catch(e){}
 });
 var statusEl = document.getElementById('barra-status');
 var reenviarBtn = document.getElementById('barra-reenviar');
@@ -164,6 +212,13 @@ reenviarBtn.addEventListener('click', function(){ if(pendente) enviar(); });
 window.addEventListener('message', function(ev){
   if(ev.source !== quadro.contentWindow) return;
   var d = ev.data;
+  if(d && d.tipo === 'gamifica-estado'){
+    try{
+      var txt = JSON.stringify(d.estado);
+      if(txt && txt.length < 200000){ var pg = lerProg() || {nome: aluno.nome, turma: aluno.turma, estado:'andamento', inicio: inicio}; if(pg.estado === 'andamento'){ pg.save = d.estado; gravarProg(pg); } }
+    }catch(e){}
+    return;
+  }
   if(!d || d.tipo !== 'gamifica-resultado' || enviando) return;
   var acertos = Number(d.acertos), total = Number(d.total), pontos = Number(d.pontos || 0);
   if(!Number.isInteger(acertos) || !Number.isInteger(total) || total < 1 || total > 200 || acertos < 0 || acertos > total) return;
@@ -188,8 +243,14 @@ async function enviar(){
     return;
   }
   setStatus('✔ Nota enviada: ' + fmtNota(Number(r.data)) + ' (' + pendente.p_acertos + '/' + pendente.p_total + ')', 'st-ok');
+  gravarProg({nome: aluno.nome, turma: aluno.turma, estado: 'concluido', nota: Number(r.data), acertos: pendente.p_acertos, total: pendente.p_total});
+  festa(Number(r.data));
 }
 
+window.addEventListener('beforeunload', function(e){
+  var pg = lerProg();
+  if(document.body.classList.contains('jogando') && pg && pg.estado === 'andamento'){ e.preventDefault(); e.returnValue = ''; return ''; }
+});
 iniciar();
 })();
 </script>

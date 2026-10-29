@@ -26,3 +26,9 @@ Os alunos usam `turma/jogar.html?a=CÓDIGO` (link gerado na aba "Turmas e notas"
 - `portal-fonte.html`, `construir.py`, `correio.mjs`: ferramentas do portal antigo (não usadas pelo site novo).
 - Ao mudar `turma/jogos.js`, troque o `?v=` na linha do `index.html` que carrega o jogos.js (evita cartão antigo no cache).
 - `publicados.json`: arquivos da pasta HTMLs do professor que já foram publicados.
+
+## Retomar o jogo depois de recarregar (aluno)
+- A página do aluno guarda nome, turma e o estado da tentativa (localStorage, por atividade) e mostra "Continuar a atividade".
+- Para o jogo voltar exatamente de onde parou, ele precisa chamar `GAMIFICA.salvarEstado({...})` a cada fase/pergunta e,
+  ao abrir, ler `GAMIFICA.estado` (via `GAMIFICA.aoReceberAluno`). Jogos sem isso reabrem do início.
+- Ao enviar a nota, a página mostra os parabéns com mensagem de incentivo conforme a nota.

@@ -28,6 +28,10 @@
   var G = window.GAMIFICA = {
     noPortal: noPortal,
     aluno: '',
+    /* Estado guardado pelo jogo na tentativa anterior (se o aluno recarregou a página) */
+    estado: null,
+    /* Guarda o andamento do jogo (objeto simples). Chame a cada fase/pergunta; ao recarregar, G.estado volta aqui. */
+    salvarEstado: function(obj){ if(!noPortal) return false; try { window.parent.postMessage({tipo: 'gamifica-estado', estado: obj}, '*'); return true; } catch(e){ return false; } },
     turma: '',
     /* Chama fn(nome, turma) quando o nome do aluno chegar */
     aoReceberAluno: function(fn){ if (G.aluno) fn(G.aluno, G.turma); else ouvintes.push(fn); },
@@ -75,6 +79,7 @@
     if (!d || d.tipo !== 'gamifica-aluno' || typeof d.nome !== 'string') return;
     G.aluno = d.nome.trim().replace(/\s+/g, ' ');
     G.turma = typeof d.turma === 'string' ? d.turma.trim() : '';
+    G.estado = (d.estado && typeof d.estado === 'object') ? d.estado : null;
     preencherTodos();
     var fs = ouvintes; ouvintes = [];
     fs.forEach(function(fn){ try { fn(G.aluno, G.turma); } catch(e){} });

@@ -603,21 +603,38 @@ function consolidar(brutos){
     }
   });
   return Object.keys(porAluno).map(function(k){ return porAluno[k]; })
-    .sort(function(a, b){ return a.nome.localeCompare(b.nome, 'pt-BR'); });
+    .sort(function(a, b){
+      var ea = a.escolhido, eb = b.escolhido;
+      return (Number(eb.nota) - Number(ea.nota)) || ((eb.pontos || 0) - (ea.pontos || 0)) ||
+        ((ea.tempo_segundos || 0) - (eb.tempo_segundos || 0)) || a.nome.localeCompare(b.nome, 'pt-BR');
+    });
 }
 
-async function mostrarResultados(id, rolar){
+var timerNotas = null, autoNotas = true, ultimaAtualizacao = null;
+async function mostrarResultados(id, rolar, silencioso){
   var area = document.getElementById('area-resultados');
   var a = atividades.find(function(x){ return x.id === id; });
   if(!a){ area.replaceChildren(); return; }
-  area.replaceChildren(el('div', {class:'card'}, 'Carregando resultados…'));
+  if(!silencioso) area.replaceChildren(el('div', {class:'card'}, 'Carregando resultados…'));
   var r = await sb.from('resultados').select('*').eq('atividade_id', id).order('enviado_em', {ascending:true}).limit(5000);
   if(r.error){ area.replaceChildren(el('div', {class:'card'}, msg('erro', 'Erro ao carregar: ' + r.error.message))); return; }
   resultadosBrutos = r.data;
+  ultimaAtualizacao = new Date();
   desenharResultados(a);
   if(rolar) area.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+function agendarAtualizacaoNotas(a){
+  clearInterval(timerNotas); timerNotas = null;
+  if(!autoNotas) return;
+  timerNotas = setInterval(function(){
+    if(!document.getElementById('area-resultados') || aba !== 'turmas' || abertaId !== a.id || document.hidden){
+      if(!document.getElementById('area-resultados') || aba !== 'turmas' || abertaId !== a.id){ clearInterval(timerNotas); timerNotas = null; }
+      return;
+    }
+    mostrarResultados(a.id, false, true);
+  }, 15000);
+}
 function desenharResultados(a){
   var area = document.getElementById('area-resultados');
   var linhas = consolidar(resultadosBrutos);
@@ -657,10 +674,16 @@ function desenharResultados(a){
       selModo,
       el('button', {class:'peq', onclick: function(){ baixarWord(a, linhas, media); }, disabled: linhas.length ? null : 'disabled'}, '📄 Baixar Word (.docx)'),
       el('button', {class:'peq sec', onclick: function(){ baixarCsv(a, linhas); }, disabled: linhas.length ? null : 'disabled'}, '📑 Baixar Excel (.csv)'),
-      el('button', {class:'peq sec', onclick: function(){ mostrarResultados(a.id); }}, '🔄 Atualizar')),
+      el('button', {class:'peq', onclick: function(){ mostrarResultados(a.id, false, true); }}, '🔄 Atualizar notas')),
+    el('div', {class:'linha', style:'margin-bottom:10px;align-items:center'},
+      el('label', {style:'margin:0;font-weight:600;display:flex;gap:6px;align-items:center'},
+        el('input', {type:'checkbox', style:'width:auto', checked: autoNotas ? 'checked' : null, onchange: function(){ autoNotas = this.checked; agendarAtualizacaoNotas(a); }}),
+        'Atualizar sozinho a cada 15 s'),
+      el('small', {class:'vazio', style:'margin:0'}, 'Ordem: da maior para a menor nota' + (ultimaAtualizacao ? ' · atualizado às ' + ultimaAtualizacao.toLocaleTimeString('pt-BR') : ''))),
     corpo,
     el('p', {class:'vazio'}, 'A nota vai de 0 a 10 e é calculada pelo servidor: acertos ÷ total de questões × 10.')
   ));
+  agendarAtualizacaoNotas(a);
 }
 
 /* ---------- exportações ---------- */
