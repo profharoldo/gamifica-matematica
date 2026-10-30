@@ -166,6 +166,13 @@ window.JOGOS = {
     emoji: "⏱️", cor: "laranja", ferramenta: true,
     tipo: "ferramenta"
   },
+  "bingo": {
+    nome: "Bingo Matemático",
+    tema: "Ferramenta do professor",
+    desc: "Sorteie contas no telão; os alunos calculam e marcam a resposta na cartela impressa.",
+    emoji: "🎯", cor: "coral", ferramenta: true,
+    tipo: "ferramenta"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
