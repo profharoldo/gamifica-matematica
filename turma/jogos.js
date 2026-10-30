@@ -208,6 +208,13 @@ window.JOGOS = {
     emoji: "🚢", cor: "azul",
     conteudo: "Geometria"
   },
+  "balanca-equacoes": {
+    nome: "Balança das Equações",
+    tema: "Equações do 1º grau",
+    desc: "Equilibre a balança fazendo a mesma operação nos dois lados até deixar o x sozinho.",
+    emoji: "⚖️", cor: "verde",
+    conteudo: "Álgebra"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
