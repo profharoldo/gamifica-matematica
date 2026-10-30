@@ -173,6 +173,13 @@ window.JOGOS = {
     emoji: "🎯", cor: "coral", ferramenta: true,
     tipo: "ferramenta"
   },
+  "geoplano": {
+    nome: "Geoplano Digital",
+    tema: "Geometria plana",
+    desc: "Estique elásticos nos pinos: área, perímetro, Pitágoras e simetria, com 10 desafios.",
+    emoji: "📐", cor: "laranja",
+    tipo: "simulador", conteudo: "Geometria"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
