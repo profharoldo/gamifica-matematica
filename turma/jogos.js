@@ -194,6 +194,13 @@ window.JOGOS = {
     emoji: "🔐", cor: "lilas",
     conteudo: "Estatística e probabilidade"
   },
+  "escada-progressoes": {
+    nome: "Escada das Progressões",
+    tema: "PA e PG",
+    desc: "Suba 10 degraus resolvendo PA e PG: próximo termo, razão, termo geral, soma e problemas do dia a dia.",
+    emoji: "🪜", cor: "amarelo",
+    conteudo: "Álgebra"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",

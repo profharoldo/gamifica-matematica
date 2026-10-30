@@ -195,7 +195,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@9.8.1/dist/index.iife.js"></script>
 <script src="turma/supabase-config.js"></script>
-<script src="turma/jogos.js?v=20261030175533"></script>
+<script src="turma/jogos.js?v=20261030175826"></script>
 <script src="turma/qr.js"></script>
 <script>
 (function(){
@@ -490,8 +490,8 @@ function cartaoJogo(id, aoClicar, marcado){
     el('div', {class:'nota'}, j.tema ? el('span', {class:'tema'}, j.tema) : null, el('span', {class:'emoji', 'aria-hidden':'true'}, j.emoji), el('span', {class:'marcado', 'aria-hidden':'true'}, '✓')),
     el('div', {class:'corpo'}, el('h3', {}, j.nome), j.desc ? el('p', {}, j.desc) : null));
 }
-var ORDEM_CONTEUDOS = ['Números e operações', 'Proporção e porcentagem', 'Geometria', 'Funções e trigonometria', 'Estatística e probabilidade', 'Educação Financeira', 'Desafios'];
-var ICONE_CONTEUDO = {'Números e operações':'🔢', 'Proporção e porcentagem':'💯', 'Geometria':'📐', 'Funções e trigonometria':'📈', 'Estatística e probabilidade':'📊', 'Educação Financeira':'💰', 'Desafios':'🧩', 'Outros':'🎲'};
+var ORDEM_CONTEUDOS = ['Números e operações', 'Álgebra', 'Proporção e porcentagem', 'Geometria', 'Funções e trigonometria', 'Estatística e probabilidade', 'Educação Financeira', 'Desafios'];
+var ICONE_CONTEUDO = {'Números e operações':'🔢', 'Álgebra':'🧮', 'Proporção e porcentagem':'💯', 'Geometria':'📐', 'Funções e trigonometria':'📈', 'Estatística e probabilidade':'📊', 'Educação Financeira':'💰', 'Desafios':'🧩', 'Outros':'🎲'};
 var filtroConteudo = 'todos';
 function tipoDe(id){ var j = window.JOGOS[id]; return j.tipo || (j.ferramenta ? 'ferramenta' : 'jogo'); }
 function gruposPorConteudo(ids){
