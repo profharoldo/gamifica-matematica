@@ -127,7 +127,7 @@ window.JOGOS = {
   "calculadora-notas": {
     nome: "Calculadora de Notas e Médias",
     tema: "Ferramenta do professor",
-    desc: "Média ponderada passo a passo, quanto falta para fechar o bimestre e médias da turma.",
+    desc: "Escolha as avaliações e os pesos, cole os nomes, digite as notas e veja quem foi aprovado.",
     emoji: "🧮", cor: "azul", ferramenta: true
   },
   "cronometro": {
