@@ -215,6 +215,13 @@ window.JOGOS = {
     emoji: "⚖️", cor: "verde",
     conteudo: "Álgebra"
   },
+  "missao-trigonometria": {
+    nome: "Missão Trigonometria",
+    tema: "Seno, cosseno e tangente",
+    desc: "Meça prédios, rampas, escadas e pipas usando o triângulo retângulo e os ângulos notáveis.",
+    emoji: "📐", cor: "azul",
+    conteudo: "Funções e trigonometria"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
