@@ -76,6 +76,12 @@ window.JOGOS = {
     desc: "UNO contra o Prof. Robô: transforme frações em decimais.",
     emoji: "🃏", cor: "laranja"
   },
+  "roda-gigante": {
+    nome: "Roda-Gigante Trigonométrica",
+    tema: "Trigonometria",
+    desc: "A cabine gira e a altura vira gráfico: seno, cosseno, quadrantes e ângulos notáveis.",
+    emoji: "🎡", cor: "lilas"
+  },
   "leitor-gabaritos": {
     nome: "Leitor de Gabaritos",
     tema: "Ferramenta do professor",
