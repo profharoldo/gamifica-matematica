@@ -222,6 +222,13 @@ window.JOGOS = {
     emoji: "📐", cor: "azul",
     conteudo: "Funções e trigonometria"
   },
+  "supermercado-inteligente": {
+    nome: "Supermercado Inteligente",
+    tema: "Preço por unidade, desconto e troco",
+    desc: "Compare embalagens, calcule descontos, promoções leve 3 pague 2 e o troco certo.",
+    emoji: "🛒", cor: "verde",
+    conteudo: "Educação Financeira"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
