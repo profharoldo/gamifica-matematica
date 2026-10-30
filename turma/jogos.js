@@ -201,6 +201,13 @@ window.JOGOS = {
     emoji: "🪜", cor: "amarelo",
     conteudo: "Álgebra"
   },
+  "batalha-naval": {
+    nome: "Batalha Naval Cartesiana",
+    tema: "Plano cartesiano",
+    desc: "Batalha naval contra o robô: leia e localize pontos (x, y), com radar de distância e ponto médio.",
+    emoji: "🚢", cor: "azul",
+    conteudo: "Geometria"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
