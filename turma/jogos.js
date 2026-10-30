@@ -28,6 +28,12 @@ window.JOGOS = {
     desc: "Adivinhe 10 termos de educação financeira antes que as moedas acabem.",
     emoji: "💰", cor: "verde"
   },
+  "orcamento-em-familia": {
+    nome: "Orçamento em Família",
+    tema: "Educação Financeira",
+    desc: "Cuide do dinheiro de uma família por 6 meses: contas, imprevistos, golpes e ranking.",
+    emoji: "🏠", cor: "verde"
+  },
   "invasao-alienigena": {
     nome: "Invasão Alienígena",
     tema: "Porcentagem",
