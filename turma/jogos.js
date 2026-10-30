@@ -180,6 +180,13 @@ window.JOGOS = {
     emoji: "📐", cor: "laranja",
     tipo: "simulador", conteudo: "Geometria"
   },
+  "domino-equivalencias": {
+    nome: "Dominó de Equivalências",
+    tema: "Frações, decimais e %",
+    desc: "Dominó contra o robô: encaixe frações, decimais, porcentagens e desenhos que valem o mesmo.",
+    emoji: "🁫", cor: "azul",
+    conteudo: "Números e operações"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
