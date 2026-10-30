@@ -124,6 +124,12 @@ window.JOGOS = {
     desc: "Média ponderada passo a passo, quanto falta para fechar o bimestre e médias da turma.",
     emoji: "🧮", cor: "azul", ferramenta: true
   },
+  "cronometro": {
+    nome: "Cronômetro de Atividades",
+    tema: "Ferramenta do professor",
+    desc: "Contagem regressiva grande para projetar, com cores de alerta e alarme no fim.",
+    emoji: "⏱️", cor: "laranja", ferramenta: true
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",

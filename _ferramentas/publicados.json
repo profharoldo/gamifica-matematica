@@ -129,6 +129,11 @@
    "arquivo": "(criado pelo Claude) calculadora-notas.html",
    "atividade": "Calculadora de Notas e Médias",
    "id": "calculadora-notas"
+  },
+  {
+   "arquivo": "(criado pelo Claude) cronometro.html",
+   "atividade": "Cronômetro de Atividades",
+   "id": "cronometro"
   }
  ]
 }
