@@ -187,6 +187,13 @@ window.JOGOS = {
     emoji: "🁫", cor: "azul",
     conteudo: "Números e operações"
   },
+  "cofre-combinacoes": {
+    nome: "Cofre das Combinações",
+    tema: "Análise combinatória",
+    desc: "Abra 10 cofres resolvendo problemas de princípio multiplicativo, fatorial, permutação, arranjo e combinação.",
+    emoji: "🔐", cor: "lilas",
+    conteudo: "Estatística e probabilidade"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
