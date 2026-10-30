@@ -112,6 +112,12 @@ window.JOGOS = {
     desc: "Veja no gráfico a integral definida como área e a derivada como inclinação.",
     emoji: "∫", cor: "azul", ferramenta: true
   },
+  "sorteador": {
+    nome: "Sorteador de Alunos e Grupos",
+    tema: "Ferramenta do professor",
+    desc: "Sorteie quem responde (sem repetir) e forme grupos com líder em um toque.",
+    emoji: "🎲", cor: "verde", ferramenta: true
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
