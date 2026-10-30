@@ -229,6 +229,13 @@ window.JOGOS = {
     emoji: "🛒", cor: "verde",
     conteudo: "Educação Financeira"
   },
+  "armadilha-cartao": {
+    nome: "Armadilha do Cartão",
+    tema: "Juros compostos",
+    desc: "Simule o rotativo mês a mês: pagar o mínimo, parcelar e ver os juros sobre juros crescerem.",
+    emoji: "💳", cor: "lilas",
+    conteudo: "Educação Financeira"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
