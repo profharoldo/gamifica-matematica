@@ -197,6 +197,7 @@
 <script src="turma/supabase-config.js"></script>
 <script src="turma/jogos.js?v=20261030222910"></script>
 <script src="turma/qr.js"></script>
+<script src="turma/resultado-jogo.js?v=20261031"></script>
 <script>
 (function(){
 'use strict';
@@ -567,6 +568,7 @@ async function abrirJogo(id){
     urlJogo = URL.createObjectURL(new Blob([html], {type:'text/html'}));
     quadro = el('iframe', {title: j.nome, allow:'fullscreen; autoplay; camera; microphone; clipboard-write'});
     quadro.src = urlJogo + '#livre';
+    ResultadoJogo.anexar(quadro, j.nome);
     miolo.replaceWith(quadro);
   }catch(e){
     miolo.textContent = '😕 ' + (e.message || 'Não foi possível abrir o jogo.') + ' Tente de novo.';
