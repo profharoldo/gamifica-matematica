@@ -131,6 +131,7 @@ function telaConcluida(){
     el('h1', {}, 'Você já concluiu esta atividade!'),
     el('p', {class:'muted'}, prog.nome + ', sua nota foi'), el('div', {class:'nota'}, fmtNota(prog.nota)),
     el('p', {class:'muted'}, mensagemFinal(Number(prog.nota)).texto),
+    blocoResultado({aluno: prog.nome, serie: prog.turma || '—', atividade: atividade.titulo, acertos: prog.acertos, total: prog.total, nota: Number(prog.nota), pontos: prog.pontos || 0, data: prog.data || '—'}),
     el('button', {type:'button', onclick: function(){ aluno = {nome: prog.nome, turma: prog.turma || ''}; prog = null; comecar(); }}, '🔁 Jogar de novo para melhorar'));
 }
 function mensagemFinal(n){
@@ -138,12 +139,39 @@ function mensagemFinal(n){
   if(n >= 6) return {emoji:'🎉', titulo:'Muito bem', texto:'Você está no caminho certo. Mais uma tentativa e você chega ainda mais longe!'};
   return {emoji:'💪', titulo:'Parabéns por terminar', texto:'Terminar já é uma vitória. Errar faz parte de aprender: jogue de novo e veja como você melhora a cada tentativa!'};
 }
-function festa(nota){
+/* Resultado final padrão: nome, série/turma, atividade, acertos, nota e data. */
+function dadosResultado(nota, acertos, total, pontos){
+  var agora = new Date();
+  return {aluno: aluno.nome, serie: aluno.turma || '—', atividade: atividade.titulo, acertos: acertos, total: total,
+    nota: Number(nota), pontos: pontos || 0, data: agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})};
+}
+function escHtml(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function baixarResultadoWord(d){
+  var linhas = [['Aluno(a)', d.aluno], ['Série / turma', d.serie], ['Atividade', d.atividade], ['Acertos', d.acertos + ' de ' + d.total], ['Nota (0 a 10)', fmtNota(d.nota)], ['Pontos', d.pontos], ['Data', d.data]];
+  var tr = linhas.map(function(l){ return '<tr><td style="background:#eef0fb;font-weight:bold;width:35%;border:1px solid #b8c0d9;padding:6px">' + escHtml(l[0]) + '</td><td style="border:1px solid #b8c0d9;padding:6px">' + escHtml(l[1]) + '</td></tr>'; }).join('');
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Resultado final</title></head><body style="font-family:Arial,sans-serif">' +
+    '<h1 style="color:#1d2b53">Resultado final da atividade</h1><p style="color:#5d6785">Gamefica Ação Matemática</p>' +
+    '<table style="border-collapse:collapse;width:100%">' + tr + '</table>' +
+    '<p style="margin-top:18px;color:#5d6785;font-size:10pt">Documento gerado automaticamente ao término da atividade.</p></body></html>';
+  var blob = new Blob(['﻿', html], {type: 'application/msword'});
+  var nomeArq = ('resultado-' + d.aluno + '-' + d.atividade).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase().slice(0, 80) + '.doc';
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nomeArq;
+  document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function blocoResultado(d){
+  return el('div', {class:'resultado-final', style:'margin:14px 0;text-align:left;background:#f8fafc;border:2px solid #e1e6f0;border-radius:12px;padding:12px;font-size:.95rem;line-height:1.7'},
+    el('b', {}, '📋 Resultado final'), el('br'),
+    'Aluno(a): ' + d.aluno, el('br'), 'Série / turma: ' + d.serie, el('br'),
+    'Acertos: ' + d.acertos + ' de ' + d.total, el('br'), 'Nota: ' + fmtNota(d.nota) + ' (0 a 10)', el('br'),
+    el('button', {type:'button', class:'sec', style:'margin-top:8px', onclick: function(){ baixarResultadoWord(d); }}, '📄 Baixar resultado em Word'));
+}
+function festa(nota, acertos, total, pontos){
   var m = mensagemFinal(nota), primeiro = aluno.nome.split(' ')[0];
   var box = document.getElementById('parabens-cx');
+  var dados = dadosResultado(nota, acertos, total, pontos);
   box.replaceChildren(el('div', {class:'grande'}, m.emoji), el('h2', {}, m.titulo + ', ' + primeiro + '!'),
     el('p', {class:'muted'}, 'Você terminou a atividade. Sua nota:'), el('div', {class:'nota'}, fmtNota(nota)),
-    el('p', {}, m.texto),
+    el('p', {}, m.texto), blocoResultado(dados),
     el('button', {type:'button', onclick: function(){ document.getElementById('parabens').classList.remove('on'); }}, '👍 Fechar'),
     el('button', {type:'button', class:'sec', onclick: function(){ document.getElementById('parabens').classList.remove('on'); prog = null; comecar(); }}, '🔁 Jogar de novo'));
   document.getElementById('parabens').classList.add('on');
@@ -155,18 +183,20 @@ function erroTela(titulo, texto){
 
 function telaNome(){
   var nome = el('input', {type:'text', id:'nome', maxlength:'80', autocomplete:'name', placeholder:'Nome e sobrenome', value: ler('gm_nome')});
-  var turma = el('input', {type:'text', id:'turma', maxlength:'40', placeholder:'Ex.: 3ª A', value: atividade.turma || ler('gm_turma')});
+  var turma = el('input', {type:'text', id:'turma', maxlength:'40', placeholder:'Ex.: 3ª série A', value: atividade.turma || ler('gm_turma')});
   var aviso = el('div');
   var form = el('form', {onsubmit: function(ev){
     ev.preventDefault(); aviso.replaceChildren();
     var n = nome.value.trim().replace(/\s+/g, ' ');
     if(n.length < 2){ aviso.append(el('div', {class:'msg erro'}, 'Digite seu nome completo para o professor reconhecer você.')); return; }
-    aluno = {nome: n, turma: turma.value.trim()};
+    var s = turma.value.trim().replace(/\s+/g, ' ');
+    if(s.length < 2){ aviso.append(el('div', {class:'msg erro'}, 'Digite sua série e turma (ex.: 3ª série A).')); return; }
+    aluno = {nome: n, turma: s};
     guardar('gm_nome', aluno.nome); guardar('gm_turma', aluno.turma);
     comecar();
   }},
-    el('label', {for:'nome'}, 'Seu nome'), nome,
-    el('label', {for:'turma'}, 'Sua turma'), turma,
+    el('label', {for:'nome'}, 'Seu nome completo'), nome,
+    el('label', {for:'turma'}, 'Sua série e turma'), turma,
     el('button', {type:'submit'}, '🚀 Começar'), aviso);
   var J = window.JOGOS[atividade.jogo];
   var cores = {amarelo:'#ffe27a', coral:'#ffb4a6', verde:'#a6e4c6', azul:'#b9d4ff', lilas:'#d8c9ff', laranja:'#ffc88a'};
@@ -247,8 +277,9 @@ async function enviar(){
     return;
   }
   setStatus('✔ Nota enviada: ' + fmtNota(Number(r.data)) + ' (' + pendente.p_acertos + '/' + pendente.p_total + ')', 'st-ok');
-  gravarProg({nome: aluno.nome, turma: aluno.turma, estado: 'concluido', nota: Number(r.data), acertos: pendente.p_acertos, total: pendente.p_total});
-  festa(Number(r.data));
+  var dados = dadosResultado(Number(r.data), pendente.p_acertos, pendente.p_total, pendente.p_pontos);
+  gravarProg({nome: aluno.nome, turma: aluno.turma, estado: 'concluido', nota: Number(r.data), acertos: pendente.p_acertos, total: pendente.p_total, pontos: pendente.p_pontos, data: dados.data});
+  festa(Number(r.data), pendente.p_acertos, pendente.p_total, pendente.p_pontos);
 }
 
 window.addEventListener('beforeunload', function(e){
