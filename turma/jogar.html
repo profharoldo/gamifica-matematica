@@ -64,6 +64,7 @@
 <script src="supabase-config.js"></script>
 <script src="jogos.js"></script>
 <script src="resultado-jogo.js?v=20261031"></script>
+<script>ResultadoJogo.protegerPagina();</script>
 <script>
 (function(){
 'use strict';
@@ -132,8 +133,10 @@ function telaConcluida(){
     el('h1', {}, 'Você já concluiu esta atividade!'),
     el('p', {class:'muted'}, prog.nome + ', sua nota foi'), el('div', {class:'nota'}, fmtNota(prog.nota)),
     el('p', {class:'muted'}, mensagemFinal(Number(prog.nota)).texto),
+    el('p', {id:'posicao-msg', style:'font-weight:800;color:#312e81'}, 'Calculando sua posição…'),
     blocoResultado({aluno: prog.nome, serie: prog.turma || '—', atividade: atividade.titulo, acertos: prog.acertos, total: prog.total, nota: Number(prog.nota), pontos: prog.pontos || 0, data: prog.data || '—'}),
     el('button', {type:'button', onclick: function(){ aluno = {nome: prog.nome, turma: prog.turma || ''}; prog = null; comecar(); }}, '🔁 Jogar de novo para melhorar'));
+  buscarPosicao(prog.nome, prog.turma).then(function(pos){ var q = document.getElementById('posicao-msg'); if(q) q.textContent = textoPosicao(pos); });
 }
 function mensagemFinal(n){
   if(n >= 8) return {emoji:'🌟', titulo:'Arrasou', texto:'Você dominou este assunto. Continue assim, seu esforço está aparecendo!'};
@@ -167,16 +170,30 @@ function blocoResultado(d){
     el('button', {type:'button', class:'sec', style:'margin-top:8px', onclick: function(){ baixarResultadoWord(d); }}, '📄 Baixar resultado em Word'),
     el('button', {type:'button', class:'sec', style:'margin-top:8px', onclick: function(){ ResultadoJogo.pdf(d); }}, '📕 Baixar em PDF'));
 }
+/* Posição do aluno entre os da atividade (só o lugar e o total; não mostra os outros nomes) */
+async function buscarPosicao(nome, turma){
+  try{
+    var r = await sb.rpc('posicao_resultado', {p_codigo: codigo, p_nome: nome, p_turma: turma || ''});
+    if(r.error || !r.data || !r.data.length) return null;
+    return r.data[0];
+  }catch(e){ return null; }
+}
+function textoPosicao(pos){
+  if(!pos) return '';
+  var medalha = pos.posicao === 1 ? '🥇' : pos.posicao === 2 ? '🥈' : pos.posicao === 3 ? '🥉' : '🏅';
+  return medalha + ' Você está em ' + pos.posicao + 'º lugar entre ' + pos.total + (pos.total === 1 ? ' aluno' : ' alunos') + ' desta atividade.';
+}
 function festa(nota, acertos, total, pontos){
   var m = mensagemFinal(nota), primeiro = aluno.nome.split(' ')[0];
   var box = document.getElementById('parabens-cx');
   var dados = dadosResultado(nota, acertos, total, pontos);
   box.replaceChildren(el('div', {class:'grande'}, m.emoji), el('h2', {}, m.titulo + ', ' + primeiro + '!'),
     el('p', {class:'muted'}, 'Você terminou a atividade. Sua nota:'), el('div', {class:'nota'}, fmtNota(nota)),
-    el('p', {}, m.texto), blocoResultado(dados),
+    el('p', {}, m.texto), el('p', {id:'posicao-msg', style:'font-weight:800;color:#312e81'}, 'Calculando sua posição…'), blocoResultado(dados),
     el('button', {type:'button', onclick: function(){ document.getElementById('parabens').classList.remove('on'); }}, '👍 Fechar'),
     el('button', {type:'button', class:'sec', onclick: function(){ document.getElementById('parabens').classList.remove('on'); prog = null; comecar(); }}, '🔁 Jogar de novo'));
   document.getElementById('parabens').classList.add('on');
+  buscarPosicao(aluno.nome, aluno.turma).then(function(pos){ var q = document.getElementById('posicao-msg'); if(q) q.textContent = textoPosicao(pos); });
 }
 
 function erroTela(titulo, texto){
@@ -245,6 +262,7 @@ var somMudoAluno = false;
 document.getElementById('barra-som').addEventListener('click', function(){ somMudoAluno = !somMudoAluno; this.textContent = somMudoAluno ? '🔇' : '🔊'; ResultadoJogo.somDoJogo(quadro, somMudoAluno); });
 document.getElementById('barra-tela').addEventListener('click', function(){ ResultadoJogo.telaCheia(quadro); });
 quadro.addEventListener('load', function(){ ResultadoJogo.somDoJogo(quadro, somMudoAluno); });
+quadro.addEventListener('load', function(){ ResultadoJogo.marcaDagua(aluno.nome); });
 var reenviarBtn = document.getElementById('barra-reenviar');
 function setStatus(texto, classe){ statusEl.textContent = texto; statusEl.className = classe || ''; }
 reenviarBtn.addEventListener('click', function(){ if(pendente) enviar(); });

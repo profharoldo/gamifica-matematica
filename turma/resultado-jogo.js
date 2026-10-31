@@ -112,21 +112,61 @@
     w.focus(); setTimeout(function(){ try{ w.print(); }catch(e){} }, 400);
   }
 
-  /* Som: o portal prepara o HTML do jogo antes de abrir. Todo áudio passa por um controle geral,
-     que o botão 🔊 da barra liga e desliga. Funciona com qualquer jogo que use Web Audio. */
-  var PATCH_SOM = "(function(){var mudo=false;var masters=[];window.__gamificaSomSet=function(m){mudo=!!m;masters.forEach(function(g){try{g.gain.value=mudo?0:1;}catch(e){}});};" +
-    "var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;" +
-    "function Patched(){var ctx=Reflect.construct(AC,arguments,Patched);try{var real=ctx.destination;var master=ctx.createGain();master.gain.value=mudo?0:1;master.connect(real);masters.push(master);" +
-    "Object.defineProperty(ctx,'destination',{configurable:true,get:function(){return master;}});}catch(e){}return ctx;}" +
-    "Patched.prototype=Object.create(AC.prototype);Patched.prototype.constructor=Patched;" +
-    "try{window.AudioContext=Patched;}catch(e){}if(window.webkitAudioContext){try{window.webkitAudioContext=Patched;}catch(e){}}})();";
+  /* Código injetado no início de cada jogo (escrito como função para não ter problema de aspas).
+     - Som: todo áudio passa por um controle geral, que o botão 🔊 liga e desliga.
+     - Proteção: bloqueia clique direito e atalhos de salvar/inspecionar fora dos campos de digitação. */
+  function jogoPatch(){
+    var mudo = false, masters = [];
+    window.__gamificaSomSet = function(m){ mudo = !!m; masters.forEach(function(g){ try{ g.gain.value = mudo ? 0 : 1; }catch(e){} }); };
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (AC){
+      var Patched = function(){
+        var ctx = Reflect.construct(AC, arguments, Patched);
+        try{
+          var real = ctx.destination, master = ctx.createGain();
+          master.gain.value = mudo ? 0 : 1; master.connect(real); masters.push(master);
+          Object.defineProperty(ctx, 'destination', {configurable: true, get: function(){ return master; }});
+        }catch(e){}
+        return ctx;
+      };
+      Patched.prototype = Object.create(AC.prototype); Patched.prototype.constructor = Patched;
+      try{ window.AudioContext = Patched; }catch(e){}
+      if (window.webkitAudioContext){ try{ window.webkitAudioContext = Patched; }catch(e){} }
+    }
+  }
+  function protecaoTela(){
+    function campo(t){ return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable); }
+    document.addEventListener('contextmenu', function(e){ if(!campo(e.target)) e.preventDefault(); });
+    document.addEventListener('keydown', function(e){
+      var k = String(e.key || '').toLowerCase(), ctrl = e.ctrlKey || e.metaKey;
+      if (e.key === 'F12' || (ctrl && (k === 'u' || k === 's')) || (ctrl && e.shiftKey && (k === 'i' || k === 'j' || k === 'c'))){
+        e.preventDefault(); e.stopPropagation();
+      }
+    }, true);
+    var st = document.createElement('style');
+    st.textContent = 'body{-webkit-user-select:none;user-select:none}input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}';
+    (document.head || document.documentElement).appendChild(st);
+  }
 
   window.ResultadoJogo = window.ResultadoJogo || {};
-  /* Insere o controle de som antes de qualquer script do jogo */
+  /* Insere o código de som/proteção antes de qualquer script do jogo */
   window.ResultadoJogo.preparar = function(html){
-    var tag = '<script>' + PATCH_SOM + '</script>';
+    var tag = '<script>(' + jogoPatch.toString() + ')();(' + protecaoTela.toString() + ')();</script>';
     return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, function(m){ return m + tag; }) : tag + html;
   };
+  /* Proteção básica também na própria página do portal */
+  window.ResultadoJogo.protegerPagina = function(){ try{ protecaoTela(); }catch(e){} };
+  /* Marca d'água com o nome de quem está usando (desencoraja repasse e cópia de tela) */
+  window.ResultadoJogo.marcaDagua = function(texto){
+    window.ResultadoJogo.removerMarcaDagua();
+    if(!texto) return null;
+    var d = document.createElement('div'); d.id = 'marca-dagua'; d.setAttribute('aria-hidden', 'true');
+    d.style.cssText = 'position:fixed;inset:-40%;z-index:2147483000;pointer-events:none;transform:rotate(-24deg);display:flex;flex-wrap:wrap;align-content:flex-start;gap:64px 80px;padding:30px;font:700 17px system-ui,Arial,sans-serif;color:rgba(30,41,59,.13);white-space:nowrap;user-select:none';
+    for(var i = 0; i < 140; i++){ var sp = document.createElement('span'); sp.textContent = texto; d.appendChild(sp); }
+    document.body.appendChild(d); return d;
+  };
+  window.ResultadoJogo.removerMarcaDagua = function(){ var d = document.getElementById('marca-dagua'); if(d && d.parentNode) d.parentNode.removeChild(d); };
+
   /* Liga/desliga o som do jogo que está no iframe */
   window.ResultadoJogo.somDoJogo = function(quadro, mudo){
     try{ if(quadro && quadro.contentWindow && quadro.contentWindow.__gamificaSomSet) quadro.contentWindow.__gamificaSomSet(mudo); }catch(e){}
@@ -139,7 +179,6 @@
     }catch(e){}
   };
 
-  window.ResultadoJogo = window.ResultadoJogo || {};
   Object.assign(window.ResultadoJogo, {
     pdf: pdf,
     baixarWord: baixarWord,

@@ -198,6 +198,7 @@
 <script src="turma/jogos.js?v=20261030222910"></script>
 <script src="turma/qr.js"></script>
 <script src="turma/resultado-jogo.js?v=20261031"></script>
+<script>ResultadoJogo.protegerPagina();</script>
 <script>
 (function(){
 'use strict';
@@ -482,6 +483,7 @@ function desenharJogos(qual){
 var urlJogo = null;
 function fecharPlayer(){
   var p = document.getElementById('player'); if(p) p.remove();
+  ResultadoJogo.removerMarcaDagua();
   if(urlJogo){ URL.revokeObjectURL(urlJogo); urlJogo = null; }
   document.body.style.overflow = '';
 }
@@ -514,7 +516,7 @@ async function abrirJogo(id){
     quadro = el('iframe', {title: j.nome, allow:'fullscreen; autoplay; camera; microphone; clipboard-write'});
     quadro.src = urlJogo + '#livre';
     ResultadoJogo.anexar(quadro, j.nome);
-    quadro.addEventListener('load', function(){ ResultadoJogo.somDoJogo(quadro, somMudo); });
+    quadro.addEventListener('load', function(){ ResultadoJogo.somDoJogo(quadro, somMudo); ResultadoJogo.marcaDagua(perfil ? perfil.nome : ''); });
     miolo.replaceWith(quadro);
   }catch(e){
     miolo.textContent = '😕 ' + (e.message || 'Não foi possível abrir o jogo.') + ' Tente de novo.';
@@ -701,17 +703,19 @@ function desenharResultados(a){
     el('option', {value:'ultima'}, 'Contar a última tentativa'));
   selModo.value = modo;
 
+  /* posição no ranking: alunos com a mesma nota ficam no mesmo lugar */
+  function posicaoDe(i){ var n = Number(linhas[i].escolhido.nota), k = 0; linhas.forEach(function(l){ if(Number(l.escolhido.nota) > n) k++; }); return k + 1; }
   var corpo = linhas.length === 0
     ? el('p', {class:'vazio'}, 'Nenhum aluno enviou resultado ainda. Cole o link da atividade na Sala do Futuro ou no Moodle.')
     : el('div', {class:'tabela-wrap'}, el('table', {},
         el('thead', {}, el('tr', {},
-          el('th', {class:'n'}, 'Nº'), el('th', {}, 'Aluno'), el('th', {}, 'Turma'),
+          el('th', {class:'n'}, 'Posição'), el('th', {}, 'Aluno'), el('th', {}, 'Turma'),
           el('th', {class:'n'}, 'Acertos'), el('th', {class:'n'}, 'Nota'),
           el('th', {class:'n'}, 'Tentativas'), el('th', {class:'n'}, 'Tempo'), el('th', {}, 'Enviado em'))),
         el('tbody', {}, linhas.map(function(l, i){
           var e = l.escolhido, n = Number(e.nota);
           return el('tr', {},
-            el('td', {class:'n'}, i + 1), el('td', {}, l.nome), el('td', {}, l.turma || '—'),
+            el('td', {class:'n'}, posicaoDe(i) + ' ' + ({1:'🥇', 2:'🥈', 3:'🥉'}[posicaoDe(i)] || '')), el('td', {}, l.nome), el('td', {}, l.turma || '—'),
             el('td', {class:'n'}, e.acertos + '/' + e.total_questoes),
             el('td', {class:'n ' + (n >= 6 ? 'nota-alta' : 'nota-baixa')}, fmtNota(n)),
             el('td', {class:'n'}, l.tentativas), el('td', {class:'n'}, fmtTempo(e.tempo_segundos)),
@@ -825,7 +829,7 @@ async function baixarWord(a, linhas, media){
 
 /* ---------- aba Administração ---------- */
 async function carregarContas(){
-  var r = await sb.rpc('admin_listar');
+  var r = await sb.rpc('admin_contas');
   contas = r.error ? [] : r.data;
   if(r.error) contas.erro = r.error.message;
 }
@@ -840,6 +844,7 @@ function desenharAdmin(){
   var senha = el('input', {type:'text', id:'cSenha', maxlength:'60', value: gerarSenha()});
   var validade = el('input', {type:'date', id:'cVal'});
   var obs = el('input', {type:'text', id:'cObs', maxlength:'300', placeholder:'Ex.: pagou via Pix em 26/10 (opcional)'});
+  var valorNovo = el('input', {type:'number', id:'cValor', min:'0', step:'0.01', placeholder:'Ex.: 49,90'});
   var aviso = el('div'), botao = el('button', {type:'submit', class:'grande'}, '➕ Criar conta');
   nome.addEventListener('input', function(){
     if(login.dataset.mexeu) return;
@@ -855,6 +860,7 @@ function desenharAdmin(){
     botao.disabled = false;
     if(!r.ok){ aviso.append(msg('erro', d.erro || 'Não foi possível criar a conta.')); return; }
     if(obs.value.trim()) await sb.rpc('admin_atualizar', {p_id: d.id, p_nome: corpo.nome, p_ativo: true, p_validade: corpo.validade, p_observacao: obs.value.trim()});
+    if(valorNovo.value !== '') await sb.rpc('admin_definir_valor', {p_id: d.id, p_valor: Number(valorNovo.value)});
     var texto = 'Olá, ' + corpo.nome.split(' ')[0] + '! Seu acesso ao Gamefica Ação Matemática está pronto 🎮\n\n' +
       '🌐 Site: ' + location.origin + location.pathname.replace(/[^/]*$/, '') + '\n👤 Login: ' + corpo.login + '\n🔑 Senha: ' + corpo.senha + '\n' +
       (corpo.validade ? '📅 Válido até: ' + fmtDia(corpo.validade) + '\n' : '') +
@@ -872,7 +878,7 @@ function desenharAdmin(){
       el('div', {}, el('label', {for:'cSenha'}, 'Senha'), el('div', {class:'linha', style:'flex-wrap:nowrap'}, senha,
         el('button', {type:'button', class:'peq sec', onclick: function(){ senha.value = gerarSenha(); }, title:'Gerar outra senha'}, '🎲'))),
       el('div', {}, el('label', {for:'cVal'}, 'Acesso válido até (opcional)'), validade)),
-    el('label', {for:'cObs'}, 'Observação (só você vê)'), obs,
+    el('div', {class:'duas'}, el('div', {}, el('label', {for:'cObs'}, 'Observação (só você vê)'), obs), el('div', {}, el('label', {for:'cValor'}, 'Valor pago (R$, opcional)'), valorNovo)),
     el('div', {style:'margin-top:14px'}, botao), aviso);
 
   var lista = contas.filter(function(c){
@@ -881,6 +887,7 @@ function desenharAdmin(){
   });
   var ativos = contas.filter(function(c){ return situacao(c).cls === 'aberta'; }).length;
   var online = contas.filter(function(c){ return c.online; }).length;
+  var recebido = contas.reduce(function(t, c){ return t + Number(c.valor_pago || 0); }, 0);
   var busca = el('input', {type:'search', placeholder:'🔎 Procurar por nome ou login', value: buscaContas, oninput: function(){
     buscaContas = this.value; var pos = this.selectionStart; desenharAdmin(); var b = document.getElementById('buscaC'); if(b){ b.focus(); try{ b.setSelectionRange(pos, pos); }catch(e){} }
   }, id:'buscaC'});
@@ -891,7 +898,8 @@ function desenharAdmin(){
       el('div', {class:'resumo'},
         el('div', {}, el('b', {}, contas.length), 'contas'),
         el('div', {}, el('b', {}, ativos), 'com acesso liberado'),
-        el('div', {}, el('b', {}, online), 'usando agora')),
+        el('div', {}, el('b', {}, online), 'usando agora'),
+        el('div', {}, el('b', {}, 'R$ ' + recebido.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})), 'total recebido')),
       el('div', {class:'linha', style:'margin-bottom:12px'}, busca,
         el('button', {class:'peq sec', onclick: async function(){ await carregarContas(); desenharAdmin(); }}, '🔄 Atualizar')),
       lista.length ? el('div', {class:'contas'}, lista.map(cartaoConta)) : el('p', {class:'vazio'}, 'Nenhuma conta encontrada.')),
@@ -913,11 +921,16 @@ function cartaoConta(c){
     var n = el('input', {type:'text', value: c.nome, maxlength:'80'});
     var v = el('input', {type:'date', value: c.validade || ''});
     var o = el('input', {type:'text', value: c.observacao || '', maxlength:'300'});
+    var vl = el('input', {type:'number', min:'0', step:'0.01', value: c.valor_pago != null ? String(c.valor_pago) : ''});
     extra.replaceChildren(el('div', {class:'editar-conta'},
       el('div', {class:'duas'}, el('div', {}, el('label', {}, 'Nome'), n), el('div', {}, el('label', {}, 'Acesso válido até (vazio = sem prazo)'), v)),
-      el('label', {}, 'Observação'), o,
+      el('div', {class:'duas'}, el('div', {}, el('label', {}, 'Observação'), o), el('div', {}, el('label', {}, 'Valor pago (R$)'), vl)),
       el('div', {class:'linha', style:'margin-top:10px'},
-        el('button', {class:'peq', onclick: function(){ atualizar({p_nome: n.value.trim() || c.nome, p_validade: v.value || null, p_observacao: o.value}); }}, '💾 Salvar'),
+        el('button', {class:'peq', onclick: async function(){
+          var rv = await sb.rpc('admin_definir_valor', {p_id: c.id, p_valor: vl.value === '' ? null : Number(vl.value)});
+          if(rv.error){ extra.replaceChildren(msg('erro', rv.error.message)); return; }
+          atualizar({p_nome: n.value.trim() || c.nome, p_validade: v.value || null, p_observacao: o.value});
+        }}, '💾 Salvar'),
         el('button', {class:'peq sec', onclick: function(){ extra.replaceChildren(); }}, 'Cancelar'))));
   }}, '✏️ Editar'));
   if(!eu) botoes.push(el('button', {class:'peq sec', onclick: async function(){
@@ -959,7 +972,8 @@ function cartaoConta(c){
       el('span', {}, c.online ? '🟢 Usando agora' : '🕒 Último acesso: ' + fmtData(c.ultimo_acesso)),
       c.aparelho ? el('span', {}, '💻 ' + c.aparelho) : null,
       c.validade ? el('span', {}, '📅 Até ' + fmtDia(c.validade)) : el('span', {}, '📅 Sem prazo'),
-      c.observacao ? el('span', {}, '📝 ' + c.observacao) : null),
+      c.observacao ? el('span', {}, '📝 ' + c.observacao) : null,
+      el('span', {}, '💰 ' + (c.valor_pago != null ? 'R$ ' + Number(c.valor_pago).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'valor não informado'))),
     (c.trocas_30d >= 3 || c.aparelhos_30d >= 4) ? el('div', {class:'alerta'},
       '⚠️ Possível compartilhamento: ' + c.trocas_30d + ' desconexões por login em outro aparelho e ' + c.aparelhos_30d + ' aparelhos diferentes nos últimos 30 dias.') : null,
     el('div', {class:'linha'}, botoes), extra);
