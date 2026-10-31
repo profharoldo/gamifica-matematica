@@ -86,12 +86,63 @@
     var linha = document.createElement('div'); linha.style.cssText = 'margin-top:12px;text-align:center';
     var fundo = null;
     linha.appendChild(botao('📄 Baixar resultado em Word', 'pri', function(){ baixarWord(d); }));
+    linha.appendChild(botao('📕 Baixar em PDF', 'pri', function(){ pdf(d); }));
     linha.appendChild(botao('👍 Fechar', 'sec', function(){ if(fundo && fundo.parentNode) fundo.parentNode.removeChild(fundo); }));
     c.appendChild(linha);
     fundo = caixa(c);
   }
 
-  window.ResultadoJogo = {
+
+
+  /* Relatório em PDF: abre a versão para impressão; em "Imprimir" escolha "Salvar como PDF" */
+  function relatorioHtml(d){
+    var linhas = [['Aluno(a)', d.aluno], ['Série / turma', d.serie], ['Atividade', d.atividade], ['Acertos', d.acertos + ' de ' + d.total], ['Nota (0 a 10)', nota1(d.nota)], ['Pontos', d.pontos], ['Data', d.data]];
+    var tr = linhas.map(function(l){ return '<tr><th>' + esc(l[0]) + '</th><td>' + esc(l[1]) + '</td></tr>'; }).join('');
+    return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Resultado final</title><style>' +
+      'body{font-family:Arial,Helvetica,sans-serif;color:#1b2440;margin:40px}h1{color:#1d2b53;margin:0 0 4px}.sub{color:#5d6785;margin:0 0 24px}' +
+      'table{border-collapse:collapse;width:100%}th,td{border:1px solid #b8c0d9;padding:10px;text-align:left}th{background:#eef0fb;width:35%}' +
+      '.rod{margin-top:26px;color:#5d6785;font-size:12px}</style></head><body>' +
+      '<h1>Resultado final da atividade</h1><p class="sub">Gamefica Ação Matemática</p><table>' + tr + '</table>' +
+      '<p class="rod">Relatório gerado automaticamente ao término da atividade.</p></body></html>';
+  }
+  function pdf(d){
+    var w = window.open('', '_blank');
+    if(!w){ window.alert('Permita pop-ups deste site para baixar o PDF.'); return; }
+    w.document.open(); w.document.write(relatorioHtml(d)); w.document.close();
+    w.focus(); setTimeout(function(){ try{ w.print(); }catch(e){} }, 400);
+  }
+
+  /* Som: o portal prepara o HTML do jogo antes de abrir. Todo áudio passa por um controle geral,
+     que o botão 🔊 da barra liga e desliga. Funciona com qualquer jogo que use Web Audio. */
+  var PATCH_SOM = "(function(){var mudo=false;var masters=[];window.__gamificaSomSet=function(m){mudo=!!m;masters.forEach(function(g){try{g.gain.value=mudo?0:1;}catch(e){}});};" +
+    "var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;" +
+    "function Patched(){var ctx=Reflect.construct(AC,arguments,Patched);try{var real=ctx.destination;var master=ctx.createGain();master.gain.value=mudo?0:1;master.connect(real);masters.push(master);" +
+    "Object.defineProperty(ctx,'destination',{configurable:true,get:function(){return master;}});}catch(e){}return ctx;}" +
+    "Patched.prototype=Object.create(AC.prototype);Patched.prototype.constructor=Patched;" +
+    "try{window.AudioContext=Patched;}catch(e){}if(window.webkitAudioContext){try{window.webkitAudioContext=Patched;}catch(e){}}})();";
+
+  window.ResultadoJogo = window.ResultadoJogo || {};
+  /* Insere o controle de som antes de qualquer script do jogo */
+  window.ResultadoJogo.preparar = function(html){
+    var tag = '<script>' + PATCH_SOM + '</script>';
+    return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, function(m){ return m + tag; }) : tag + html;
+  };
+  /* Liga/desliga o som do jogo que está no iframe */
+  window.ResultadoJogo.somDoJogo = function(quadro, mudo){
+    try{ if(quadro && quadro.contentWindow && quadro.contentWindow.__gamificaSomSet) quadro.contentWindow.__gamificaSomSet(mudo); }catch(e){}
+  };
+  /* Tela cheia do jogo (o próprio iframe ou o contêiner indicado) */
+  window.ResultadoJogo.telaCheia = function(elemento){
+    try{
+      if(document.fullscreenElement) document.exitFullscreen();
+      else if(elemento && elemento.requestFullscreen) elemento.requestFullscreen().catch(function(){});
+    }catch(e){}
+  };
+
+  window.ResultadoJogo = window.ResultadoJogo || {};
+  Object.assign(window.ResultadoJogo, {
+    pdf: pdf,
+    baixarWord: baixarWord,
     /* quadro: o iframe do jogo; titulo: nome da atividade (para o resultado) */
     anexar: function(quadro, titulo){
       quadro.addEventListener('load', function(){
@@ -120,5 +171,5 @@
         };
       });
     }
-  };
+  });
 })();

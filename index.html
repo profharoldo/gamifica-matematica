@@ -345,9 +345,9 @@ function entrarNoSite(){
     el('span', {}, (perfil.papel === 'admin' ? '🛡️ ' : '👤 ') + (perfil.nome || sessao.user.email)),
     el('button', {class:'sec peq', onclick: sair}, 'Sair'));
   var h = (location.hash || '').replace('#', '');
-  if(h === 'turmas' || h === 'atribuir' || h === 'jogos' || h === 'simuladores' || h === 'ferramentas' || h === 'sugestoes' || (h === 'admin' && perfil.papel === 'admin')) aba = h;
+  if(h === 'turmas' || h === 'atribuir' || h === 'jogos' || h === 'simuladores' || h === 'ferramentas' || (h === 'admin' && perfil.papel === 'admin')) aba = h;
   iniciarVigia();
-  desenharAbas(); mostrarAba(); contarNaoLidas();
+  desenharAbas(); mostrarAba();
 }
 async function sair(){
   pararVigia();
@@ -408,66 +408,8 @@ function desenharLogin(aviso){
 }
 
 /* ---------- abas ---------- */
-/* ---------- sugestões ---------- */
-var naoLidas = 0;
-async function contarNaoLidas(){
-  if(!perfil || perfil.papel !== 'admin') return;
-  var r = await sb.from('sugestoes').select('id', {count: 'exact', head: true}).eq('lida', false);
-  if(!r.error){ var antes = naoLidas; naoLidas = r.count || 0; if(antes !== naoLidas) desenharAbas(); }
-}
-var TIPOS_SUG = [['ideia', '💡 Sugestão de jogo ou atividade'], ['melhoria', '🛠️ Melhoria em algo que já existe'], ['problema', '🐞 Encontrei um problema'], ['outro', '💬 Outro assunto']];
-function desenharSugestoes(){
-  var tipo = el('select', {id:'sugTipo'}, TIPOS_SUG.map(function(t){ return el('option', {value: t[0]}, t[1]); }));
-  var texto = el('textarea', {id:'sugTexto', maxlength:'3000', rows:'6', placeholder:'Ex.: Seria legal um jogo de equações do 1º grau para o 8º ano… / No cronômetro, eu gostaria de… / Encontrei um erro na pergunta…', style:'width:100%;font:inherit;padding:12px;border-radius:12px;border:2px solid var(--linha);resize:vertical'});
-  var cont = el('small', {class:'vazio'}, '0 / 3000');
-  var aviso = el('div');
-  var botao = el('button', {type:'submit', class:'grande'}, '📨 Enviar ao professor');
-  texto.addEventListener('input', function(){ cont.textContent = texto.value.length + ' / 3000'; });
-  var form = el('form', {onsubmit: async function(ev){
-    ev.preventDefault(); aviso.replaceChildren();
-    var m = texto.value.trim();
-    if(m.length < 5){ aviso.append(msg('erro', 'Escreva um pouco mais sobre a sua ideia.')); texto.focus(); return; }
-    botao.disabled = true; botao.textContent = '⏳ Enviando…';
-    try{
-      var r = await chamarFuncao('sugestao', {tipo: tipo.value, mensagem: m});
-      var j = await r.json().catch(function(){ return {}; });
-      if(!r.ok) throw new Error(j.erro || 'Erro ' + r.status);
-      texto.value = ''; cont.textContent = '0 / 3000';
-      aviso.append(msg('ok', '✅ Mensagem enviada! O professor recebe na hora. Obrigado por ajudar a melhorar o site. 💛'));
-      if(perfil.papel === 'admin') carregarCaixa();
-    }catch(e){ aviso.append(msg('erro', 'Não foi possível enviar: ' + (e.message || 'verifique a internet') + '.')); }
-    botao.disabled = false; botao.textContent = '📨 Enviar ao professor';
-  }},
-    el('label', {for:'sugTipo'}, 'Sobre o que é?'), tipo,
-    el('label', {for:'sugTexto', style:'margin-top:10px;display:block'}, 'Sua mensagem'), texto, cont,
-    botao, aviso);
-  var partes = [el('div', {class:'card'}, el('h2', {}, '💬 Sugestões e pedidos'),
-    el('p', {class:'sub'}, 'Tem uma ideia de jogo, quer pedir uma atividade, sugerir uma melhoria ou avisar de algum problema? Escreva aqui: a mensagem vai direto para o professor.'), form)];
-  if(perfil.papel === 'admin') partes.push(el('div', {class:'card', id:'caixaSug'}, el('h2', {}, '📥 Caixa de sugestões'), el('p', {class:'vazio'}, 'Carregando…')));
-  app.replaceChildren.apply(app, partes);
-  if(perfil.papel === 'admin') carregarCaixa();
-}
-async function carregarCaixa(){
-  var box = document.getElementById('caixaSug'); if(!box) return;
-  var r = await sb.from('sugestoes').select('*').order('criado_em', {ascending: false}).limit(300);
-  var titulo = el('h2', {}, '📥 Caixa de sugestões');
-  if(r.error){ box.replaceChildren(titulo, msg('erro', 'Não consegui carregar: ' + r.error.message)); return; }
-  var nomes = {}; TIPOS_SUG.forEach(function(t){ nomes[t[0]] = t[1]; });
-  var lista = r.data.map(function(sg){
-    var b = el('button', {class:'peq' + (sg.lida ? ' sec' : ''), onclick: async function(){
-      var u = await sb.from('sugestoes').update({lida: !sg.lida}).eq('id', sg.id);
-      if(!u.error){ sg.lida = !sg.lida; carregarCaixa(); contarNaoLidas(); }
-    }}, sg.lida ? '↩️ Marcar como não lida' : '✔️ Marcar como lida');
-    return el('div', {class:'sugestao' + (sg.lida ? ' lida' : '')},
-      el('div', {class:'sug-topo'}, el('b', {}, nomes[sg.tipo] || sg.tipo), el('span', {class:'tag'}, fmtData(sg.criado_em))),
-      el('div', {class:'sug-quem'}, '👤 ' + (sg.nome || '—') + (sg.login ? ' (' + sg.login + ')' : '') + '  ·  ' + (sg.email_enviado ? '✉️ e-mail enviado' : '✉️ e-mail pendente') + (sg.whats_enviado ? '  ·  📱 WhatsApp enviado' : '')),
-      el('p', {class:'sug-texto'}, sg.mensagem), b);
-  });
-  box.replaceChildren.apply(box, [titulo, el('p', {class:'sub'}, r.data.length ? 'Mensagens enviadas por quem tem acesso ao site (as não lidas aparecem em destaque).' : 'Nenhuma sugestão ainda.')].concat(lista));
-}
 function desenharAbas(){
   var itens = [['jogos', '🎮 Jogos'], ['simuladores', '🔬 Simuladores'], ['ferramentas', '🧰 Ferramentas'], ['atribuir', '📝 Atribuir tarefas'], ['turmas', '👩‍🏫 Turmas e notas']];
-  itens.push(['sugestoes', '💬 Sugestões' + (perfil.papel === 'admin' && naoLidas ? ' (' + naoLidas + ')' : '')]);
   if(perfil.papel === 'admin') itens.push(['admin', '🛡️ Administração']);
   abasBox.replaceChildren.apply(abasBox, itens.map(function(it){
     return el('button', {'aria-current': aba === it[0] ? 'page' : 'false', onclick: function(){ aba = it[0]; history.replaceState(null, '', '#' + aba); desenharAbas(); mostrarAba(); }}, it[1]);
@@ -478,7 +420,6 @@ function mostrarAba(){
   if(aba === 'turmas') carregarAtividades().then(desenharTurmas);
   else if(aba === 'atribuir') desenharAtribuir();
   else if(aba === 'simuladores' || aba === 'ferramentas') desenharJogos(aba);
-  else if(aba === 'sugestoes') desenharSugestoes();
   else if(aba === 'admin') carregarContas().then(desenharAdmin);
   else desenharJogos();
   window.scrollTo(0, 0);
@@ -544,6 +485,7 @@ function fecharPlayer(){
   if(urlJogo){ URL.revokeObjectURL(urlJogo); urlJogo = null; }
   document.body.style.overflow = '';
 }
+var somMudo = false;
 async function abrirJogo(id){
   var j = window.JOGOS[id];
   fecharPlayer();
@@ -553,6 +495,9 @@ async function abrirJogo(id){
     el('div', {class:'player-barra'},
       el('button', {class:'peq', onclick: fecharPlayer}, '← Voltar'),
       el('h2', {}, j.emoji + ' ' + j.nome),
+      el('button', {class:'peq', id:'btnSomJogo', 'aria-label':'Ligar ou desligar o som', title:'Som', onclick: function(){
+        somMudo = !somMudo; this.textContent = somMudo ? '🔇' : '🔊'; ResultadoJogo.somDoJogo(quadro, somMudo);
+      }}, somMudo ? '🔇' : '🔊'),
       el('button', {class:'peq', 'aria-label':'Tela cheia', onclick: function(){
         if(document.fullscreenElement) document.exitFullscreen(); else if(p.requestFullscreen) p.requestFullscreen().catch(function(){});
       }}, '⛶')),
@@ -565,10 +510,11 @@ async function abrirJogo(id){
     if(!r.ok){ var e = await r.json().catch(function(){ return {}; }); throw new Error(e.erro || 'Erro ' + r.status); }
     var html = await r.text();
     if(!document.getElementById('player')) return;
-    urlJogo = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+    urlJogo = URL.createObjectURL(new Blob([ResultadoJogo.preparar(html)], {type:'text/html'}));
     quadro = el('iframe', {title: j.nome, allow:'fullscreen; autoplay; camera; microphone; clipboard-write'});
     quadro.src = urlJogo + '#livre';
     ResultadoJogo.anexar(quadro, j.nome);
+    quadro.addEventListener('load', function(){ ResultadoJogo.somDoJogo(quadro, somMudo); });
     miolo.replaceWith(quadro);
   }catch(e){
     miolo.textContent = '😕 ' + (e.message || 'Não foi possível abrir o jogo.') + ' Tente de novo.';

@@ -55,7 +55,7 @@
 </style>
 </head>
 <body>
-<div class="barra"><b id="barra-titulo"></b><span id="barra-status" role="status" aria-live="polite"></span><button id="barra-reenviar" type="button" hidden>🔁 Reenviar</button></div>
+<div class="barra"><b id="barra-titulo"></b><span id="barra-status" role="status" aria-live="polite"></span><button id="barra-reenviar" type="button" hidden>🔁 Reenviar</button><button id="barra-som" type="button" aria-label="Ligar ou desligar o som" title="Som">🔊</button><button id="barra-tela" type="button" aria-label="Tela cheia" title="Tela cheia">⛶</button></div>
 <div class="centro"><div class="cartao" id="cartao"><p>Carregando atividade…</p></div></div>
 <div class="parabens" id="parabens" role="dialog" aria-modal="true" aria-live="polite"><div class="cx" id="parabens-cx"></div></div>
 <iframe id="quadro" title="Atividade" allow="autoplay; fullscreen"></iframe>
@@ -63,6 +63,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="jogos.js"></script>
+<script src="resultado-jogo.js?v=20261031"></script>
 <script>
 (function(){
 'use strict';
@@ -163,7 +164,8 @@ function blocoResultado(d){
     el('b', {}, '📋 Resultado final'), el('br'),
     'Aluno(a): ' + d.aluno, el('br'), 'Série / turma: ' + d.serie, el('br'),
     'Acertos: ' + d.acertos + ' de ' + d.total, el('br'), 'Nota: ' + fmtNota(d.nota) + ' (0 a 10)', el('br'),
-    el('button', {type:'button', class:'sec', style:'margin-top:8px', onclick: function(){ baixarResultadoWord(d); }}, '📄 Baixar resultado em Word'));
+    el('button', {type:'button', class:'sec', style:'margin-top:8px', onclick: function(){ baixarResultadoWord(d); }}, '📄 Baixar resultado em Word'),
+    el('button', {type:'button', class:'sec', style:'margin-top:8px', onclick: function(){ ResultadoJogo.pdf(d); }}, '📕 Baixar em PDF'));
 }
 function festa(nota, acertos, total, pontos){
   var m = mensagemFinal(nota), primeiro = aluno.nome.split(' ')[0];
@@ -225,7 +227,7 @@ async function carregarJogo(){
     if(!r.ok){ var e = await r.json().catch(function(){ return {}; }); throw new Error(e.erro || 'Erro ' + r.status); }
     var html = await r.text();
     if(urlJogo) URL.revokeObjectURL(urlJogo);
-    urlJogo = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+    urlJogo = URL.createObjectURL(new Blob([ResultadoJogo.preparar(html)], {type:'text/html'}));
     quadro.src = urlJogo;
     setStatus('', '');
   }catch(e){
@@ -239,6 +241,10 @@ quadro.addEventListener('load', function(){
     quadro.contentWindow.postMessage({tipo:'gamifica-aluno', nome: aluno.nome, turma: aluno.turma, estado: (pg && pg.save) || null}, '*'); }catch(e){}
 });
 var statusEl = document.getElementById('barra-status');
+var somMudoAluno = false;
+document.getElementById('barra-som').addEventListener('click', function(){ somMudoAluno = !somMudoAluno; this.textContent = somMudoAluno ? '🔇' : '🔊'; ResultadoJogo.somDoJogo(quadro, somMudoAluno); });
+document.getElementById('barra-tela').addEventListener('click', function(){ ResultadoJogo.telaCheia(quadro); });
+quadro.addEventListener('load', function(){ ResultadoJogo.somDoJogo(quadro, somMudoAluno); });
 var reenviarBtn = document.getElementById('barra-reenviar');
 function setStatus(texto, classe){ statusEl.textContent = texto; statusEl.className = classe || ''; }
 reenviarBtn.addEventListener('click', function(){ if(pendente) enviar(); });
