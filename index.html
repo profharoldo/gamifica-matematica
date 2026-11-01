@@ -197,7 +197,7 @@
 <script src="turma/supabase-config.js"></script>
 <script src="turma/jogos.js?v=20261101163953"></script>
 <script src="turma/qr.js"></script>
-<script src="turma/resultado-jogo.js?v=20261101173408"></script>
+<script src="turma/resultado-jogo.js?v=20261101173558"></script>
 <script>ResultadoJogo.protegerPagina();</script>
 <script>
 (function(){
@@ -614,7 +614,7 @@ async function abrirJogo(id){
     if(!r.ok){ var e = await r.json().catch(function(){ return {}; }); throw new Error(e.erro || 'Erro ' + r.status); }
     var html = await r.text();
     if(!document.getElementById('player')) return;
-    urlJogo = URL.createObjectURL(new Blob([ResultadoJogo.preparar(html)], {type:'text/html'}));
+    urlJogo = URL.createObjectURL(new Blob([ResultadoJogo.preparar(html, j.tema || j.conteudo || '')], {type:'text/html'}));
     quadro = el('iframe', {title: j.nome, allow:'fullscreen; autoplay; camera; microphone; clipboard-write; xr-spatial-tracking'});
     quadro.src = urlJogo + '#livre';
     ResultadoJogo.anexar(quadro, j.nome);

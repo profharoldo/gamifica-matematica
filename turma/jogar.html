@@ -63,7 +63,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="jogos.js"></script>
-<script src="resultado-jogo.js?v=20261101173408"></script>
+<script src="resultado-jogo.js?v=20261101173558"></script>
 <script>ResultadoJogo.protegerPagina();</script>
 <script>
 (function(){
@@ -268,7 +268,7 @@ async function carregarJogo(){
     if(!r.ok){ var e = await r.json().catch(function(){ return {}; }); throw new Error(e.erro || 'Erro ' + r.status); }
     var html = await r.text();
     if(urlJogo) URL.revokeObjectURL(urlJogo);
-    urlJogo = URL.createObjectURL(new Blob([ResultadoJogo.preparar(html)], {type:'text/html'}));
+    urlJogo = URL.createObjectURL(new Blob([ResultadoJogo.preparar(html, (window.JOGOS[atividade.jogo] || {}).tema || '')], {type:'text/html'}));
     quadro.src = urlJogo;
     setStatus('', '');
   }catch(e){

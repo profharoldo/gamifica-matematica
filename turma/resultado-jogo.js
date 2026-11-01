@@ -178,6 +178,80 @@
       if (window.webkitAudioContext){ try{ window.webkitAudioContext = Patched; }catch(e){} }
     }
   }
+  /* Som temático para QUALQUER item: clique, acerto, erro e fim, com sons conforme o tema.
+     Usa o AudioContext já ligado ao controle geral (botão 🔊 do portal). */
+  function somTematico(){
+    var ctx = null, ultimo = 0;
+    var tema = String(window.__gamificaTema || '').toLowerCase();
+    var paleta = /financ|dinheiro|juros|orcament|cart|compra|mercado|pagamento/.test(tema) ? 'moedas'
+               : /espa|alien|geometr|solid|planet|gerador|3d|dado/.test(tema) ? 'espaco' : 'jogo';
+    function audio(){
+      if (ctx) return ctx;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try{ ctx = new AC(); }catch(e){ ctx = null; }
+      return ctx;
+    }
+    function nota(f, t0, dur, tipo, vol, f2){
+      var c = audio(); if (!c) return;
+      try{
+        if (c.state === 'suspended') c.resume();
+        var t = c.currentTime + t0, o = c.createOscillator(), g = c.createGain();
+        o.type = tipo || 'triangle';
+        o.frequency.setValueAtTime(f, t);
+        if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+        g.gain.setValueAtTime(vol || 0.08, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(c.destination);
+        o.start(t); o.stop(t + dur + 0.05);
+      }catch(e){}
+    }
+    var sons = {
+      clique: function(){ nota(880, 0, .045, 'square', .025); },
+      certo: function(){
+        if (paleta === 'moedas'){ nota(988, 0, .10, 'square', .05); nota(1319, .09, .22, 'square', .05); }
+        else if (paleta === 'espaco'){ nota(400, 0, .25, 'sine', .09, 1200); nota(1200, .22, .18, 'triangle', .07); }
+        else { nota(523, 0, .12); nota(659, .1, .12); nota(784, .2, .22); }
+      },
+      errado: function(){
+        if (paleta === 'moedas'){ nota(196, 0, .25, 'sawtooth', .05); nota(147, .2, .3, 'sawtooth', .05); }
+        else if (paleta === 'espaco'){ nota(700, 0, .35, 'sine', .08, 150); }
+        else { nota(220, 0, .18, 'sawtooth', .05); nota(165, .16, .25, 'sawtooth', .05); }
+      },
+      fim: function(){
+        if (paleta === 'moedas'){ [988,1175,1319,1568].forEach(function(f,i){ nota(f, i*.09, .16, 'square', .045); }); }
+        else if (paleta === 'espaco'){ [392,523,659,784,1047].forEach(function(f,i){ nota(f, i*.12, .3, 'sine', .07); }); }
+        else { [523,659,784,1047].forEach(function(f,i){ nota(f, i*.13, .26); }); }
+      }
+    };
+    function toca(nome){
+      var agora = Date.now(); if (agora - ultimo < 250) return; ultimo = agora;
+      sons[nome]();
+    }
+    /* Clique em botões e opções */
+    document.addEventListener('click', function(e){
+      var t = e.target; if (!t || !t.closest) return;
+      if (t.closest('button,[role="button"],.opt,.chip,.tab,.cartao,.card,a')) toca('clique');
+    }, true);
+    /* Feedback: textos que aparecem na tela (acerto, erro, fim) */
+    var RE_CERTO = /corre[tc]|certo|acert|parab[ée]ns|muito bem|isso mesmo|✅/i;
+    var RE_ERRADO = /errad|incorret|errou|tente de novo|quase|❌/i;
+    var RE_FIM = /fim de jogo|vencedor|vit[óo]ria|venceu|ganhou|resultado final|fim da (partida|atividade)|conclu[ií]d|terminou|🏆/i;
+    function olha(no){
+      if (!no || no.nodeType !== 1) return;
+      var txt = (no.textContent || '').trim();
+      if (!txt || txt.length > 140) return;
+      if (RE_FIM.test(txt)) toca('fim');
+      else if (RE_CERTO.test(txt)) toca('certo');
+      else if (RE_ERRADO.test(txt)) toca('errado');
+    }
+    try{
+      new MutationObserver(function(lista){
+        lista.forEach(function(m){ for (var i = 0; i < m.addedNodes.length; i++) olha(m.addedNodes[i]); });
+      }).observe(document.documentElement, {childList: true, subtree: true});
+    }catch(e){}
+  }
+
   function protecaoTela(){
     function campo(t){ return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable); }
     document.addEventListener('contextmenu', function(e){ if(!campo(e.target)) e.preventDefault(); });
@@ -194,8 +268,8 @@
 
   window.ResultadoJogo = window.ResultadoJogo || {};
   /* Insere o código de som/proteção antes de qualquer script do jogo */
-  window.ResultadoJogo.preparar = function(html){
-    var tag = '<script>(' + jogoPatch.toString() + ')();(' + protecaoTela.toString() + ')();</script>';
+  window.ResultadoJogo.preparar = function(html, tema){
+    var tag = '<script>window.__gamificaTema=' + JSON.stringify(String(tema || '')) + ';(' + jogoPatch.toString() + ')();(' + somTematico.toString() + ')();(' + protecaoTela.toString() + ')();</script>';
     return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, function(m){ return m + tag; }) : tag + html;
   };
   /* Proteção básica também na própria página do portal */
