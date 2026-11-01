@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Acesso de teste · Gamefica</title>
+<link rel="icon" href="../favicon.ico?v=3" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="../icone-192.png?v=3">
+<style>
+  :root{--ink:#1b2440;--muted:#5d6785;--primary:#4f46e5;--bad:#dc2626;--ok:#16a34a}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#1d2b53;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.2);flex-shrink:0}
+  header h1{font-size:15px;margin:0;line-height:1.2}
+  .tempo{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap}
+  .tempo.acabando{color:var(--bad)}
+  .barra-btns{display:flex;gap:6px}
+  .peq{border:1px solid #d6dcea;background:#fff;border-radius:10px;padding:6px 10px;font-size:15px;cursor:pointer}
+  main{flex:1;position:relative;min-height:0}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+  .aviso{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px}
+  .cartao{background:#fff;border-radius:20px;padding:26px 22px;max-width:420px;width:100%;text-align:center;box-shadow:0 16px 50px rgba(10,10,60,.35)}
+  .cartao .emoji{font-size:48px;margin-bottom:6px}
+  .cartao h2{margin:6px 0 8px;font-size:20px}
+  .cartao p{color:var(--muted);font-size:15px;line-height:1.45}
+  .botao{display:block;margin-top:14px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#0891b2,#4f46e5);color:#fff;font-weight:800;font-size:16px;text-decoration:none}
+  .carregando{color:#fff;font-size:17px;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧪 Acesso de teste</h1>
+  <div class="barra-btns">
+    <span class="tempo" id="tempo" hidden></span>
+    <button class="peq" id="btnSom" aria-label="Ligar ou desligar o som" title="Som" hidden>🔊</button>
+    <button class="peq" id="btnTela" aria-label="Tela cheia" title="Tela cheia" hidden>⛶</button>
+  </div>
+</header>
+<main id="principal">
+  <div class="aviso"><div class="carregando" id="carregando">⏳ Abrindo o acesso de teste…</div></div>
+</main>
+
+<script src="supabase-config.js"></script>
+<script src="resultado-jogo.js"></script>
+<script>
+(function(){
+  var principal = document.getElementById('principal');
+  var tempoEl = document.getElementById('tempo');
+  var btnSom = document.getElementById('btnSom');
+  var btnTela = document.getElementById('btnTela');
+  var quadro = null, expira = 0, timer = null, somMudo = false;
+
+  function cartao(emoji, titulo, texto){
+    principal.innerHTML = '';
+    var a = document.createElement('div'); a.className = 'aviso';
+    a.innerHTML = '<div class="cartao"><div class="emoji">' + emoji + '</div><h2></h2><p></p>' +
+      '<a class="botao" href="../index.html">Entrar com login e senha</a></div>';
+    a.querySelector('h2').textContent = titulo;
+    a.querySelector('p').textContent = texto;
+    principal.appendChild(a);
+    tempoEl.hidden = true; btnSom.hidden = true; btnTela.hidden = true;
+    if(timer){ clearInterval(timer); timer = null; }
+  }
+
+  function atualizaTempo(){
+    var falta = expira - Date.now();
+    if(falta <= 0){
+      if(quadro){ quadro.remove(); quadro = null; }
+      cartao('⏰', 'O tempo de teste acabou', 'Este acesso de teste durou 1 hora. Para continuar, entre com o seu login e senha.');
+      return;
+    }
+    var min = Math.floor(falta / 60000), seg = Math.floor((falta % 60000) / 1000);
+    tempoEl.textContent = '⏱️ ' + min + ':' + (seg < 10 ? '0' : '') + seg;
+    tempoEl.classList.toggle('acabando', falta < 5 * 60000);
+  }
+
+  async function abrir(){
+    var token = new URLSearchParams(location.search).get('l') || '';
+    if(!/^[a-f0-9]{48}$/.test(token)){
+      cartao('🔗', 'Link inválido', 'Confira se o endereço foi copiado por inteiro.');
+      return;
+    }
+    var r;
+    try{
+      r = await fetch(window.SUPABASE_URL + '/functions/v1/jogo', {method:'POST', headers:{
+        'Content-Type':'application/json', 'apikey': window.SUPABASE_KEY},
+        body: JSON.stringify({token: token})});
+    }catch(e){
+      cartao('📡', 'Sem conexão', 'Não consegui abrir o jogo agora. Verifique a internet e tente de novo.');
+      return;
+    }
+    if(r.status === 410){ cartao('⏰', 'O tempo de teste acabou', 'Este acesso de teste durou 1 hora. Para continuar, entre com o seu login e senha.'); return; }
+    if(r.status === 404){ cartao('🔗', 'Link inválido', 'Este link não existe mais ou foi removido.'); return; }
+    if(!r.ok){ cartao('😕', 'Não foi possível abrir', 'Tente de novo em instantes.'); return; }
+
+    var html = await r.text();
+    var fim = r.headers.get('X-Expira-Em');
+    expira = fim ? Date.parse(fim) : Date.now() + 60 * 60000;
+
+    var doc = ResultadoJogo.preparar(html);
+    var url = URL.createObjectURL(new Blob([doc], {type:'text/html'}));
+    principal.innerHTML = '';
+    quadro = document.createElement('iframe');
+    quadro.title = 'Atividade em teste';
+    quadro.setAttribute('allow', 'fullscreen; autoplay; camera; microphone; clipboard-write; xr-spatial-tracking');
+    quadro.src = url + '#livre';
+    principal.appendChild(quadro);
+    ResultadoJogo.anexar(quadro, 'Acesso de teste');
+    quadro.addEventListener('load', function(){
+      ResultadoJogo.somDoJogo(quadro, somMudo);
+      ResultadoJogo.marcaDagua('Acesso de teste');
+    });
+    tempoEl.hidden = false; btnSom.hidden = false; btnTela.hidden = false;
+    atualizaTempo();
+    timer = setInterval(atualizaTempo, 1000);
+  }
+
+  btnSom.onclick = function(){
+    somMudo = !somMudo; btnSom.textContent = somMudo ? '🔇' : '🔊';
+    if(quadro) ResultadoJogo.somDoJogo(quadro, somMudo);
+  };
+  btnTela.onclick = function(){
+    if(document.fullscreenElement) document.exitFullscreen();
+    else if(principal.requestFullscreen) principal.requestFullscreen().catch(function(){});
+  };
+
+  abrir();
+})();
+</script>
+</body>
+</html>

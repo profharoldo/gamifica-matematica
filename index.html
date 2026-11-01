@@ -488,6 +488,33 @@ function fecharPlayer(){
   document.body.style.overflow = '';
 }
 var somMudo = false;
+async function compartilharJogo(id, caixa){
+  if(!caixa) return;
+  caixa.style.display = 'block';
+  caixa.innerHTML = '<p style="margin:0">⏳ Gerando o link…</p>';
+  try{
+    var r = await chamarFuncao('jogo', {acao:'compartilhar', jogo:id, sessao:SID});
+    var d = await r.json().catch(function(){ return {}; });
+    if(r.status === 403){ expulsar('outro_aparelho'); return; }
+    if(!r.ok || !d.token) throw new Error(d.erro || 'Não consegui gerar o link.');
+    var url = new URL('turma/compartilhado.html?l=' + d.token, location.href).href;
+    caixa.innerHTML = '';
+    var txt = el('input', {type:'text', readonly:true, value:url, style:'width:100%;margin:6px 0;padding:8px;border:1px solid #c7cfe3;border-radius:8px;font-size:13px'});
+    txt.onclick = function(){ this.select(); };
+    caixa.append(
+      el('p', {style:'margin:0 0 4px'}, '🔗 Link de teste: vale 1 hora a partir de quando a pessoa abrir. Nesse prazo ela não precisa de login.'),
+      txt,
+      el('button', {class:'peq', onclick: function(){
+        if(navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ caixa.querySelector('p').textContent = '✅ Link copiado! Envie para a pessoa.'; }).catch(function(){ txt.select(); });
+        else { txt.select(); }
+      }}, '📋 Copiar link'),
+      el('button', {class:'peq', style:'margin-left:6px', onclick: function(){ caixa.style.display = 'none'; }}, 'Fechar'));
+    txt.select();
+  }catch(e){
+    caixa.innerHTML = '';
+    caixa.append(el('p', {style:'margin:0;color:#dc2626'}, '😕 ' + (e.message || 'Não consegui gerar o link.')));
+  }
+}
 async function abrirJogo(id){
   var j = window.JOGOS[id];
   fecharPlayer();
@@ -500,9 +527,13 @@ async function abrirJogo(id){
       el('button', {class:'peq', id:'btnSomJogo', 'aria-label':'Ligar ou desligar o som', title:'Som', onclick: function(){
         somMudo = !somMudo; this.textContent = somMudo ? '🔇' : '🔊'; ResultadoJogo.somDoJogo(quadro, somMudo);
       }}, somMudo ? '🔇' : '🔊'),
+      el('button', {class:'peq', title:'Compartilhar um link de teste (1 hora)', onclick: function(){
+        compartilharJogo(id, document.getElementById('partilha'));
+      }}, '🔗'),
       el('button', {class:'peq', 'aria-label':'Tela cheia', onclick: function(){
         if(document.fullscreenElement) document.exitFullscreen(); else if(p.requestFullscreen) p.requestFullscreen().catch(function(){});
       }}, '⛶')),
+    el('div', {id:'partilha', style:'display:none;padding:12px 16px;background:#eef2ff;border-bottom:1px solid #d6dcea;font-size:14px'}),
     miolo);
   document.body.append(p); document.body.style.overflow = 'hidden';
   try{
