@@ -200,6 +200,29 @@ function erroTela(titulo, texto){
   mostrar(el('div', {class:'emoji'}, '😕'), el('h1', {}, titulo), el('p', {class:'muted'}, texto));
 }
 
+/* Filtro de identificação: aceita só nome e sobrenome de verdade (não apelido, teste ou sequência de teclado). */
+function semAcento(t){ return t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+var PALAVRAS_PROIBIDAS = ['teste','testes','aluno','aluna','anonimo','anonima','fulano','sicrano','beltrano','ciclano','nome','sobrenome',
+  'qualquer','nada','ninguem','apelido','professor','prof','vazio','none','null','undefined','nenhum','nenhuma','xxx','abc','asdf','qwerty','zxcv','hjkl','bbb','aaa','kkk','haha','lol','sei','fofo','gato','gata','bebe','amor','boy','girl','gamer','ninja','pro','admin','convidado','visitante'];
+function nomeValido(n){
+  var partes = n.split(' ');
+  if(partes.length < 2) return 'Digite nome e sobrenome, como aparece no seu documento (ex.: Maria Silva).';
+  if(partes.length > 6) return 'Digite somente o seu nome e sobrenome, sem apelido.';
+  if(n.length < 5 || n.length > 80) return 'Digite seu nome completo (nome e sobrenome).';
+  for(var i = 0; i < partes.length; i++){
+    var p = partes[i];
+    if(!/^[A-Za-zÀ-ÿ'\-]+$/.test(p) || p.length < 2) return 'Use somente letras no nome e no sobrenome (sem números ou símbolos).';
+    if(!/[aeiouyàáâãéêíóôõúü]/i.test(p)) return 'Esse nome não parece um nome de verdade. Digite seu nome completo.';
+    if(/(.)\1\1/i.test(p)) return 'Esse nome não parece um nome de verdade. Digite seu nome completo.';
+    if(/asdf|qwer|zxcv|hjkl|uiop|jkl|sdfg/i.test(semAcento(p))) return 'Esse nome não parece um nome de verdade. Digite seu nome completo.';
+    if(PALAVRAS_PROIBIDAS.indexOf(semAcento(p)) >= 0) return 'Digite seu nome verdadeiro, não apelido ou nome de teste.';
+  }
+  return '';
+}
+function turmaValida(t){
+  return t.length >= 3 && t.length <= 30 && /\d/.test(t) && /[A-Za-zÀ-ÿ]/.test(t);
+}
+
 function telaNome(){
   var nome = el('input', {type:'text', id:'nome', maxlength:'80', autocomplete:'name', placeholder:'Nome e sobrenome', value: ler('gm_nome')});
   var turma = el('input', {type:'text', id:'turma', maxlength:'40', placeholder:'Ex.: 3ª série A', value: atividade.turma || ler('gm_turma')});
@@ -208,20 +231,21 @@ function telaNome(){
     ev.preventDefault(); aviso.replaceChildren();
     var n = nome.value.trim().replace(/\s+/g, ' ');
     var s = turma.value.trim().replace(/\s+/g, ' ');
-    if(n.length === 1){ aviso.append(el('div', {class:'msg erro'}, 'Se preferir se identificar, digite nome e sobrenome.')); return; }
-    aluno = {nome: n.length >= 2 ? n : 'Não identificado', turma: s.length >= 2 ? s : ''};
-    if(n.length >= 2) guardar('gm_nome', aluno.nome);
-    if(s.length >= 2) guardar('gm_turma', aluno.turma);
+    var erroNome = nomeValido(n);
+    if(erroNome){ aviso.append(el('div', {class:'msg erro'}, erroNome)); return; }
+    if(!turmaValida(s)){ aviso.append(el('div', {class:'msg erro'}, 'Digite sua série e turma (ex.: 3ª série A).')); return; }
+    aluno = {nome: n, turma: s};
+    guardar('gm_nome', aluno.nome); guardar('gm_turma', aluno.turma);
     comecar();
   }},
-    el('label', {for:'nome'}, 'Seu nome completo (opcional)'), nome,
-    el('label', {for:'turma'}, 'Sua série e turma (opcional)'), turma,
+    el('label', {for:'nome'}, 'Seu nome completo *'), nome,
+    el('label', {for:'turma'}, 'Sua série e turma *'), turma,
     el('button', {type:'submit'}, '🚀 Começar'), aviso);
   var J = window.JOGOS[atividade.jogo];
   var cores = {amarelo:'#ffe27a', coral:'#ffb4a6', verde:'#a6e4c6', azul:'#b9d4ff', lilas:'#d8c9ff', laranja:'#ffc88a'};
   mostrar(el('div', {class:'post', style:'--n:' + (cores[J.cor] || cores.amarelo)}, J.tema ? el('span', {class:'tema'}, J.tema) : null, J.emoji || '🎮'),
     el('h1', {}, atividade.titulo),
-    el('p', {class:'muted'}, 'Identificação opcional: se quiser, digite seu nome e sua série. Ao terminar, sua nota é enviada automaticamente ao professor.'),
+    el('p', {class:'muted'}, 'Digite seu nome completo (nome e sobrenome) e sua série e turma. Ao terminar, sua nota é enviada automaticamente ao professor.'),
     form);
 }
 
