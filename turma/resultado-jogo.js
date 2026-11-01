@@ -224,6 +224,58 @@
         else { [523,659,784,1047].forEach(function(f,i){ nota(f, i*.13, .26); }); }
       }
     };
+    /* Música de fundo em loop, gerada no navegador (sem arquivos). Começa com o item. */
+    function tomAbs(f, tipo, dur, vol, ta){
+      var c = audio(); if (!c) return;
+      try{
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = tipo; o.frequency.setValueAtTime(f, ta);
+        g.gain.setValueAtTime(0.0001, ta);
+        g.gain.linearRampToValueAtTime(vol, ta + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ta + dur);
+        o.connect(g); g.connect(c.destination);
+        o.start(ta); o.stop(ta + dur + 0.05);
+      }catch(e){}
+    }
+    var acordes = {
+      jogo:   [[220, 261.63, 329.63], [174.61, 220, 261.63], [261.63, 329.63, 392], [196, 246.94, 293.66]],
+      moedas: [[261.63, 329.63, 392], [196, 246.94, 293.66], [220, 261.63, 329.63], [174.61, 220, 261.63]],
+      espaco: [[164.81, 196, 246.94], [261.63, 329.63, 392], [196, 246.94, 293.66], [293.66, 369.99, 440]]
+    };
+    var bpm = {jogo: 112, moedas: 124, espaco: 78}[paleta];
+    var musicaIniciada = false;
+    function iniciaMusica(c){
+      if (musicaIniciada) return; musicaIniciada = true;
+      var passo = 60 / bpm / 2, t0 = c.currentTime + 0.3, n = 0, proximo = t0;
+      var base = acordes[paleta];
+      function agenda(){
+        while (proximo < c.currentTime + 0.6){
+          var acorde = base[Math.floor(n / 8) % 4], pos = n % 8, ta = t0 + n * passo;
+          if (pos === 0) tomAbs(acorde[0] / 2, 'sine', passo * 6, 0.05, ta);
+          var nota = acorde[[0, 1, 2, 1][pos % 4]] * (pos >= 4 ? 2 : 1);
+          if (paleta === 'espaco') tomAbs(nota, 'sine', passo * 3.5, 0.03, ta);
+          else tomAbs(nota, 'triangle', passo * 1.6, 0.03, ta);
+          n++; proximo = t0 + n * passo;
+        }
+      }
+      agenda();
+      setInterval(agenda, 120);
+    }
+    function ligaMusica(){
+      if (musicaIniciada) return;
+      /* Se o próprio jogo já tem música (botão 🎵), não sobrepõe outra */
+      if (document.querySelector('[id*="usica"],[aria-label*="úsica"],[title*="úsica"],[aria-label*="usic"],[title*="usic"]')) { musicaIniciada = true; return; }
+      var c = audio(); if (!c) return;
+      try{
+        if (c.state === 'suspended'){
+          c.resume().then(function(){ if (c.state === 'running') iniciaMusica(c); }).catch(function(){});
+        } else iniciaMusica(c);
+      }catch(e){}
+    }
+    ligaMusica();
+    document.addEventListener('pointerdown', ligaMusica);
+    document.addEventListener('keydown', ligaMusica);
+
     function toca(nome){
       var agora = Date.now(); if (agora - ultimo < 250) return; ultimo = agora;
       sons[nome]();
