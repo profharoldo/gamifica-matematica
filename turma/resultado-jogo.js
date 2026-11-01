@@ -42,6 +42,17 @@
     return b;
   }
 
+  function botaoIdentificar(G, quadro){
+    var b = document.createElement('button');
+    b.textContent = '✍️ Identificar (opcional)';
+    b.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:2147483000;font:inherit;font-weight:800;font-size:13px;border-radius:999px;padding:8px 12px;border:2px solid #d5d8f5;background:#fff;color:#1b2440;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)';
+    b.addEventListener('click', function(){ if(G.aluno){ b.remove(); return; } pedirIdentificacao(G); });
+    document.body.appendChild(b);
+    var t = setInterval(function(){
+      if(G.aluno || !quadro.isConnected){ if(b.parentNode) b.remove(); clearInterval(t); }
+    }, 700);
+  }
+
   function pedirIdentificacao(G){
     var titulo = document.createElement('div');
     titulo.innerHTML = '<h2 style="margin:0 0 6px;font-size:1.2rem">✍️ Identificação</h2><p style="margin:0 0 12px;color:#5d6785;font-size:.95rem">Digite seu <b>nome completo</b> e sua <b>série e turma</b>. Esse é o nome que aparece no resultado final.</p>';
@@ -57,7 +68,11 @@
     });
     var aviso = document.createElement('div'); aviso.style.cssText = 'color:#b91c1c;font-weight:700;margin-top:8px;min-height:1em';
     var ok = botao('▶️ Começar', 'pri', function(){});
-    ok.type = 'submit'; form.appendChild(ok); form.appendChild(aviso);
+    ok.type = 'submit'; form.appendChild(ok);
+    var pular = botao('Agora não', 'sec', function(){});
+    pular.type = 'button';
+    pular.addEventListener('click', function(){ if(fundo && fundo.parentNode) fundo.parentNode.removeChild(fundo); });
+    form.appendChild(pular); form.appendChild(aviso);
     form.addEventListener('submit', function(ev){
       ev.preventDefault();
       var n = entradas.nome.value.trim().replace(/\s+/g, ' ');
@@ -190,8 +205,8 @@
         if(!G || G.__resultadoLigado) return;
         G.__resultadoLigado = true;
 
-        /* Identificação obrigatória antes de jogar (se o jogo ainda não tem aluno) */
-        if(!G.aluno) pedirIdentificacao(G);
+        /* Identificação OPCIONAL: um botão discreto, sem bloquear o jogo */
+        if(!G.aluno) botaoIdentificar(G, quadro);
 
         /* Quando o jogo termina e envia a nota, mostra o resultado final */
         var enviarOriginal = G.enviar;

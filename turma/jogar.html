@@ -193,7 +193,7 @@ function festa(nota, acertos, total, pontos){
     el('button', {type:'button', onclick: function(){ document.getElementById('parabens').classList.remove('on'); }}, '👍 Fechar'),
     el('button', {type:'button', class:'sec', onclick: function(){ document.getElementById('parabens').classList.remove('on'); prog = null; comecar(); }}, '🔁 Jogar de novo'));
   document.getElementById('parabens').classList.add('on');
-  buscarPosicao(aluno.nome, aluno.turma).then(function(pos){ var q = document.getElementById('posicao-msg'); if(q) q.textContent = textoPosicao(pos); });
+  if(aluno.nome !== 'Não identificado') buscarPosicao(aluno.nome, aluno.turma).then(function(pos){ var q = document.getElementById('posicao-msg'); if(q) q.textContent = textoPosicao(pos); });
 }
 
 function erroTela(titulo, texto){
@@ -207,21 +207,21 @@ function telaNome(){
   var form = el('form', {onsubmit: function(ev){
     ev.preventDefault(); aviso.replaceChildren();
     var n = nome.value.trim().replace(/\s+/g, ' ');
-    if(n.length < 2){ aviso.append(el('div', {class:'msg erro'}, 'Digite seu nome completo para o professor reconhecer você.')); return; }
     var s = turma.value.trim().replace(/\s+/g, ' ');
-    if(s.length < 2){ aviso.append(el('div', {class:'msg erro'}, 'Digite sua série e turma (ex.: 3ª série A).')); return; }
-    aluno = {nome: n, turma: s};
-    guardar('gm_nome', aluno.nome); guardar('gm_turma', aluno.turma);
+    if(n.length === 1){ aviso.append(el('div', {class:'msg erro'}, 'Se preferir se identificar, digite nome e sobrenome.')); return; }
+    aluno = {nome: n.length >= 2 ? n : 'Não identificado', turma: s.length >= 2 ? s : ''};
+    if(n.length >= 2) guardar('gm_nome', aluno.nome);
+    if(s.length >= 2) guardar('gm_turma', aluno.turma);
     comecar();
   }},
-    el('label', {for:'nome'}, 'Seu nome completo'), nome,
-    el('label', {for:'turma'}, 'Sua série e turma'), turma,
+    el('label', {for:'nome'}, 'Seu nome completo (opcional)'), nome,
+    el('label', {for:'turma'}, 'Sua série e turma (opcional)'), turma,
     el('button', {type:'submit'}, '🚀 Começar'), aviso);
   var J = window.JOGOS[atividade.jogo];
   var cores = {amarelo:'#ffe27a', coral:'#ffb4a6', verde:'#a6e4c6', azul:'#b9d4ff', lilas:'#d8c9ff', laranja:'#ffc88a'};
   mostrar(el('div', {class:'post', style:'--n:' + (cores[J.cor] || cores.amarelo)}, J.tema ? el('span', {class:'tema'}, J.tema) : null, J.emoji || '🎮'),
     el('h1', {}, atividade.titulo),
-    el('p', {class:'muted'}, 'Digite seus dados. Ao terminar, sua nota é enviada automaticamente ao professor.'),
+    el('p', {class:'muted'}, 'Identificação opcional: se quiser, digite seu nome e sua série. Ao terminar, sua nota é enviada automaticamente ao professor.'),
     form);
 }
 
