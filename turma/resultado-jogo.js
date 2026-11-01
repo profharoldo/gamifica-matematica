@@ -131,6 +131,22 @@
      - Som: todo áudio passa por um controle geral, que o botão 🔊 liga e desliga.
      - Proteção: bloqueia clique direito e atalhos de salvar/inspecionar fora dos campos de digitação. */
   function jogoPatch(){
+    /* Um só botão de tela cheia: o do portal. Esconde o ⛶ que alguns jogos têm por conta própria. */
+    (function esconderTelaCheia(){
+      var css = 'button[aria-label*="tela cheia" i],button[title*="tela cheia" i],button[aria-label*="fullscreen" i],button[title*="fullscreen" i],button[aria-label*="tela inteira" i],button[title*="tela inteira" i],#btnTela,#btn-tela,#fullscreen,#btnFullscreen,.btn-tela,.btn-fullscreen{display:none!important}';
+      var st = document.createElement('style'); st.textContent = css;
+      (document.head || document.documentElement).appendChild(st);
+      var simbolos = ['⛶', '⤢', '⤡', '⛷'];
+      function limpa(){
+        var bs = document.querySelectorAll('button,a,[role="button"]');
+        for (var i = 0; i < bs.length; i++){
+          var t = (bs[i].textContent || '').trim();
+          if (simbolos.indexOf(t) >= 0 && bs[i].style.display !== 'none') bs[i].style.setProperty('display', 'none', 'important');
+        }
+      }
+      limpa();
+      try{ new MutationObserver(limpa).observe(document.documentElement, {childList: true, subtree: true}); }catch(e){}
+    })();
     var mudo = false, masters = [];
     window.__gamificaSomSet = function(m){ mudo = !!m; masters.forEach(function(g){ try{ g.gain.value = mudo ? 0 : 1; }catch(e){} }); };
     var AC = window.AudioContext || window.webkitAudioContext;
