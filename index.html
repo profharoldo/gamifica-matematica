@@ -195,7 +195,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@9.8.1/dist/index.iife.js"></script>
 <script src="turma/supabase-config.js"></script>
-<script src="turma/jogos.js?v=20261031003430"></script>
+<script src="turma/jogos.js?v=20261101153517"></script>
 <script src="turma/qr.js"></script>
 <script src="turma/resultado-jogo.js?v=20261031"></script>
 <script>ResultadoJogo.protegerPagina();</script>
@@ -513,7 +513,7 @@ async function abrirJogo(id){
     var html = await r.text();
     if(!document.getElementById('player')) return;
     urlJogo = URL.createObjectURL(new Blob([ResultadoJogo.preparar(html)], {type:'text/html'}));
-    quadro = el('iframe', {title: j.nome, allow:'fullscreen; autoplay; camera; microphone; clipboard-write'});
+    quadro = el('iframe', {title: j.nome, allow:'fullscreen; autoplay; camera; microphone; clipboard-write; xr-spatial-tracking'});
     quadro.src = urlJogo + '#livre';
     ResultadoJogo.anexar(quadro, j.nome);
     quadro.addEventListener('load', function(){ ResultadoJogo.somDoJogo(quadro, somMudo); ResultadoJogo.marcaDagua(perfil ? perfil.nome : ''); });

@@ -236,6 +236,13 @@ window.JOGOS = {
     emoji: "💳", cor: "lilas",
     conteudo: "Educação Financeira"
   },
+  "geoar-solidos-ar": {
+    nome: "GeoAR · Sólidos na Sua Sala",
+    tema: "Geometria espacial",
+    desc: "Sólidos geométricos em realidade aumentada: veja, gire e conte faces, arestas e vértices na sua sala. Com fórmulas e desafios.",
+    emoji: "🧊", cor: "verde",
+    tipo: "simulador", conteudo: "Geometria espacial"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
