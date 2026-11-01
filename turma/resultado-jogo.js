@@ -136,12 +136,17 @@
       var css = 'button[aria-label*="tela cheia" i],button[title*="tela cheia" i],button[aria-label*="fullscreen" i],button[title*="fullscreen" i],button[aria-label*="tela inteira" i],button[title*="tela inteira" i],#btnTela,#btn-tela,#fullscreen,#btnFullscreen,.btn-tela,.btn-fullscreen,button[aria-label~="som" i],button[title~="som" i],button[aria-label~="sound" i],button[title~="sound" i],button[aria-label~="mudo" i],button[title~="mudo" i],#btnSom,#btn-som,#btnSomJogo{display:none!important}';
       var st = document.createElement('style'); st.textContent = css;
       (document.head || document.documentElement).appendChild(st);
-      var simbolos = ['⛶', '⤢', '⤡', '⛷', '🔊', '🔉', '🔈', '🔇'];
+      var simbolos = ['\u26F6', '\u2922', '\u2921', '\u26F7', '\uD83D\uDD0A', '\uD83D\uDD09', '\uD83D\uDD08', '\uD83D\uDD07'];
       function limpa(){
-        var bs = document.querySelectorAll('button,a,[role="button"]');
-        for (var i = 0; i < bs.length; i++){
-          var t = (bs[i].textContent || '').trim();
-          if (simbolos.indexOf(t) >= 0 && bs[i].style.display !== 'none') bs[i].style.setProperty('display', 'none', 'important');
+        var todos = document.querySelectorAll('body *');
+        for (var i = 0; i < todos.length; i++){
+          var e = todos[i];
+          if (e.children.length || e.style.display === 'none') continue;
+          var t = (e.textContent || '').replace(/[\uFE0E\uFE0F\s]/g, '');
+          if (!t || t.length > 4) continue;
+          var achou = false;
+          for (var k = 0; k < simbolos.length; k++){ if (t.indexOf(simbolos[k]) >= 0){ achou = true; break; } }
+          if (achou) e.style.setProperty('display', 'none', 'important');
         }
       }
       limpa();
