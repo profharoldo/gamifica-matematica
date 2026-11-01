@@ -410,7 +410,7 @@ async function iniciar(){
 function entrarNoSite(){
   usuarioBox.replaceChildren(
     el('span', {}, (perfil.papel === 'admin' ? '🛡️ ' : '👤 ') + (perfil.nome || sessao.user.email)),
-    el('button', {class:'sec peq', onclick: compartilharSite}, '🔗 Compartilhar site'),
+    perfil.papel === 'admin' ? el('button', {class:'sec peq', onclick: compartilharSite}, '🔗 Compartilhar site') : null,
     el('button', {class:'sec peq', onclick: sair}, 'Sair'));
   var h = (location.hash || '').replace('#', '');
   if(h === 'turmas' || h === 'atribuir' || h === 'jogos' || h === 'simuladores' || h === 'ferramentas' || (h === 'admin' && perfil.papel === 'admin')) aba = h;
@@ -595,7 +595,7 @@ async function abrirJogo(id){
       el('button', {class:'peq', id:'btnSomJogo', 'aria-label':'Ligar ou desligar o som', title:'Som', onclick: function(){
         somMudo = !somMudo; this.textContent = somMudo ? '🔇' : '🔊'; ResultadoJogo.somDoJogo(quadro, somMudo);
       }}, somMudo ? '🔇' : '🔊'),
-      visitante ? null : el('button', {class:'peq', title:'Compartilhar um link de teste (1 hora)', onclick: function(){
+      (visitante || perfil.papel !== 'admin') ? null : el('button', {class:'peq', title:'Compartilhar um link de teste (1 hora)', onclick: function(){
         compartilharJogo(id, document.getElementById('partilha'));
       }}, '🔗'),
       el('button', {class:'peq', 'aria-label':'Tela cheia', onclick: function(){
