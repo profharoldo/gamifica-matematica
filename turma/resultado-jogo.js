@@ -251,30 +251,36 @@
       function agenda(){
         while (proximo < c.currentTime + 0.6){
           var acorde = base[Math.floor(n / 8) % 4], pos = n % 8, ta = t0 + n * passo;
-          if (pos === 0) tomAbs(acorde[0] / 2, 'sine', passo * 6, 0.05, ta);
+          if (pos === 0) tomAbs(acorde[0] / 2, 'sine', passo * 6, 0.08, ta);
           var nota = acorde[[0, 1, 2, 1][pos % 4]] * (pos >= 4 ? 2 : 1);
-          if (paleta === 'espaco') tomAbs(nota, 'sine', passo * 3.5, 0.03, ta);
-          else tomAbs(nota, 'triangle', passo * 1.6, 0.03, ta);
+          if (paleta === 'espaco') tomAbs(nota, 'sine', passo * 3.5, 0.05, ta);
+          else tomAbs(nota, 'triangle', passo * 1.6, 0.055, ta);
           n++; proximo = t0 + n * passo;
         }
       }
       agenda();
       setInterval(agenda, 120);
     }
+    var tentativas = 0, timerMusica = null;
     function ligaMusica(){
       if (musicaIniciada) return;
       /* Se o próprio jogo já tem música (botão 🎵), não sobrepõe outra */
       if (document.querySelector('[id*="usica"],[aria-label*="úsica"],[title*="úsica"],[aria-label*="usic"],[title*="usic"]')) { musicaIniciada = true; return; }
       var c = audio(); if (!c) return;
       try{
-        if (c.state === 'suspended'){
-          c.resume().then(function(){ if (c.state === 'running') iniciaMusica(c); }).catch(function(){});
-        } else iniciaMusica(c);
+        if (c.state === 'running'){ iniciaMusica(c); return; }
+        c.resume().then(function(){ if (c.state === 'running') iniciaMusica(c); }).catch(function(){});
       }catch(e){}
     }
+    /* Tenta sozinho no começo, a cada toque/tecla dentro do item e por alguns segundos */
     ligaMusica();
-    document.addEventListener('pointerdown', ligaMusica);
-    document.addEventListener('keydown', ligaMusica);
+    ['pointerdown','touchstart','mousedown','keydown','click'].forEach(function(ev){
+      document.addEventListener(ev, ligaMusica, true);
+    });
+    timerMusica = setInterval(function(){
+      tentativas++; ligaMusica();
+      if (musicaIniciada || tentativas > 60) clearInterval(timerMusica);
+    }, 1000);
 
     function toca(nome){
       var agora = Date.now(); if (agora - ultimo < 250) return; ultimo = agora;
