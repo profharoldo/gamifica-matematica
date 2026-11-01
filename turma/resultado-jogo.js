@@ -133,10 +133,10 @@
   function jogoPatch(){
     /* Um só botão de tela cheia: o do portal. Esconde o ⛶ que alguns jogos têm por conta própria. */
     (function esconderTelaCheia(){
-      var css = 'button[aria-label*="tela cheia" i],button[title*="tela cheia" i],button[aria-label*="fullscreen" i],button[title*="fullscreen" i],button[aria-label*="tela inteira" i],button[title*="tela inteira" i],#btnTela,#btn-tela,#fullscreen,#btnFullscreen,.btn-tela,.btn-fullscreen{display:none!important}';
+      var css = 'button[aria-label*="tela cheia" i],button[title*="tela cheia" i],button[aria-label*="fullscreen" i],button[title*="fullscreen" i],button[aria-label*="tela inteira" i],button[title*="tela inteira" i],#btnTela,#btn-tela,#fullscreen,#btnFullscreen,.btn-tela,.btn-fullscreen,button[aria-label~="som" i],button[title~="som" i],button[aria-label~="sound" i],button[title~="sound" i],button[aria-label~="mudo" i],button[title~="mudo" i],#btnSom,#btn-som,#btnSomJogo{display:none!important}';
       var st = document.createElement('style'); st.textContent = css;
       (document.head || document.documentElement).appendChild(st);
-      var simbolos = ['⛶', '⤢', '⤡', '⛷'];
+      var simbolos = ['⛶', '⤢', '⤡', '⛷', '🔊', '🔉', '🔈', '🔇'];
       function limpa(){
         var bs = document.querySelectorAll('button,a,[role="button"]');
         for (var i = 0; i < bs.length; i++){
@@ -148,7 +148,7 @@
       try{ new MutationObserver(limpa).observe(document.documentElement, {childList: true, subtree: true}); }catch(e){}
     })();
     var mudo = false, masters = [];
-    window.__gamificaSomSet = function(m){ mudo = !!m; masters.forEach(function(g){ try{ g.gain.value = mudo ? 0 : 1; }catch(e){} }); };
+    window.__gamificaSomSet = function(m){ mudo = !!m; masters.forEach(function(g){ try{ g.gain.value = mudo ? 0 : 1; }catch(e){} }); try{ document.querySelectorAll('audio,video').forEach(function(x){ x.muted = mudo; }); }catch(e){} };
     var AC = window.AudioContext || window.webkitAudioContext;
     if (AC){
       var Patched = function(){
