@@ -321,6 +321,72 @@ function pararVigia(){ if(vigia){ clearInterval(vigia); vigia = null; } }
 document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') verificar(); });
 window.addEventListener('focus', verificar);
 
+/* ---------- visitante com convite de 1 hora ---------- */
+var visitante = null, visitanteTimer = null;
+function pegaConvite(){
+  var u = new URLSearchParams(location.search).get('convite');
+  if(u) return u.trim();
+  try{ return sessionStorage.getItem('gm_convite') || ''; }catch(e){ return ''; }
+}
+async function entrarVisitante(tok){
+  var r, d = {};
+  try{
+    r = await fetch(FUNCOES + 'jogo', {method:'POST', headers:{'Content-Type':'application/json', 'apikey': window.SUPABASE_KEY},
+      body: JSON.stringify({convite: tok, acao: 'entrar_site'})});
+    d = await r.json().catch(function(){ return {}; });
+  }catch(e){ desenharLogin('Sem conexão. Verifique a internet e recarregue a página.'); return true; }
+  if(r.status === 410){ desenharLogin(d.mensagem || 'Seu tempo de teste acabou. Entre com seu login e senha.'); return true; }
+  if(!r.ok || !d.ok){ desenharLogin('Este convite não é válido. Peça um novo link ao Prof. Haroldo.'); return true; }
+  visitante = {token: tok, expira: Date.parse(d.expira_em)};
+  try{ sessionStorage.setItem('gm_convite', tok); }catch(e){}
+  try{ history.replaceState(null, '', location.pathname + (location.hash || '')); }catch(e){}
+  perfil = {nome: 'Visitante de teste', papel: 'visitante', login: '', validade: null};
+  aba = 'jogos';
+  usuarioBox.replaceChildren(
+    el('span', {id:'tempo-visitante', style:'font-size:13px;font-weight:700;align-self:center'}, '🧪 Teste'),
+    el('button', {class:'sec peq', onclick: function(){ sairVisitante(null); }}, 'Entrar com login'));
+  desenharAbas(); mostrarAba();
+  atualizaTempoVisitante();
+  visitanteTimer = setInterval(atualizaTempoVisitante, 1000);
+  return true;
+}
+function atualizaTempoVisitante(){
+  if(!visitante) return;
+  var falta = visitante.expira - Date.now();
+  if(falta <= 0){ sairVisitante('Seu tempo de teste acabou (1 hora). Entre com seu login e senha.'); return; }
+  var m = Math.floor(falta / 60000), s = Math.floor((falta % 60000) / 1000);
+  var t = document.getElementById('tempo-visitante');
+  if(t) t.textContent = '🧪 Teste · ' + m + ':' + (s < 10 ? '0' : '') + s;
+}
+function sairVisitante(aviso){
+  if(visitanteTimer){ clearInterval(visitanteTimer); visitanteTimer = null; }
+  visitante = null; perfil = null;
+  try{ sessionStorage.removeItem('gm_convite'); }catch(e){}
+  fecharPlayer();
+  desenharLogin(aviso);
+}
+async function compartilharSite(){
+  var r, d = {};
+  try{
+    r = await chamarFuncao('jogo', {acao: 'compartilhar_site', sessao: SID});
+    d = await r.json().catch(function(){ return {}; });
+  }catch(e){ app.prepend(msg('erro', 'Sem conexão. Tente de novo.')); return; }
+  if(r.status === 403){ expulsar('outro_aparelho'); return; }
+  if(!r.ok || !d.token){ app.prepend(msg('erro', d.erro || 'Não consegui gerar o link do site.')); return; }
+  var url = new URL('index.html?convite=' + d.token, location.href).href;
+  var txt = el('input', {type:'text', readonly:true, value:url, style:'width:100%;margin:6px 0;padding:8px;border:1px solid #c7cfe3;border-radius:8px;font-size:13px'});
+  txt.onclick = function(){ this.select(); };
+  var aviso = el('p', {style:'margin:0 0 6px;font-size:14px'}, 'Quem abrir este link entra sem login e tem 1 hora de acesso, contada a partir do primeiro acesso. Depois disso, precisa de login e senha.');
+  var caixa = el('div', {class:'card', style:'padding:14px 16px;margin:0 0 14px'},
+    el('p', {style:'margin:0 0 4px;font-weight:800'}, '🔗 Link de teste do portal'), aviso, txt,
+    el('button', {class:'sec peq', onclick: function(){
+      if(navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ aviso.textContent = '✅ Link copiado! Envie para a pessoa.'; }).catch(function(){ txt.select(); });
+      else txt.select();
+    }}, '📋 Copiar link'),
+    el('button', {class:'sec peq', style:'margin-left:6px', onclick: function(){ caixa.remove(); }}, 'Fechar'));
+  app.prepend(caixa); txt.select();
+}
+
 /* ---------- início ---------- */
 async function iniciar(){
   var r = await sb.auth.getSession();
@@ -329,7 +395,7 @@ async function iniciar(){
     if(evt === 'TOKEN_REFRESHED' || evt === 'SIGNED_IN') sessao = s;
     if(evt === 'SIGNED_OUT' && perfil){ sessao = null; perfil = null; pararVigia(); desenharLogin(); }
   });
-  if(!sessao){ desenharLogin(); return; }
+  if(!sessao){ var conv = pegaConvite(); if(conv && await entrarVisitante(conv)) return; desenharLogin(); return; }
   SID = ler('gm_sid_' + sessao.user.id);
   if(!SID){ await sb.auth.signOut({scope:'local'}); sessao = null; desenharLogin(); return; }
   var v = await sb.rpc('verificar_sessao', {p_sessao: SID});
@@ -344,6 +410,7 @@ async function iniciar(){
 function entrarNoSite(){
   usuarioBox.replaceChildren(
     el('span', {}, (perfil.papel === 'admin' ? '🛡️ ' : '👤 ') + (perfil.nome || sessao.user.email)),
+    el('button', {class:'sec peq', onclick: compartilharSite}, '🔗 Compartilhar site'),
     el('button', {class:'sec peq', onclick: sair}, 'Sair'));
   var h = (location.hash || '').replace('#', '');
   if(h === 'turmas' || h === 'atribuir' || h === 'jogos' || h === 'simuladores' || h === 'ferramentas' || (h === 'admin' && perfil.papel === 'admin')) aba = h;
@@ -411,7 +478,8 @@ function desenharLogin(aviso){
 /* ---------- abas ---------- */
 function desenharAbas(){
   var itens = [['jogos', '🎮 Jogos'], ['simuladores', '🔬 Simuladores'], ['ferramentas', '🧰 Ferramentas'], ['atribuir', '📝 Atribuir tarefas'], ['turmas', '👩‍🏫 Turmas e notas']];
-  if(perfil.papel === 'admin') itens.push(['admin', '🛡️ Administração']);
+  if(visitante) itens = itens.slice(0, 3);
+  else if(perfil.papel === 'admin') itens.push(['admin', '🛡️ Administração']);
   abasBox.replaceChildren.apply(abasBox, itens.map(function(it){
     return el('button', {'aria-current': aba === it[0] ? 'page' : 'false', onclick: function(){ aba = it[0]; history.replaceState(null, '', '#' + aba); desenharAbas(); mostrarAba(); }}, it[1]);
   }));
@@ -527,7 +595,7 @@ async function abrirJogo(id){
       el('button', {class:'peq', id:'btnSomJogo', 'aria-label':'Ligar ou desligar o som', title:'Som', onclick: function(){
         somMudo = !somMudo; this.textContent = somMudo ? '🔇' : '🔊'; ResultadoJogo.somDoJogo(quadro, somMudo);
       }}, somMudo ? '🔇' : '🔊'),
-      el('button', {class:'peq', title:'Compartilhar um link de teste (1 hora)', onclick: function(){
+      visitante ? null : el('button', {class:'peq', title:'Compartilhar um link de teste (1 hora)', onclick: function(){
         compartilharJogo(id, document.getElementById('partilha'));
       }}, '🔗'),
       el('button', {class:'peq', 'aria-label':'Tela cheia', onclick: function(){
@@ -537,7 +605,10 @@ async function abrirJogo(id){
     miolo);
   document.body.append(p); document.body.style.overflow = 'hidden';
   try{
-    var r = await chamarFuncao('jogo', {jogo: id, sessao: SID});
+    var r = visitante
+      ? await fetch(FUNCOES + 'jogo', {method:'POST', headers:{'Content-Type':'application/json', 'apikey': window.SUPABASE_KEY}, body: JSON.stringify({jogo: id, convite: visitante.token})})
+      : await chamarFuncao('jogo', {jogo: id, sessao: SID});
+    if(visitante && r.status === 410){ sairVisitante('Seu tempo de teste acabou (1 hora). Entre com seu login e senha.'); return; }
     if(r.status === 403){ expulsar('outro_aparelho'); return; }
     if(r.status === 401){ expulsar('encerrada'); return; }
     if(!r.ok){ var e = await r.json().catch(function(){ return {}; }); throw new Error(e.erro || 'Erro ' + r.status); }
