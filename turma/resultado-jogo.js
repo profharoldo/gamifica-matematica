@@ -133,24 +133,32 @@
   function jogoPatch(){
     /* Um só botão de tela cheia: o do portal. Esconde o ⛶ que alguns jogos têm por conta própria. */
     (function esconderTelaCheia(){
-      var css = 'button[aria-label*="tela cheia" i],button[title*="tela cheia" i],button[aria-label*="fullscreen" i],button[title*="fullscreen" i],button[aria-label*="tela inteira" i],button[title*="tela inteira" i],#btnTela,#btn-tela,#fullscreen,#btnFullscreen,.btn-tela,.btn-fullscreen,button[aria-label~="som" i],button[title~="som" i],button[aria-label~="sound" i],button[title~="sound" i],button[aria-label~="mudo" i],button[title~="mudo" i],#btnSom,#btn-som,#btnSomJogo{display:none!important}';
+      /* Seletores dos controles próprios de tela cheia e de som dos jogos. */
+      var seletores = ['button[aria-label*="tela cheia" i]','button[title*="tela cheia" i]','button[aria-label*="fullscreen" i]','button[title*="fullscreen" i]','button[aria-label*="tela inteira" i]','button[title*="tela inteira" i]','#btnTela','#btn-tela','#fullscreen','#btnFullscreen','.btn-tela','.btn-fullscreen','button[aria-label~="som" i]','button[title~="som" i]','button[aria-label~="sound" i]','button[title~="sound" i]','button[aria-label~="mudo" i]','button[title~="mudo" i]','#btnSom','#btn-som','#btnSomJogo','#soundBtn'];
+      var css = seletores.join(',') + '{display:none!important}';
       var st = document.createElement('style'); st.textContent = css;
       (document.head || document.documentElement).appendChild(st);
-      var simbolos = ['\u26F6', '\u2922', '\u2921', '\u26F7', '\uD83D\uDD0A', '\uD83D\uDD09', '\uD83D\uDD08', '\uD83D\uDD07'];
+      var simbolos = ['⛶', '⤢', '⤡', '⛷', '🔊', '🔉', '🔈', '🔇'];
+      /* Esconde com estilo inline (vence qualquer CSS do jogo, mesmo com !important) */
+      function esconde(e){ if(e && e.style && e.style.getPropertyValue('display') !== 'none') e.style.setProperty('display', 'none', 'important'); }
       function limpa(){
+        for (var j = 0; j < seletores.length; j++){
+          var achados = document.querySelectorAll(seletores[j]);
+          for (var a = 0; a < achados.length; a++) esconde(achados[a]);
+        }
         var todos = document.querySelectorAll('body *');
         for (var i = 0; i < todos.length; i++){
           var e = todos[i];
-          if (e.children.length || e.style.display === 'none') continue;
-          var t = (e.textContent || '').replace(/[\uFE0E\uFE0F\s]/g, '');
+          if (e.children.length || (e.tagName !== 'BUTTON' && e.tagName !== 'SPAN' && e.tagName !== 'A')) continue;
+          var t = (e.textContent || '').replace(/[︎️\s]/g, '');
           if (!t || t.length > 4) continue;
-          var achou = false;
-          for (var k = 0; k < simbolos.length; k++){ if (t.indexOf(simbolos[k]) >= 0){ achou = true; break; } }
-          if (achou) e.style.setProperty('display', 'none', 'important');
+          for (var k = 0; k < simbolos.length; k++){ if (t.indexOf(simbolos[k]) >= 0){ esconde(e); break; } }
         }
       }
       limpa();
-      try{ new MutationObserver(limpa).observe(document.documentElement, {childList: true, subtree: true}); }catch(e){}
+      try{ new MutationObserver(limpa).observe(document.documentElement, {childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class']}); }catch(e){}
+      document.addEventListener('DOMContentLoaded', limpa);
+      window.addEventListener('load', limpa);
     })();
     var mudo = false, masters = [];
     window.__gamificaSomSet = function(m){ mudo = !!m; masters.forEach(function(g){ try{ g.gain.value = mudo ? 0 : 1; }catch(e){} }); try{ document.querySelectorAll('audio,video').forEach(function(x){ x.muted = mudo; }); }catch(e){} };
