@@ -243,6 +243,13 @@ window.JOGOS = {
     emoji: "🧊", cor: "verde",
     tipo: "simulador", conteudo: "Geometria espacial"
   },
+  "bioar-biologia-ar": {
+    nome: "BioAR · Biologia em Realidade Aumentada",
+    tema: "Biologia celular",
+    desc: "Células, DNA, vírus, bactérias, neurônio e hemácia em 3D: gire, corte, use o raio-X e toque nas estruturas para ver o nome e a função.",
+    emoji: "🧬", cor: "verde",
+    tipo: "simulador", conteudo: "Biologia celular"
+  },
   "demo-porcentagem": {
     nome: "Quiz de teste",
     tema: "Porcentagem",
